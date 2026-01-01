@@ -8,13 +8,24 @@
 ### Responsibilities
 - Application 클래스 정의
 - Hilt 앱 설정 (`@HiltAndroidApp`)
-- Navigation 그래프 설정
+- Navigation 그래프 설정 (ChordNavHost)
+- Bottom Navigation (ChordBottomNavBar)
 - 앱 테마 적용
 
 ### Dependencies
 - `feature-home`
 - `feature-onboarding`
+- `feature-auth`
+- `feature-setup`
+- `feature-menu`
 - `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `MainActivity` | Scaffold + Bottom Nav + NavHost 구성 |
+| `ChordNavHost` | 전체 네비게이션 그래프 |
+| `ChordBottomNavBar` | 4탭 Bottom Navigation (홈/메뉴/재료/AI코치) |
 
 ---
 
@@ -59,6 +70,118 @@
 
 ---
 
+## feature-auth
+
+### Purpose
+사용자 인증 (로그인/회원가입) 기능 제공
+
+### Responsibilities
+- 로그인 화면 UI (LoginScreen)
+- 회원가입 화면 UI (SignUpScreen)
+- 인증 상태 관리 (LoginViewModel, SignUpViewModel)
+- 입력 유효성 검사
+- 인증 관련 네비게이션
+
+### Dependencies
+- `core-domain`
+- `core-data`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `LoginScreen` | 로그인 화면 Composable |
+| `LoginViewModel` | 로그인 상태 관리 |
+| `SignUpScreen` | 회원가입 화면 Composable |
+| `SignUpViewModel` | 회원가입 상태 및 유효성 검사 |
+| `AuthTextField` | 비밀번호 토글 지원 입력 필드 컴포넌트 |
+
+---
+
+## feature-setup
+
+### Purpose
+신규 사용자 초기 설정 플로우 (매장 정보, 메뉴 등록)
+
+### Responsibilities
+- 매장 정보 입력 화면 (StoreInfoScreen)
+- 메뉴 입력 화면 (MenuEntryScreen)
+- 메뉴 관리 화면 (MenuManagementScreen)
+- 설정 완료 화면 (SetupCompleteScreen)
+- 초기 설정 네비게이션 그래프
+
+### Dependencies
+- `core-domain`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `StoreInfoScreen` | 매장 정보 입력 (매장명, 위치, 직원 수) |
+| `MenuEntryScreen` | 메뉴 입력 (카테고리, 가격, 재료, 제조시간) |
+| `MenuManagementScreen` | 등록된 메뉴 목록 관리 |
+| `SetupCompleteScreen` | 초기 설정 완료 화면 |
+| `SetupTextField` | 설정 화면용 입력 필드 컴포넌트 |
+| `SetupDropdown` | 드롭다운 선택 컴포넌트 |
+
+### Navigation Flow
+```
+로그인 "처음이신가요?" → StoreInfo → MenuManagement ↔ MenuEntry → SetupComplete → Home
+```
+
+---
+
+## feature-menu
+
+### Purpose
+메뉴 관리 기능 제공 (FR-003 구현)
+
+### Responsibilities
+- 메뉴 목록 화면 UI (MenuListScreen)
+- 메뉴 상세 화면 UI (MenuDetailScreen)
+- 원가 분석 카드 표시
+- 메뉴 상태 표시 (안전/주의/위험)
+- 카테고리 필터링
+- 재료 목록 표시
+
+### Dependencies
+- `core-domain`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `MenuListScreen` | 메뉴 목록 화면 (카테고리 칩, 상태 배지) |
+| `MenuListViewModel` | 메뉴 목록 상태 관리 (Mock 데이터) |
+| `MenuDetailScreen` | 메뉴 상세 화면 (원가 분석, 재료 목록) |
+| `MenuDetailViewModel` | 메뉴 상세 상태 관리 |
+| `MenuStatusBadge` | 안전/주의/위험 상태 배지 컴포넌트 |
+| `CategoryChip` | 카테고리 필터 칩 컴포넌트 |
+| `CostAnalysisCard` | 원가/마진 분석 카드 컴포넌트 |
+| `IngredientListItem` | 재료 목록 항목 컴포넌트 |
+
+### Data Models (Feature-local)
+```kotlin
+data class MenuItemUi(
+    val id: Long,
+    val name: String,
+    val sellingPrice: Int,
+    val costRatio: Float,
+    val marginRatio: Float,
+    val status: MenuStatus
+)
+
+enum class MenuStatus { SAFE, WARNING, DANGER }
+```
+
+### Navigation
+| Route | Screen | Parameters |
+|-------|--------|------------|
+| `menu_list` | MenuListScreen | - |
+| `menu_detail/{menuId}` | MenuDetailScreen | menuId: Long |
+
+---
+
 ## core-common
 
 ### Purpose
@@ -89,6 +212,13 @@
 - `core-domain`
 - `core-common`
 
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `OnboardingRepositoryImpl` | DataStore 기반 온보딩 상태 저장 |
+| `AuthRepositoryImpl` | DataStore 기반 인증 상태 관리 (MVP Mock) |
+| `DataModule` | Hilt 모듈 (Repository 바인딩) |
+
 ---
 
 ## core-domain
@@ -104,6 +234,16 @@
 ### Dependencies
 - `core-common`
 
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `OnboardingRepository` | 온보딩 완료 상태 관리 인터페이스 |
+| `AuthRepository` | 인증 상태 관리 인터페이스 |
+| `User` | 사용자 도메인 모델 |
+| `AuthToken` | 인증 토큰 모델 |
+| `AuthResult` | 인증 결과 sealed interface |
+| `AuthState` | 인증 상태 (Loading, Authenticated, Unauthenticated) |
+
 ---
 
 ## core-ui
@@ -118,6 +258,14 @@
 
 ### Dependencies
 - `core-common`
+
+### Color System
+| Category | Colors | Usage |
+|----------|--------|-------|
+| Primary | PrimaryBlue100~900 | 주요 액션, 활성 상태 |
+| Grayscale | Grayscale100~900 | 배경, 텍스트, 보더 |
+| Status | StatusSafe, StatusWarning, StatusDanger | 메뉴 상태 표시 |
+| StatusBg | StatusSafeBg, StatusWarningBg, StatusDangerBg | 상태 배지 배경 |
 
 ---
 
@@ -141,4 +289,5 @@
 | `chord.kotlin.library` | 순수 Kotlin 모듈 |
 
 ---
-*Last Updated: 2026-01-02*
+
+*Last Updated: 2026-01-02 (feature-menu 추가)*
