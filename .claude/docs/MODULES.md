@@ -13,6 +13,7 @@
 
 ### Dependencies
 - `feature-home`
+- `feature-onboarding`
 - `core-ui`
 
 ---
@@ -30,6 +31,31 @@
 ### Dependencies
 - `core-domain`
 - `core-ui`
+
+---
+
+## feature-onboarding
+
+### Purpose
+온보딩 플로우 제공 (신규 사용자 서비스 소개)
+
+### Responsibilities
+- 서비스 소개 슬라이드 UI (OnboardingScreen)
+- 온보딩 상태 관리 (OnboardingViewModel)
+- 온보딩 완료 처리 및 네비게이션
+
+### Dependencies
+- `core-domain`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `OnboardingScreen` | 온보딩 화면 Composable (HorizontalPager 기반) |
+| `OnboardingViewModel` | 페이지 상태 및 완료 처리 관리 |
+| `OnboardingUiState` | 현재 페이지, 총 페이지, 완료 상태 |
+| `OnboardingPage` | 개별 슬라이드 페이지 컴포넌트 |
+| `PageIndicator` | 페이지 인디케이터 컴포넌트 |
 
 ---
 
@@ -115,4 +141,4 @@
 | `chord.kotlin.library` | 순수 Kotlin 모듈 |
 
 ---
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-01-02*

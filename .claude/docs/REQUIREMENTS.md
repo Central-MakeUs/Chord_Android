@@ -50,7 +50,7 @@
 ## 2. 온보딩 (Onboarding)
 
 ### Status
-`Planned`
+`In Progress`
 
 ### Overview
 사용자가 앱을 처음 실행할 때 원가 분석의 중요성을 이해하고, 최소 1개 이상의 메뉴를 등록할 수 있도록 안내하는 플로우.
@@ -61,28 +61,32 @@
 - As a 기존 사장님, I want to 빠르게 메뉴를 등록하고 싶다 so that 바로 분석 결과를 볼 수 있다.
 
 ### Functional Requirements
-| ID | Requirement | Priority | Acceptance Criteria |
-|----|-------------|----------|---------------------|
-| FR-002-001 | 서비스 소개 화면 표시 | High | 스와이프 가능한 3-4장의 소개 슬라이드 |
-| FR-002-002 | 교육 콘텐츠 제공 (스킵 가능) | Medium | "원가 바로 알기" 섹션, 스킵 버튼 제공 |
-| FR-002-003 | 원가 구성 항목 설명 | Medium | 원가에 포함되는 항목 체크리스트 |
-| FR-002-004 | 카페 원가 평균 벤치마크 | Medium | 업종별 평균 원가율 정보 제공 |
-| FR-002-005 | "원가를 모르면 수익이 없다" 시각화 | Low | 인포그래픽 또는 간단한 애니메이션 |
-| FR-002-006 | 매장 정보 입력 | High | 매장명, 업종, 주요 비용 입력 |
-| FR-002-007 | 최소 1개 메뉴 필수 입력 | High | 메뉴명, 판매가, 재료(선택) 입력 후 시작 |
-| FR-002-008 | 템플릿 기반 빠른 메뉴 생성 | Medium | "아메리카노", "카페라떼" 등 기본 템플릿 제공 |
+| ID | Requirement | Priority | Status | Acceptance Criteria |
+|----|-------------|----------|--------|---------------------|
+| FR-002-001 | 서비스 소개 화면 표시 | High | ✅ Done | 스와이프 가능한 3장의 소개 슬라이드 |
+
+### Implementation Details (FR-002-001)
+
+#### 구현된 슬라이드 내용
+1. **Page 1**: "원가율이 만드는 것" - 원가율 5%에 따라 월수익 100~300만원의 차이가 발생해요
+2. **Page 2**: "코치코치가 대신 해드려요" - 어렵고 귀찮은 원가 관리부터 우리 가게 전략 설계까지!
+3. **Page 3**: "메뉴와 재료만 알려주세요" - 바로 수익 진단을 내려드릴게요. 복잡한건 코치코치에게 맡기세요
+
+#### 구현된 컴포넌트
+- `OnboardingScreen`: HorizontalPager 기반 슬라이드 UI
+- `OnboardingPage`: 개별 페이지 컴포넌트 (제목 + 설명)
+- `PageIndicator`: 현재 페이지 위치 표시
+- `OnboardingViewModel`: 페이지 상태 및 완료 처리 관리
+- `OnboardingRepository`: DataStore 기반 완료 상태 저장
 
 ### Non-Functional Requirements
-| Category | Requirement |
-|----------|-------------|
-| UX | 온보딩 전체 플로우 5분 이내 완료 가능 |
-| 접근성 | 교육 콘텐츠 스킵 옵션 필수 |
-| 데이터 | 온보딩 중 입력 데이터 로컬 임시 저장 |
+| Category | Requirement | Status |
+|----------|-------------|--------|
+| UX | 온보딩 전체 플로우 5분 이내 완료 가능 | ✅ (현재 구현된 소개 화면은 1분 이내) |
 
 ### Technical Considerations
-- OnboardingViewModel에서 단계별 상태 관리
-- DataStore를 사용한 온보딩 완료 상태 저장
-- 템플릿 데이터는 로컬 JSON 또는 Room 초기 데이터로 관리
+- ✅ OnboardingViewModel에서 단계별 상태 관리
+- ✅ DataStore를 사용한 온보딩 완료 상태 저장 (OnboardingRepository)
 
 ### Open Questions
 - [ ] 교육 콘텐츠 분량 및 형식 확정 필요
@@ -753,4 +757,4 @@ feature-* → core-domain ← core-data ← core-database
 
 ---
 
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-01-02*
