@@ -7,14 +7,17 @@ Chord는 **"수익 전략 코치 (Profit Strategy Coach)"** Android 애플리케
 ## Layer Structure
 
 ```
-app/                    # Application layer - DI 설정, 앱 진입점
-├── feature/            # Feature modules (화면별 분리)
-│   └── feature-home/   # 홈 화면 모듈
-└── core/               # Core modules (공유 기능)
-    ├── core-common/    # 공통 유틸리티
-    ├── core-data/      # 데이터 레이어 (Repository 구현)
-    ├── core-domain/    # 도메인 레이어 (UseCase, Entity)
-    └── core-ui/        # UI 컴포넌트 (Compose)
+app/                        # Application layer - DI 설정, 앱 진입점
+├── feature/                # Feature modules (화면별 분리)
+│   ├── feature-home/       # 홈 화면 모듈
+│   ├── feature-onboarding/ # 온보딩 플로우
+│   ├── feature-auth/       # 로그인/회원가입
+│   └── feature-setup/      # 초기 설정 (매장정보, 메뉴등록)
+└── core/                   # Core modules (공유 기능)
+    ├── core-common/        # 공통 유틸리티
+    ├── core-data/          # 데이터 레이어 (Repository 구현)
+    ├── core-domain/        # 도메인 레이어 (UseCase, Entity)
+    └── core-ui/            # UI 컴포넌트 (Compose)
 ```
 
 ## Dependency Direction
@@ -55,4 +58,4 @@ feature-* → core-domain ← core-data
 | `chord.jvm.library` | 순수 Kotlin 모듈 |
 
 ---
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-01-02*

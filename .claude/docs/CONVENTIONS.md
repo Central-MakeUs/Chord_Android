@@ -81,4 +81,4 @@ feature-home/
 4. **Dependency Injection**: 모든 의존성은 Hilt로 주입
 
 ---
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-01-02*

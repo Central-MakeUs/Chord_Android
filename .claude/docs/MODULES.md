@@ -8,12 +8,14 @@
 ### Responsibilities
 - Application 클래스 정의
 - Hilt 앱 설정 (`@HiltAndroidApp`)
-- Navigation 그래프 설정
+- Navigation 그래프 설정 (ChordNavHost)
 - 앱 테마 적용
 
 ### Dependencies
 - `feature-home`
 - `feature-onboarding`
+- `feature-auth`
+- `feature-setup`
 - `core-ui`
 
 ---
@@ -59,6 +61,67 @@
 
 ---
 
+## feature-auth
+
+### Purpose
+사용자 인증 (로그인/회원가입) 기능 제공
+
+### Responsibilities
+- 로그인 화면 UI (LoginScreen)
+- 회원가입 화면 UI (SignUpScreen)
+- 인증 상태 관리 (LoginViewModel, SignUpViewModel)
+- 입력 유효성 검사
+- 인증 관련 네비게이션
+
+### Dependencies
+- `core-domain`
+- `core-data`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `LoginScreen` | 로그인 화면 Composable |
+| `LoginViewModel` | 로그인 상태 관리 |
+| `SignUpScreen` | 회원가입 화면 Composable |
+| `SignUpViewModel` | 회원가입 상태 및 유효성 검사 |
+| `AuthTextField` | 비밀번호 토글 지원 입력 필드 컴포넌트 |
+
+---
+
+## feature-setup
+
+### Purpose
+신규 사용자 초기 설정 플로우 (매장 정보, 메뉴 등록)
+
+### Responsibilities
+- 매장 정보 입력 화면 (StoreInfoScreen)
+- 메뉴 입력 화면 (MenuEntryScreen)
+- 메뉴 관리 화면 (MenuManagementScreen)
+- 설정 완료 화면 (SetupCompleteScreen)
+- 초기 설정 네비게이션 그래프
+
+### Dependencies
+- `core-domain`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `StoreInfoScreen` | 매장 정보 입력 (매장명, 위치, 직원 수) |
+| `MenuEntryScreen` | 메뉴 입력 (카테고리, 가격, 재료, 제조시간) |
+| `MenuManagementScreen` | 등록된 메뉴 목록 관리 |
+| `SetupCompleteScreen` | 초기 설정 완료 화면 |
+| `SetupTextField` | 설정 화면용 입력 필드 컴포넌트 |
+| `SetupDropdown` | 드롭다운 선택 컴포넌트 |
+
+### Navigation Flow
+```
+로그인 "처음이신가요?" → StoreInfo → MenuManagement ↔ MenuEntry → SetupComplete → Home
+```
+
+---
+
 ## core-common
 
 ### Purpose
@@ -89,6 +152,13 @@
 - `core-domain`
 - `core-common`
 
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `OnboardingRepositoryImpl` | DataStore 기반 온보딩 상태 저장 |
+| `AuthRepositoryImpl` | DataStore 기반 인증 상태 관리 (MVP Mock) |
+| `DataModule` | Hilt 모듈 (Repository 바인딩) |
+
 ---
 
 ## core-domain
@@ -103,6 +173,16 @@
 
 ### Dependencies
 - `core-common`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `OnboardingRepository` | 온보딩 완료 상태 관리 인터페이스 |
+| `AuthRepository` | 인증 상태 관리 인터페이스 |
+| `User` | 사용자 도메인 모델 |
+| `AuthToken` | 인증 토큰 모델 |
+| `AuthResult` | 인증 결과 sealed interface |
+| `AuthState` | 인증 상태 (Loading, Authenticated, Unauthenticated) |
 
 ---
 
@@ -141,4 +221,5 @@
 | `chord.kotlin.library` | 순수 Kotlin 모듈 |
 
 ---
+
 *Last Updated: 2026-01-02*
