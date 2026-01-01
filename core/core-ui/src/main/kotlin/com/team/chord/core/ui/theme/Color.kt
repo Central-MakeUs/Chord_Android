@@ -1,4 +1,4 @@
-package com.team.chord.ui.theme
+package com.team.chord.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
