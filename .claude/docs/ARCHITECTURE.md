@@ -79,4 +79,4 @@ Scaffold(
 | AI코치 | (planned) | feature-strategy |
 
 ---
-*Last Updated: 2026-01-02 (Bottom Navigation, feature-menu 추가)*
+*Last Updated: 2025-12-31*
