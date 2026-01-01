@@ -21,3 +21,11 @@ val Grayscale600 = Color(0xFF6F7B8C)
 val Grayscale700 = Color(0xFF4B5568)
 val Grayscale800 = Color(0xFF2F3747)
 val Grayscale900 = Color(0xFF151B26)
+
+// Status Colors
+val StatusSafe = Color(0xFF34C759)
+val StatusSafeBackground = Color(0xFFE8F8ED)
+val StatusWarning = Color(0xFFFF9500)
+val StatusWarningBackground = Color(0xFFFFF4E5)
+val StatusDanger = Color(0xFFFF3B30)
+val StatusDangerBackground = Color(0xFFFFEBEA)
