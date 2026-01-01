@@ -17,6 +17,11 @@ import com.team.chord.feature.auth.navigation.signUpScreen
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToHome
+import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
+import com.team.chord.feature.menu.navigation.menuDetailScreen
+import com.team.chord.feature.menu.navigation.menuListScreen
+import com.team.chord.feature.menu.navigation.navigateToMenuDetail
+import com.team.chord.feature.menu.navigation.navigateToMenuList
 import com.team.chord.feature.onboarding.navigation.ONBOARDING_ROUTE
 import com.team.chord.feature.onboarding.navigation.onboardingScreen
 import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
@@ -99,5 +104,17 @@ fun ChordNavHost(
         )
 
         homeScreen()
+
+        menuListScreen(
+            onNavigateToDetail = { menuId ->
+                navController.navigateToMenuDetail(menuId)
+            },
+        )
+
+        menuDetailScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
     }
 }
