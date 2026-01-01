@@ -8,11 +8,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
+import com.team.chord.feature.auth.navigation.LOGIN_ROUTE
+import com.team.chord.feature.auth.navigation.SIGNUP_ROUTE
+import com.team.chord.feature.auth.navigation.loginScreen
+import com.team.chord.feature.auth.navigation.navigateToLogin
+import com.team.chord.feature.auth.navigation.navigateToSignUp
+import com.team.chord.feature.auth.navigation.signUpScreen
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToHome
 import com.team.chord.feature.onboarding.navigation.ONBOARDING_ROUTE
 import com.team.chord.feature.onboarding.navigation.onboardingScreen
+import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
+import com.team.chord.feature.setup.navigation.navigateToSetupGraph
+import com.team.chord.feature.setup.navigation.setupGraph
 
 @Composable
 fun ChordNavHost(
@@ -20,13 +29,18 @@ fun ChordNavHost(
     modifier: Modifier = Modifier,
     viewModel: ChordNavHostViewModel = hiltViewModel(),
 ) {
-    val isOnboardingCompleted by viewModel.isOnboardingCompleted.collectAsStateWithLifecycle()
+    val navigationState by viewModel.navigationState.collectAsStateWithLifecycle()
 
-    if (isOnboardingCompleted == null) {
+    if (navigationState is NavigationState.Loading) {
         return
     }
 
-    val startDestination = if (isOnboardingCompleted == true) HOME_ROUTE else ONBOARDING_ROUTE
+    val startDestination =
+        when ((navigationState as NavigationState.Ready).startDestination) {
+            StartDestination.ONBOARDING -> ONBOARDING_ROUTE
+            StartDestination.LOGIN -> LOGIN_ROUTE
+            StartDestination.HOME -> HOME_ROUTE
+        }
 
     NavHost(
         navController = navController,
@@ -35,7 +49,7 @@ fun ChordNavHost(
     ) {
         onboardingScreen(
             onComplete = {
-                navController.navigateToHome(
+                navController.navigateToLogin(
                     navOptions =
                         navOptions {
                             popUpTo(ONBOARDING_ROUTE) { inclusive = true }
@@ -43,6 +57,47 @@ fun ChordNavHost(
                 )
             },
         )
+
+        loginScreen(
+            onLoginSuccess = {
+                navController.navigateToHome(
+                    navOptions =
+                        navOptions {
+                            popUpTo(LOGIN_ROUTE) { inclusive = true }
+                        },
+                )
+            },
+            onNavigateToSignUp = {
+                navController.navigateToSetupGraph()
+            },
+        )
+
+        signUpScreen(
+            onSignUpSuccess = {
+                navController.navigateToHome(
+                    navOptions =
+                        navOptions {
+                            popUpTo(0) { inclusive = true }
+                        },
+                )
+            },
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
+
+        setupGraph(
+            navController = navController,
+            onSetupComplete = {
+                navController.navigateToHome(
+                    navOptions =
+                        navOptions {
+                            popUpTo(0) { inclusive = true }
+                        },
+                )
+            },
+        )
+
         homeScreen()
     }
 }

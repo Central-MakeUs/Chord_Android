@@ -33,6 +33,8 @@ dependencies {
     implementation(projects.core.coreUi)
     implementation(projects.feature.featureHome)
     implementation(projects.feature.featureOnboarding)
+    implementation(projects.feature.featureAuth)
+    implementation(projects.feature.featureSetup)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
