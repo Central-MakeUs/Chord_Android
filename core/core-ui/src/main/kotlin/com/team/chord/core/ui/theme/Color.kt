@@ -2,10 +2,22 @@ package com.team.chord.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val PrimaryBlue100 = Color(0xFFEEF4FF)
+val PrimaryBlue200 = Color(0xFFD9E6FF)
+val PrimaryBlue300 = Color(0xFFB7CCFF)
+val PrimaryBlue400 = Color(0xFF7FA4FF)
+val PrimaryBlue500 = Color(0xFF4C7DFF)
+val PrimaryBlue600 = Color(0xFF2F5BFF)
+val PrimaryBlue700 = Color(0xFF2448D8)
+val PrimaryBlue800 = Color(0xFF1D3BB0)
+val PrimaryBlue900 = Color(0xFF142A7A)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val Grayscale100 = Color(0xFFFFFFFF)
+val Grayscale200 = Color(0xFFF5F7FB)
+val Grayscale300 = Color(0xFFE6EBF2)
+val Grayscale400 = Color(0xFFC9D1DE)
+val Grayscale500 = Color(0xFF9AA6B6)
+val Grayscale600 = Color(0xFF6F7B8C)
+val Grayscale700 = Color(0xFF4B5568)
+val Grayscale800 = Color(0xFF2F3747)
+val Grayscale900 = Color(0xFF151B26)
