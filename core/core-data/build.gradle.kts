@@ -10,4 +10,6 @@ android {
 dependencies {
     implementation(projects.core.coreDomain)
     implementation(projects.core.coreCommon)
+
+    implementation(libs.androidx.datastore.preferences)
 }
