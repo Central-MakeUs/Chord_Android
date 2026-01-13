@@ -54,7 +54,8 @@ fun NavGraphBuilder.setupGraph(
         composable(route = STORE_INFO_ROUTE) {
             StoreInfoScreen(
                 onNavigateToMenuEntry = {
-                    navController.navigateToMenuManagement()
+//                    navController.navigateToMenuManagement()
+                    navController.navigateToSetupComplete()
                 },
                 onBackClick = {
                     navController.popBackStack()

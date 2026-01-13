@@ -26,8 +26,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.delay
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -423,6 +425,11 @@ private fun CompletedContent(
     employeeCount: Int,
     onNavigateToMenuEntry: () -> Unit,
 ) {
+    LaunchedEffect(Unit) {
+        delay(2000L)
+        onNavigateToMenuEntry()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
