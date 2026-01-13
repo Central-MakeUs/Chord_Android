@@ -25,13 +25,24 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ### Type Prefix
 | Type | Description |
 |------|-------------|
-| `feat` | 새로운 기능 추가 |
+| `feat` | 새로운 기능 추가 (새 파일 생성, 새 기능 구현) |
 | `fix` | 버그 수정 |
 | `docs` | 문서 변경 |
 | `style` | 코드 포맷팅 (기능 변경 없음) |
-| `refactor` | 코드 리팩토링 |
+| `refactor` | 코드 리팩토링 (기존 코드 구조 변경, UI 레이아웃 수정 등) |
 | `test` | 테스트 추가/수정 |
 | `chore` | 빌드, 설정 파일 변경 |
+
+### feat vs refactor 구분
+| 상황 | Type | 예시 |
+|------|------|------|
+| 새 파일/컴포넌트 생성 | `feat` | 새로운 ChordDialog.kt 파일 추가 |
+| 기존 화면 레이아웃 수정 | `refactor` | MenuManagementScreen UI 구조 변경 |
+| 새 기능 동작 추가 | `feat` | 삭제 확인 다이얼로그 기능 추가 |
+| 기존 코드 구조 개선 | `refactor` | 함수 분리, 코드 정리 |
+| 기존 화면에 새 UI 적용 | `refactor` | 기존 화면에 디자인 시스템 적용 |
+
+**핵심**: 기존 파일의 구조/레이아웃을 변경하는 것은 `refactor`, 완전히 새로운 기능을 추가하는 것은 `feat`
 
 ### Subject Rules
 - 한글 또는 영문 사용 (프로젝트 컨벤션 따름)
@@ -115,4 +126,4 @@ git status --short
 
 ---
 
-*Last Updated: 2026-01-13*
+*Last Updated: 2026-01-13 (feat vs refactor 구분 가이드 추가)*
