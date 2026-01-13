@@ -207,11 +207,15 @@ private fun MenuDetailContent(
                 .background(Grayscale200),
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
         // 마진등급 카드
         MarginGradeCard(
             marginGrade = menuDetail.marginGrade,
             modifier = Modifier.padding(horizontal = 20.dp),
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // 권장가격 섹션 (있는 경우만)
         if (menuDetail.recommendedPrice != null) {
@@ -235,6 +239,7 @@ private fun MenuDetailContent(
                     message = menuDetail.recommendedPriceMessage,
                 )
             }
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         // Divider
@@ -244,6 +249,8 @@ private fun MenuDetailContent(
                 .height(10.dp)
                 .background(Grayscale200),
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 재료 섹션
         Column(

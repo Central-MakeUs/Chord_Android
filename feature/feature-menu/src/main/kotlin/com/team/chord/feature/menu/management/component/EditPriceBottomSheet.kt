@@ -10,6 +10,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTextField
+import com.team.chord.core.ui.theme.Grayscale700
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -41,11 +42,13 @@ fun EditPriceBottomSheet(
                 unitText = "원",
                 keyboardType = KeyboardType.Number,
                 onClear = { priceText = "" },
+                cornerRadius = 24,
+                borderColor = Grayscale700,
             )
         },
         confirmButton = {
             ChordLargeButton(
-                text = "확인",
+                text = "완료",
                 onClick = {
                     val price = priceText.filter { it.isDigit() }.toIntOrNull() ?: 0
                     onConfirm(price)

@@ -13,22 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -40,16 +29,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
+import com.team.chord.core.ui.component.ChordOutlinedButton
 import com.team.chord.core.ui.component.ChordRadioGroup
+import com.team.chord.core.ui.component.ChordTopAppBarWithBackTitle
+import com.team.chord.core.ui.component.ChordOneButtonDialog
+import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.component.RadioOption
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
-import com.team.chord.core.ui.theme.StatusDanger
 import com.team.chord.feature.menu.management.component.EditMenuNameBottomSheet
 import com.team.chord.feature.menu.management.component.EditPriceBottomSheet
 import com.team.chord.feature.menu.management.component.EditPreparationTimeBottomSheet
@@ -80,12 +74,15 @@ fun MenuManagementScreen(
         onCategorySelected = viewModel::updateCategory,
         onShowDeleteDialog = viewModel::showDeleteDialog,
         onHideDeleteDialog = viewModel::hideDeleteDialog,
-        onConfirmDelete = { viewModel.deleteMenu(onMenuDeleted) },
+        onConfirmDelete = viewModel::deleteMenu,
+        onConfirmDeleteSuccess = {
+            viewModel.hideDeleteSuccessDialog()
+            onMenuDeleted()
+        },
         modifier = modifier,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MenuManagementScreenContent(
     uiState: MenuManagementUiState,
@@ -103,6 +100,7 @@ internal fun MenuManagementScreenContent(
     onShowDeleteDialog: () -> Unit,
     onHideDeleteDialog: () -> Unit,
     onConfirmDelete: () -> Unit,
+    onConfirmDeleteSuccess: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
@@ -112,28 +110,9 @@ internal fun MenuManagementScreenContent(
             .fillMaxSize()
             .background(Grayscale100),
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = "관리",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Grayscale900,
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "뒤로 가기",
-                        tint = Grayscale900,
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Grayscale100,
-            ),
+        ChordTopAppBarWithBackTitle(
+            title = "관리",
+            onBackClick = onNavigateBack,
         )
 
         if (uiState.isLoading) {
@@ -147,18 +126,15 @@ internal fun MenuManagementScreenContent(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp),
+                    .verticalScroll(rememberScrollState()),
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-
                 // 메뉴명 섹션
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onShowNameBottomSheet() }
-                        .padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -172,18 +148,26 @@ internal fun MenuManagementScreenContent(
                         painter = painterResource(R.drawable.ic_edit),
                         contentDescription = "메뉴명 수정",
                         modifier = Modifier.size(20.dp),
-                        tint = Grayscale500,
+                        tint = Grayscale600,
                     )
                 }
 
-                HorizontalDivider(color = Grayscale300)
+                // 구분선 (스페이서)
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp)
+                        .background(Grayscale200),
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
 
                 // 가격 섹션
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onShowPriceBottomSheet() }
-                        .padding(vertical = 16.dp),
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -191,33 +175,41 @@ internal fun MenuManagementScreenContent(
                         Text(
                             text = "가격",
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp,
-                            color = Grayscale500,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp,
+                            color = Grayscale700,
                         )
-                        Text(
-                            text = "${numberFormat.format(uiState.price)}원",
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 16.sp,
-                            color = Grayscale900,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "${numberFormat.format(uiState.price)}원",
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 20.sp,
+                                color = Grayscale900,
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_right),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = Grayscale700,
+                            )
+                        }
                     }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = "가격 수정",
-                        tint = Grayscale500,
-                    )
                 }
 
-                HorizontalDivider(color = Grayscale300)
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = Grayscale300,
+                )
 
                 // 제조시간 섹션
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onShowTimeBottomSheet() }
-                        .padding(vertical = 16.dp),
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -225,26 +217,34 @@ internal fun MenuManagementScreenContent(
                         Text(
                             text = "제조시간",
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 14.sp,
-                            color = Grayscale500,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp,
+                            color = Grayscale700,
                         )
-                        Text(
-                            text = formatTime(uiState.preparationTimeSeconds),
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 16.sp,
-                            color = Grayscale900,
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = formatTime(uiState.preparationTimeSeconds),
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 20.sp,
+                                color = Grayscale900,
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_right),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp),
+                                tint = Grayscale500,
+                            )
+                        }
                     }
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = "제조시간 수정",
-                        tint = Grayscale500,
-                    )
                 }
 
-                HorizontalDivider(color = Grayscale300)
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    color = Grayscale300,
+                )
 
                 // 카테고리 섹션
                 Spacer(modifier = Modifier.height(16.dp))
@@ -252,35 +252,27 @@ internal fun MenuManagementScreenContent(
                 Text(
                     text = "카테고리",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = Grayscale500,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Grayscale700,
+                    modifier = Modifier.padding(horizontal = 20.dp),
                 )
 
                 ChordRadioGroup(
                     options = uiState.categories.map { RadioOption(it.id.toString(), it.name) },
                     selectedOptionId = uiState.selectedCategoryId.toString(),
                     onOptionSelected = { id -> onCategorySelected(id.toLong()) },
+                    modifier = Modifier.padding(horizontal = 20.dp),
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 // 메뉴 삭제 버튼
-                OutlinedButton(
+                ChordOutlinedButton(
+                    text = "메뉴 삭제",
                     onClick = onShowDeleteDialog,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 24.dp),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text(
-                        text = "메뉴 삭제",
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
-                        color = Grayscale600,
-                    )
-                }
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
+                )
             }
         }
     }
@@ -312,40 +304,21 @@ internal fun MenuManagementScreenContent(
 
     // Delete Dialog
     if (uiState.showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = onHideDeleteDialog,
-            title = {
-                Text(
-                    text = "메뉴 삭제",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            },
-            text = {
-                Text(
-                    text = "'${uiState.menuName}'을(를) 삭제하시겠습니까?",
-                    fontFamily = PretendardFontFamily,
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = onConfirmDelete) {
-                    Text(
-                        text = "삭제",
-                        color = StatusDanger,
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onHideDeleteDialog) {
-                    Text(
-                        text = "취소",
-                        color = Grayscale600,
-                        fontFamily = PretendardFontFamily,
-                    )
-                }
-            },
+        ChordTwoButtonDialog(
+            title = "메뉴를 삭제하시겠어요?",
+            onDismiss = onHideDeleteDialog,
+            onConfirm = onConfirmDelete,
+            dismissText = "아니요",
+            confirmText = "삭제하기",
+        )
+    }
+
+    // Delete Success Dialog
+    if (uiState.showDeleteSuccessDialog) {
+        ChordOneButtonDialog(
+            title = "메뉴가 삭제 됐어요",
+            onConfirm = onConfirmDeleteSuccess,
+            confirmText = "확인",
         )
     }
 }

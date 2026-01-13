@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import com.team.chord.core.ui.component.ChordBottomSheet
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTextField
 
@@ -30,11 +31,13 @@ fun EditMenuNameBottomSheet(
                 placeholder = "메뉴명을 입력해주세요",
                 keyboardType = KeyboardType.Text,
                 onClear = { name = "" },
+                cornerRadius = 24,
+                borderColor = Grayscale700,
             )
         },
         confirmButton = {
             ChordLargeButton(
-                text = "확인",
+                text = "완료",
                 onClick = { onConfirm(name) },
                 enabled = name.isNotBlank(),
             )

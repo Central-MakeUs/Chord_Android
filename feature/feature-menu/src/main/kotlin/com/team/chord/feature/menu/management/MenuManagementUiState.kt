@@ -14,5 +14,6 @@ data class MenuManagementUiState(
     val showPriceBottomSheet: Boolean = false,
     val showTimeBottomSheet: Boolean = false,
     val showDeleteDialog: Boolean = false,
+    val showDeleteSuccessDialog: Boolean = false,
     val errorMessage: String? = null,
 )

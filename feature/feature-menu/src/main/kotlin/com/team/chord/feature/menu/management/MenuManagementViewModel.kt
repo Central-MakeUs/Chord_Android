@@ -73,6 +73,14 @@ class MenuManagementViewModel @Inject constructor(
         _uiState.update { it.copy(showDeleteDialog = false) }
     }
 
+    fun showDeleteSuccessDialog() {
+        _uiState.update { it.copy(showDeleteSuccessDialog = true) }
+    }
+
+    fun hideDeleteSuccessDialog() {
+        _uiState.update { it.copy(showDeleteSuccessDialog = false) }
+    }
+
     fun updateMenuName(name: String) {
         viewModelScope.launch {
             updateMenuNameUseCase(menuId, name).onSuccess {
@@ -122,10 +130,10 @@ class MenuManagementViewModel @Inject constructor(
         }
     }
 
-    fun deleteMenu(onDeleted: () -> Unit) {
+    fun deleteMenu() {
         viewModelScope.launch {
             deleteMenuUseCase(menuId).onSuccess {
-                onDeleted()
+                _uiState.update { it.copy(showDeleteDialog = false, showDeleteSuccessDialog = true) }
             }
         }
     }
