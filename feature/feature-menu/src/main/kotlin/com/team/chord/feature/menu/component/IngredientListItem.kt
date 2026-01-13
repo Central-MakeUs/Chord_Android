@@ -14,7 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.feature.menu.detail.IngredientUi
@@ -29,38 +31,46 @@ fun IngredientListItem(
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
 
     Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(2.dp),
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = ingredient.name,
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = Grayscale900,
+                color = Grayscale700,
             )
             Text(
-                text = ingredient.quantity,
+                text = formatQuantity(ingredient.quantity, ingredient.unit.displayName),
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Grayscale600,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Grayscale700,
             )
         }
         Text(
             text = "${numberFormat.format(ingredient.price)}원",
             fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
             fontSize = 16.sp,
-            color = Grayscale900,
+            color = Grayscale700,
         )
+    }
+}
+
+private fun formatQuantity(quantity: Double, unit: String): String {
+    return if (quantity == quantity.toLong().toDouble()) {
+        "(${quantity.toLong()}$unit)"
+    } else {
+        "($quantity$unit)"
     }
 }
 
@@ -73,28 +83,27 @@ fun IngredientTotalRow(
 
     Column(modifier = modifier.fillMaxWidth()) {
         HorizontalDivider(
-            color = Grayscale300,
+            color = Grayscale400,
             thickness = 1.dp,
         )
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "총 재료비 합계",
+                text = "총",
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Grayscale900,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Grayscale700,
             )
             Text(
                 text = "${numberFormat.format(totalPrice)}원",
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
                 color = Grayscale900,
             )

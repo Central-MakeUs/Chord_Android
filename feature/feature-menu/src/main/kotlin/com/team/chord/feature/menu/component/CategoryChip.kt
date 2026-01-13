@@ -13,27 +13,38 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
-import com.team.chord.feature.menu.list.MenuCategory
 
 @Composable
 fun CategoryChipRow(
-    selectedCategory: MenuCategory,
-    onCategorySelected: (MenuCategory) -> Unit,
+    categories: List<Category>,
+    selectedCategoryId: Long?,
+    onCategorySelected: (Long?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        MenuCategory.entries.forEach { category ->
+        // "전체" 칩
+        CategoryChip(
+            text = "전체",
+            isSelected = selectedCategoryId == null,
+            onClick = { onCategorySelected(null) },
+        )
+
+        // 카테고리 칩들
+        categories.forEach { category ->
             CategoryChip(
-                category = category,
-                isSelected = category == selectedCategory,
-                onClick = { onCategorySelected(category) },
+                text = category.name,
+                isSelected = category.id == selectedCategoryId,
+                onClick = { onCategorySelected(category.id) },
             )
         }
     }
@@ -41,22 +52,21 @@ fun CategoryChipRow(
 
 @Composable
 fun CategoryChip(
-    category: MenuCategory,
+    text: String,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val backgroundColor = if (isSelected) PrimaryBlue500 else Grayscale100
-    val textColor = if (isSelected) Grayscale100 else Grayscale600
+    val backgroundColor = if (isSelected) PrimaryBlue500 else Grayscale200
+    val textColor = if (isSelected) Grayscale100 else Grayscale900
 
     Text(
-        text = category.displayName,
-        modifier =
-            modifier
-                .clip(RoundedCornerShape(20.dp))
-                .background(backgroundColor)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+        text = text,
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(backgroundColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         fontFamily = PretendardFontFamily,
         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
         fontSize = 14.sp,

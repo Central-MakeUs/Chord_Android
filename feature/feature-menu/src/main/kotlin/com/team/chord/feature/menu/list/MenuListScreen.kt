@@ -15,38 +15,32 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.R
 import com.team.chord.core.ui.theme.Grayscale200
-import com.team.chord.core.ui.theme.Grayscale300
-import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.menu.component.CategoryChipRow
-import com.team.chord.feature.menu.component.MenuStatusBadge
+import com.team.chord.feature.menu.component.MenuListItem
 
 @Composable
 fun MenuListScreen(
     onNavigateToDetail: (Long) -> Unit,
+    onAddMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MenuListViewModel = hiltViewModel(),
 ) {
@@ -56,6 +50,7 @@ fun MenuListScreen(
         uiState = uiState,
         onCategorySelected = viewModel::onCategorySelected,
         onNavigateToDetail = onNavigateToDetail,
+        onAddMenuClick = onAddMenuClick,
         modifier = modifier,
     )
 }
@@ -63,82 +58,39 @@ fun MenuListScreen(
 @Composable
 internal fun MenuListScreenContent(
     uiState: MenuListUiState,
-    onCategorySelected: (MenuCategory) -> Unit,
+    onCategorySelected: (Long?) -> Unit,
     onNavigateToDetail: (Long) -> Unit,
+    onAddMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier =
-            modifier
-                .fillMaxSize()
-                .background(Grayscale200),
+        modifier = modifier
+            .fillMaxSize()
+            .background(Grayscale200),
     ) {
-        MenuListHeader()
+        MenuListHeader(
+            menuCount = uiState.menuItems.size,
+            onAddClick = onAddMenuClick,
+        )
 
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .background(
-                        color = Grayscale100,
-                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                    ).padding(horizontal = 20.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    color = Grayscale200,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                )
+                .padding(horizontal = 20.dp),
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CategoryChipRow(
-                    selectedCategory = uiState.selectedCategory,
-                    onCategorySelected = onCategorySelected,
-                )
-
-                Button(
-                    onClick = { },
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = PrimaryBlue500,
-                            contentColor = Grayscale100,
-                        ),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = ButtonDefaults.ContentPadding,
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Text(
-                        text = "추가",
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                    )
-                }
-            }
+            CategoryChipRow(
+                categories = uiState.categories,
+                selectedCategoryId = uiState.selectedCategoryId,
+                onCategorySelected = onCategorySelected,
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "총 ${uiState.menuItems.size}개",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = Grayscale600,
-                )
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(vertical = 12.dp),
-                color = Grayscale300,
-                thickness = 1.dp,
-            )
 
             if (uiState.isLoading) {
                 Box(
@@ -150,19 +102,19 @@ internal fun MenuListScreenContent(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     items(
                         items = uiState.menuItems,
                         key = { it.id },
                     ) { menuItem ->
                         MenuListItem(
-                            menuItem = menuItem,
+                            name = menuItem.name,
+                            price = menuItem.sellingPrice,
+                            costRatio = menuItem.costRatio,
+                            marginRatio = menuItem.marginRatio,
+                            marginGrade = menuItem.marginGrade,
                             onClick = { onNavigateToDetail(menuItem.id) },
-                        )
-                        HorizontalDivider(
-                            color = Grayscale300,
-                            thickness = 1.dp,
                         )
                     }
                 }
@@ -172,88 +124,55 @@ internal fun MenuListScreenContent(
 }
 
 @Composable
-private fun MenuListHeader(modifier: Modifier = Modifier) {
+private fun MenuListHeader(
+    menuCount: Int,
+    onAddClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .background(Grayscale200)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Grayscale200)
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = "메뉴",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            color = Grayscale900,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "메뉴 ",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = Grayscale900,
+            )
+            Text(
+                text = "$menuCount",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = PrimaryBlue500,
+            )
+        }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { },
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.clickable(onClick = onAddClick),
         ) {
             Text(
-                text = "관리",
+                text = "추가",
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
                 color = Grayscale600,
             )
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = "메뉴 추가",
                 tint = Grayscale600,
+                modifier = Modifier.size(12.dp),
             )
         }
     }
 }
 
-@Composable
-private fun MenuListItem(
-    menuItem: MenuItemUi,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .clickable(onClick = onClick)
-                .padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Text(
-                    text = menuItem.name,
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = Grayscale900,
-                )
-                MenuStatusBadge(status = menuItem.status)
-            }
-            Text(
-                text = "원가율 ${(menuItem.costRatio * 100).toInt()}% | 마진율 ${(menuItem.marginRatio * 100).toInt()}%",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Grayscale500,
-            )
-        }
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = "상세 보기",
-            tint = Grayscale500,
-        )
-    }
-}

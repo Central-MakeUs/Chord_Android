@@ -1,19 +1,15 @@
 package com.team.chord.feature.menu.list
 
+import com.team.chord.core.domain.model.menu.Category
+import com.team.chord.core.domain.model.menu.MarginGrade
+
 data class MenuListUiState(
     val isLoading: Boolean = false,
-    val selectedCategory: MenuCategory = MenuCategory.ALL,
+    val categories: List<Category> = emptyList(),
+    val selectedCategoryId: Long? = null,
     val menuItems: List<MenuItemUi> = emptyList(),
     val errorMessage: String? = null,
 )
-
-enum class MenuCategory(
-    val displayName: String,
-) {
-    ALL("전체"),
-    BEVERAGE("음료"),
-    DESSERT("디저트"),
-}
 
 data class MenuItemUi(
     val id: Long,
@@ -21,11 +17,5 @@ data class MenuItemUi(
     val sellingPrice: Int,
     val costRatio: Float,
     val marginRatio: Float,
-    val status: MenuStatus,
+    val marginGrade: MarginGrade,
 )
-
-enum class MenuStatus {
-    SAFE,
-    WARNING,
-    DANGER,
-}
