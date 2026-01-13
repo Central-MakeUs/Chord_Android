@@ -1,11 +1,17 @@
 package com.team.chord.feature.setup.storeinfo
 
 data class StoreInfoUiState(
+    val screenState: StoreInfoScreenState = StoreInfoScreenState.StoreNameInput,
     val storeName: String = "",
     val location: String = "",
-    val employeeCount: String = "",
-    val isEmployeeCountDropdownExpanded: Boolean = false,
-    val isNextEnabled: Boolean = false,
+    val employeeCount: Int = 1,
+    val isEmployeeCountBottomSheetVisible: Boolean = false,
+    val isConfirmEnabled: Boolean = false,
 )
 
-val employeeCountOptions = listOf("1명", "2명", "3명", "4명", "5명 이상")
+sealed interface StoreInfoScreenState {
+    data object StoreNameInput : StoreInfoScreenState
+    data object LocationInput : StoreInfoScreenState
+    data object Confirmation : StoreInfoScreenState
+    data object Completed : StoreInfoScreenState
+}

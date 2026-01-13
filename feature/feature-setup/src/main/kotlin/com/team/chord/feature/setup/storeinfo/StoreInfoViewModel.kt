@@ -17,43 +17,80 @@ class StoreInfoViewModel
 
         fun onStoreNameChanged(name: String) {
             _uiState.update {
-                it.copy(storeName = name).updateNextEnabled()
+                it.copy(storeName = name)
             }
         }
 
         fun onLocationChanged(location: String) {
             _uiState.update {
-                it.copy(location = location).updateNextEnabled()
+                it.copy(location = location).updateConfirmEnabled()
             }
         }
 
-        fun onEmployeeCountSelected(count: String) {
+        fun onLocationSelected(location: String) {
             _uiState.update {
-                it
-                    .copy(
-                        employeeCount = count,
-                        isEmployeeCountDropdownExpanded = false,
-                    ).updateNextEnabled()
+                it.copy(
+                    location = location,
+                    screenState = StoreInfoScreenState.Confirmation,
+                ).updateConfirmEnabled()
             }
         }
 
-        fun onEmployeeCountDropdownToggle() {
+        fun onStoreNameConfirmed() {
             _uiState.update {
-                it.copy(isEmployeeCountDropdownExpanded = !it.isEmployeeCountDropdownExpanded)
+                it.copy(screenState = StoreInfoScreenState.LocationInput)
             }
         }
 
-        fun onEmployeeCountDropdownDismiss() {
+        fun onConfirmClicked() {
             _uiState.update {
-                it.copy(isEmployeeCountDropdownExpanded = false)
+                it.copy(isEmployeeCountBottomSheetVisible = true)
             }
         }
 
-        private fun StoreInfoUiState.updateNextEnabled(): StoreInfoUiState =
+        fun onEmployeeCountIncrement() {
+            _uiState.update {
+                it.copy(employeeCount = it.employeeCount + 1)
+            }
+        }
+
+        fun onEmployeeCountDecrement() {
+            _uiState.update {
+                if (it.employeeCount > 1) {
+                    it.copy(employeeCount = it.employeeCount - 1)
+                } else {
+                    it
+                }
+            }
+        }
+
+        fun onEmployeeCountBottomSheetDismiss() {
+            _uiState.update {
+                it.copy(isEmployeeCountBottomSheetVisible = false)
+            }
+        }
+
+        fun onCompleteClicked() {
+            _uiState.update {
+                it.copy(
+                    isEmployeeCountBottomSheetVisible = false,
+                    screenState = StoreInfoScreenState.Completed,
+                )
+            }
+        }
+
+        fun onBackClicked() {
+            _uiState.update {
+                when (it.screenState) {
+                    StoreInfoScreenState.LocationInput -> it.copy(screenState = StoreInfoScreenState.StoreNameInput)
+                    StoreInfoScreenState.Confirmation -> it.copy(screenState = StoreInfoScreenState.LocationInput)
+                    else -> it
+                }
+            }
+        }
+
+        private fun StoreInfoUiState.updateConfirmEnabled(): StoreInfoUiState =
             copy(
-                isNextEnabled =
-                    storeName.isNotBlank() &&
-                        location.isNotBlank() &&
-                        employeeCount.isNotBlank(),
+                isConfirmEnabled = storeName.isNotBlank() && location.isNotBlank(),
             )
     }

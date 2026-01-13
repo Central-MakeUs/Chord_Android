@@ -56,6 +56,9 @@ fun NavGraphBuilder.setupGraph(
                 onNavigateToMenuEntry = {
                     navController.navigateToMenuManagement()
                 },
+                onBackClick = {
+                    navController.popBackStack()
+                },
             )
         }
 
