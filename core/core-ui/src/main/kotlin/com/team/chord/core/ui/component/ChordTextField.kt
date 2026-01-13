@@ -17,6 +17,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,8 +43,68 @@ import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.core.ui.theme.StatusDanger
 
+/**
+ * TextField 스타일 variant
+ */
+enum class ChordTextFieldStyle {
+    /** 둥근 테두리가 있는 박스 스타일 (기본값) */
+    Outlined,
+    /** 하단 언더라인만 있는 스타일 */
+    Underline,
+}
+
 @Composable
 fun ChordTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    style: ChordTextFieldStyle = ChordTextFieldStyle.Outlined,
+    placeholder: String = "",
+    unitText: String? = null,
+    isError: Boolean = false,
+    errorMessage: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    onClear: (() -> Unit)? = null,
+    cornerRadius: Int = 8,
+    borderColor: Color = Grayscale300,
+    focusedBorderColor: Color = PrimaryBlue500,
+) {
+    when (style) {
+        ChordTextFieldStyle.Outlined -> ChordOutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            placeholder = placeholder,
+            unitText = unitText,
+            isError = isError,
+            errorMessage = errorMessage,
+            keyboardType = keyboardType,
+            keyboardActions = keyboardActions,
+            onClear = onClear,
+            cornerRadius = cornerRadius,
+            borderColor = borderColor,
+            focusedBorderColor = focusedBorderColor,
+        )
+        ChordTextFieldStyle.Underline -> ChordUnderlineTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier,
+            placeholder = placeholder,
+            unitText = unitText,
+            isError = isError,
+            errorMessage = errorMessage,
+            keyboardType = keyboardType,
+            keyboardActions = keyboardActions,
+            onClear = onClear,
+            borderColor = borderColor,
+            focusedBorderColor = focusedBorderColor,
+        )
+    }
+}
+
+@Composable
+private fun ChordOutlinedTextField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -107,8 +168,8 @@ fun ChordTextField(
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = TextStyle(
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 20.sp,
                             color = if (isError) StatusDanger else Grayscale900,
                         ),
                         singleLine = true,
@@ -161,6 +222,115 @@ fun ChordTextField(
     }
 }
 
+@Composable
+private fun ChordUnderlineTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    unitText: String? = null,
+    isError: Boolean = false,
+    errorMessage: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    onClear: (() -> Unit)? = null,
+    borderColor: Color = Grayscale300,
+    focusedBorderColor: Color = PrimaryBlue500,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    val currentBorderColor = when {
+        isError -> StatusDanger
+        isFocused -> focusedBorderColor
+        else -> borderColor
+    }
+
+    Column(modifier = modifier) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 4.dp),
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                if (value.isEmpty()) {
+                    Text(
+                        text = placeholder,
+                        style = TextStyle(
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 16.sp,
+                            color = Grayscale500,
+                        ),
+                    )
+                }
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                        color = if (isError) StatusDanger else Grayscale900,
+                    ),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                    keyboardActions = keyboardActions,
+                    cursorBrush = SolidColor(Grayscale900),
+                    interactionSource = interactionSource,
+                )
+            }
+
+            if (unitText != null) {
+                Text(
+                    text = unitText,
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                        color = Grayscale900,
+                    ),
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+
+            if (onClear != null && value.isNotEmpty()) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_close_circle),
+                    contentDescription = "Clear",
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .size(20.dp)
+                        .clickable { onClear() },
+                    tint = Grayscale500,
+                )
+            }
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 1.dp,
+            color = currentBorderColor,
+        )
+
+        if (isError && errorMessage != null) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = errorMessage,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = StatusDanger,
+                ),
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun ChordTextFieldEmptyPreview() {
@@ -188,6 +358,41 @@ private fun ChordTextFieldErrorPreview() {
     ChordTextField(
         value = "가나다라",
         onValueChange = {},
+        isError = true,
+        errorMessage = "숫자만 입력할 수 있어요",
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChordTextFieldUnderlineEmptyPreview() {
+    ChordTextField(
+        value = "",
+        onValueChange = {},
+        style = ChordTextFieldStyle.Underline,
+        placeholder = "가격을 입력해주세요",
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChordTextFieldUnderlineWithValuePreview() {
+    ChordTextField(
+        value = "5,600",
+        onValueChange = {},
+        style = ChordTextFieldStyle.Underline,
+        unitText = "원",
+        onClear = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChordTextFieldUnderlineErrorPreview() {
+    ChordTextField(
+        value = "가나다라",
+        onValueChange = {},
+        style = ChordTextFieldStyle.Underline,
         isError = true,
         errorMessage = "숫자만 입력할 수 있어요",
     )

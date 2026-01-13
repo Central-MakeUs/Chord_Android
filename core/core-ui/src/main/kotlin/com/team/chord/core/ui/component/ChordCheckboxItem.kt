@@ -5,23 +5,22 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.R
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.core.ui.theme.PrimaryBlue500
 
 @Composable
 fun ChordCheckboxItem(
@@ -38,15 +37,13 @@ fun ChordCheckboxItem(
             .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            colors = CheckboxDefaults.colors(
-                checkedColor = PrimaryBlue500,
-                uncheckedColor = Grayscale300,
-                checkmarkColor = Grayscale100,
+        Icon(
+            painter = painterResource(
+                if (checked) R.drawable.ic_checkbox else R.drawable.ic_un_checkbox
             ),
+            contentDescription = if (checked) "선택됨" else "선택 안됨",
+            modifier = Modifier.size(32.dp),
+            tint = androidx.compose.ui.graphics.Color.Unspecified,
         )
         Spacer(modifier = Modifier.width(8.dp))
         content()

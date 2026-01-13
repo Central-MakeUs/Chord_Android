@@ -19,9 +19,11 @@ import androidx.compose.ui.unit.sp
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
 
 @Composable
@@ -45,17 +47,17 @@ fun ChordUnitSelector(
                 enabled = enabled,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) Grayscale100 else Grayscale100,
-                    contentColor = if (isSelected) PrimaryBlue500 else Grayscale500,
+                    containerColor = if (isSelected) PrimaryBlue100 else Grayscale100,
+                    contentColor = if (isSelected) Grayscale900 else Grayscale500,
                     disabledContainerColor = Grayscale100,
                     disabledContentColor = Grayscale300,
                 ),
                 border = BorderStroke(
                     width = 1.dp,
                     color = when {
-                        !enabled -> Grayscale300
+                        !enabled -> Grayscale400
                         isSelected -> PrimaryBlue500
-                        else -> Grayscale300
+                        else -> Grayscale400
                     },
                 ),
             ) {
@@ -63,8 +65,8 @@ fun ChordUnitSelector(
                     text = unit.displayName,
                     style = TextStyle(
                         fontFamily = PretendardFontFamily,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
                     ),
                 )
             }
