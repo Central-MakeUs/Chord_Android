@@ -1095,4 +1095,35 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 
 ---
 
-*Last Updated: 2026-01-02 (FR-003 In Progress)*
+## 13. 초기 설정 - 매장 정보 (Store Info Setup)
+
+### Status
+`Done`
+
+### Overview
+신규 사용자가 "처음이신가요?" 클릭 후 매장 정보를 입력하는 초기 설정 플로우. 매장명, 위치, 직원수를 단계별로 입력.
+
+### User Stories
+| ID | User Story | Priority |
+|----|------------|----------|
+| US-013-001 | As a 신규 사용자, I want to 매장명을 입력하고 싶다 so that 내 매장을 등록할 수 있다 | High |
+| US-013-002 | As a 신규 사용자, I want to 매장 위치를 검색하고 싶다 so that 정확한 위치를 등록할 수 있다 | High |
+| US-013-003 | As a 신규 사용자, I want to 직원수를 입력하고 싶다 so that 인건비 계산에 활용할 수 있다 | High |
+
+### Functional Requirements
+| ID | Requirement | Priority | Status | Acceptance Criteria |
+|----|-------------|----------|--------|---------------------|
+| FR-013-001 | 매장명 입력 화면 | High | ✅ Done | 언더라인 텍스트필드, 포커스 시 라벨 색상 변경 |
+| FR-013-002 | 매장 위치 검색 화면 | High | ✅ Done | 검색 아이콘 포함 언더라인 필드 |
+| FR-013-003 | 확인 화면 | High | ✅ Done | 입력된 정보 확인 후 "확인" 버튼 |
+| FR-013-004 | 직원수 입력 바텀시트 | High | ✅ Done | +/- 카운터 버튼, 툴팁 도움말 |
+| FR-013-005 | 설정 완료 화면 | High | ✅ Done | 체크 아이콘, 입력 정보 요약 카드 |
+
+### Navigation Flow
+```
+매장명 입력 → 매장 위치 검색 → 확인 → 직원수 바텀시트 → 설정 완료
+```
+
+---
+
+*Last Updated: 2026-01-13 (FR-013 Store Info Setup 구현 완료)*

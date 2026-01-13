@@ -259,6 +259,37 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 ### Dependencies
 - `core-common`
 
+### Key Components
+| Component | Purpose |
+|-----------|---------|
+| `ChordTopAppBar` | 상단 앱바 (뒤로가기 버튼, 타이틀) |
+| `ChordButton` | 기본 버튼 컴포넌트 |
+| `ChordLargeButton` | 전체 너비 대형 버튼 |
+| `ChordSearchBar` | 검색 입력 필드 |
+| `ChordTooltip` | 툴팁 컴포넌트 (아이콘 + 버블 통합) |
+| `ChordTooltipIcon` | 툴팁 아이콘 (독립 사용 가능) |
+| `ChordTooltipBubble` | 툴팁 버블 (8방향 지원, 독립 사용 가능) |
+
+### ChordTooltip Usage
+```kotlin
+// 통합 사용 (아이콘 클릭 시 버블 토글)
+ChordTooltip(
+    text = "도움말 텍스트",
+    direction = TooltipDirection.UpLeft
+)
+
+// 분리 사용 (버블 위치를 자유롭게 배치)
+ChordTooltipIcon(onClick = { isVisible = !isVisible })
+if (isVisible) {
+    ChordTooltipBubble(
+        text = "도움말 텍스트",
+        direction = TooltipDirection.UpLeft
+    )
+}
+
+// 지원 방향: Up, UpLeft, UpRight, Down, DownLeft, DownRight, Left, Right
+```
+
 ### Color System
 | Category | Colors | Usage |
 |----------|--------|-------|
@@ -290,4 +321,4 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 
 ---
 
-*Last Updated: 2026-01-02 (feature-menu 추가)*
+*Last Updated: 2026-01-13 (core-ui ChordTooltip 컴포넌트 추가)*
