@@ -311,3 +311,49 @@ private fun ChordSmallButtonSecondaryPreview() {
         variant = ChordSmallButtonVariant.Secondary,
     )
 }
+
+// ============================================================
+// Outlined Button - Full width, 52dp height, 12dp radius
+// Used for secondary actions like delete
+// ============================================================
+
+@Composable
+fun ChordOutlinedButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        enabled = enabled,
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = Grayscale600,
+        ),
+        border = BorderStroke(1.dp, Grayscale500),
+        contentPadding = PaddingValues(vertical = 14.5.dp),
+    ) {
+        Text(
+            text = text,
+            style = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+            ),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChordOutlinedButtonPreview() {
+    ChordOutlinedButton(
+        text = "메뉴 삭제",
+        onClick = {},
+    )
+}

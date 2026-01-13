@@ -12,13 +12,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
@@ -34,6 +39,7 @@ import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.core.ui.theme.StatusDanger
 
 @Composable
@@ -48,7 +54,20 @@ fun ChordTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     onClear: (() -> Unit)? = null,
+    cornerRadius: Int = 8,
+    borderColor: Color = Grayscale300,
+    focusedBorderColor: Color = PrimaryBlue500,
 ) {
+    val shape = RoundedCornerShape(cornerRadius.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+
+    val currentBorderColor = when {
+        isError -> StatusDanger
+        isFocused -> focusedBorderColor
+        else -> borderColor
+    }
+
     Column(modifier = modifier) {
         Box(
             modifier = Modifier
@@ -56,12 +75,12 @@ fun ChordTextField(
                 .height(48.dp)
                 .background(
                     color = Grayscale100,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = shape,
                 )
                 .border(
                     width = 1.dp,
-                    color = if (isError) StatusDanger else Grayscale300,
-                    shape = RoundedCornerShape(8.dp),
+                    color = currentBorderColor,
+                    shape = shape,
                 )
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart,
@@ -96,6 +115,7 @@ fun ChordTextField(
                         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
                         keyboardActions = keyboardActions,
                         cursorBrush = SolidColor(Grayscale900),
+                        interactionSource = interactionSource,
                     )
                 }
 

@@ -41,8 +41,7 @@ fun ChordRadioGroup(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onOptionSelected(option.id) }
-                    .padding(vertical = 12.dp),
+                    .clickable { onOptionSelected(option.id) },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 RadioButton(
@@ -53,19 +52,19 @@ fun ChordRadioGroup(
                         unselectedColor = Grayscale500,
                     ),
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = option.label,
                     style = TextStyle(
                         fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 16.sp,
-                        color = if (option.id == selectedOptionId) Grayscale900 else Grayscale500,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 20.sp,
+                        color = if (option.id == selectedOptionId) PrimaryBlue500 else Grayscale900,
                     ),
                 )
             }
             if (index < options.lastIndex) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
