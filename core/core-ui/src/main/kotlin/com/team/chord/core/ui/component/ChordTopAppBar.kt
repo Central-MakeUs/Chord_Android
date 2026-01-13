@@ -171,6 +171,53 @@ enum class TopAppBarActionIcon {
     Menu,
 }
 
+@Composable
+fun ChordTopAppBarWithBackTitle(
+    title: String,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    titleStyle: TextStyle = DefaultTitleStyle,
+    titleColor: Color = Grayscale600,
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .background(Grayscale100)
+            .padding(horizontal = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { onBackClick() },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_chevron_left),
+                contentDescription = "뒤로가기",
+                tint = Grayscale900,
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = title,
+            style = titleStyle,
+            color = titleColor,
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChordTopAppBarWithBackTitlePreview() {
+    ChordTopAppBarWithBackTitle(
+        title = "건강기능식품",
+        onBackClick = {},
+    )
+}
+
+
 @Preview(showBackground = true)
 @Composable
 private fun ChordTopAppBarPreview() {
