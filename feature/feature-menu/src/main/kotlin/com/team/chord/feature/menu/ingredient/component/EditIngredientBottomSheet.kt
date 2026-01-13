@@ -20,8 +20,10 @@ import com.team.chord.core.domain.model.menu.MenuIngredient
 import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTextField
+import com.team.chord.core.ui.component.ChordTextFieldStyle
 import com.team.chord.core.ui.component.ChordUnitSelector
 import com.team.chord.core.ui.theme.Grayscale500
+import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import java.text.NumberFormat
 import java.util.Locale
@@ -52,9 +54,9 @@ fun EditIngredientBottomSheet(
                 Text(
                     text = "가격",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Grayscale500,
+                    color = Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordTextField(
@@ -67,6 +69,7 @@ fun EditIngredientBottomSheet(
                             ""
                         }
                     },
+                    style = ChordTextFieldStyle.Underline,
                     unitText = "원",
                     keyboardType = KeyboardType.Number,
                     onClear = { priceText = "" },
@@ -78,14 +81,15 @@ fun EditIngredientBottomSheet(
                 Text(
                     text = "사용량",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Grayscale500,
+                    color = Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordTextField(
                     value = quantityText,
                     onValueChange = { quantityText = it },
+                    style = ChordTextFieldStyle.Underline,
                     keyboardType = KeyboardType.Decimal,
                     onClear = { quantityText = "" },
                 )
@@ -96,9 +100,9 @@ fun EditIngredientBottomSheet(
                 Text(
                     text = "단위",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = Grayscale500,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp,
+                    color = Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordUnitSelector(

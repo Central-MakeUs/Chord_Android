@@ -19,8 +19,10 @@ import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTextField
+import com.team.chord.core.ui.component.ChordTextFieldStyle
 import com.team.chord.core.ui.component.ChordUnitSelector
 import com.team.chord.core.ui.theme.Grayscale500
+import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.StatusDanger
 import java.text.NumberFormat
@@ -87,9 +89,9 @@ fun AddIngredientBottomSheet(
                 Text(
                     text = "재료명",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = if (nameError != null) StatusDanger else Grayscale500,
+                    color = if (nameError != null) StatusDanger else Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordTextField(
@@ -99,6 +101,7 @@ fun AddIngredientBottomSheet(
                         nameError = null
                     },
                     placeholder = "재료명을 입력해주세요",
+                    style = ChordTextFieldStyle.Underline,
                     isError = nameError != null,
                     errorMessage = nameError,
                     onClear = { nameText = "" },
@@ -110,9 +113,9 @@ fun AddIngredientBottomSheet(
                 Text(
                     text = "가격",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = if (priceError != null) StatusDanger else Grayscale500,
+                    color = if (priceError != null) StatusDanger else Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordTextField(
@@ -127,6 +130,7 @@ fun AddIngredientBottomSheet(
                         priceError = null
                     },
                     placeholder = "가격을 입력해주세요",
+                    style = ChordTextFieldStyle.Underline,
                     unitText = "원",
                     keyboardType = KeyboardType.Number,
                     isError = priceError != null,
@@ -140,9 +144,9 @@ fun AddIngredientBottomSheet(
                 Text(
                     text = "사용량",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = if (quantityError != null) StatusDanger else Grayscale500,
+                    color = if (quantityError != null) StatusDanger else Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordTextField(
@@ -155,6 +159,8 @@ fun AddIngredientBottomSheet(
                             null
                         }
                     },
+                    placeholder = "사용량을 입력해주세요",
+                    style = ChordTextFieldStyle.Underline,
                     keyboardType = KeyboardType.Decimal,
                     isError = quantityError != null,
                     errorMessage = quantityError,
@@ -167,9 +173,9 @@ fun AddIngredientBottomSheet(
                 Text(
                     text = "단위",
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    color = Grayscale500,
+                    color = Grayscale900,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 ChordUnitSelector(

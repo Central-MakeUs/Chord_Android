@@ -13,23 +13,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,10 +31,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.menu.MenuIngredient
 import com.team.chord.core.ui.component.ChordCheckboxItem
+import com.team.chord.core.ui.component.ChordOneButtonDialog
+import com.team.chord.core.ui.component.ChordOutlinedButton
+import com.team.chord.core.ui.component.ChordTopAppBar
+import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale300
-import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
@@ -74,7 +72,6 @@ fun IngredientEditScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun IngredientEditScreenContent(
     uiState: IngredientEditUiState,
@@ -90,56 +87,61 @@ internal fun IngredientEditScreenContent(
     onAddIngredient: (String, Int, Double, com.team.chord.core.domain.model.menu.IngredientUnit) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showDeleteSuccessDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Grayscale100),
     ) {
-        TopAppBar(
-            title = {
-                Text(
-                    text = uiState.menuName,
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Grayscale900,
-                )
-            },
-            navigationIcon = {
-                IconButton(onClick = onNavigateBack) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "뒤로 가기",
-                        tint = Grayscale900,
-                    )
-                }
-            },
-            actions = {
-                if (uiState.isDeleteMode && uiState.selectedIngredientIds.isNotEmpty()) {
-                    TextButton(onClick = onDeleteSelected) {
+        ChordTopAppBar(
+            title = uiState.menuName,
+            onBackClick = onNavigateBack,
+            titleStyle = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                color = Grayscale900
+            ),
+            actionContent = {
+                when {
+                    uiState.isDeleteMode && uiState.selectedIngredientIds.isNotEmpty() -> {
                         Text(
                             text = "삭제",
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
                             color = StatusDanger,
                         )
                     }
-                } else {
-                    TextButton(onClick = onToggleDeleteMode) {
+                    uiState.isDeleteMode -> {
                         Text(
-                            text = if (uiState.isDeleteMode) "취소" else "삭제",
+                            text = "취소",
                             fontFamily = PretendardFontFamily,
                             fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
+                            color = Grayscale600,
+                        )
+                    }
+                    else -> {
+                        Text(
+                            text = "삭제",
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.SemiBold,
                             fontSize = 16.sp,
-                            color = if (uiState.isDeleteMode) Grayscale600 else Grayscale500,
+                            color = Grayscale700,
                         )
                     }
                 }
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Grayscale100,
-            ),
+            onActionClick = {
+                if (uiState.isDeleteMode && uiState.selectedIngredientIds.isNotEmpty()) {
+                    showDeleteConfirmDialog = true
+                } else {
+                    onToggleDeleteMode()
+                }
+            },
         )
 
         if (uiState.isLoading) {
@@ -181,21 +183,11 @@ internal fun IngredientEditScreenContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedButton(
+                ChordOutlinedButton(
+                    text = "재료 추가",
                     onClick = onShowAddBottomSheet,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    shape = RoundedCornerShape(12.dp),
-                ) {
-                    Text(
-                        text = "재료 추가",
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
-                        color = Grayscale600,
-                    )
-                }
+                    modifier = Modifier.padding(bottom = 24.dp),
+                )
             }
         }
     }
@@ -215,6 +207,32 @@ internal fun IngredientEditScreenContent(
         AddIngredientBottomSheet(
             onDismiss = onHideAddBottomSheet,
             onConfirm = onAddIngredient,
+        )
+    }
+
+    // Delete Dialogs
+    if (showDeleteConfirmDialog) {
+        ChordTwoButtonDialog(
+            title = "선택하신 재료를 삭제하시겠어요?",
+            onDismiss = { showDeleteConfirmDialog = false },
+            onConfirm = {
+                showDeleteConfirmDialog = false
+                onDeleteSelected()
+                showDeleteSuccessDialog = true
+            },
+            dismissText = "아니요",
+            confirmText = "삭제하기",
+        )
+    }
+
+    if (showDeleteSuccessDialog) {
+        ChordOneButtonDialog(
+            title = "재료가 삭제됐어요",
+            onConfirm = {
+                showDeleteSuccessDialog = false
+                onToggleDeleteMode()
+            },
+            confirmText = "확인",
         )
     }
 }
@@ -244,34 +262,37 @@ private fun IngredientItemContent(
 ) {
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
 
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = ingredient.name,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Grayscale900,
-            )
+        Text(
+            text = ingredient.name,
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 20.sp,
+            color = Grayscale900,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = formatQuantity(ingredient.quantity, ingredient.unit.displayName),
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Grayscale600,
+            )
+            Text(
+                text = "${numberFormat.format(ingredient.totalPrice)}원",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
                 color = Grayscale600,
             )
         }
-        Text(
-            text = "${numberFormat.format(ingredient.totalPrice)}원",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
-            color = Grayscale900,
-        )
     }
 }
 
