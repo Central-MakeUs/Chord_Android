@@ -153,7 +153,7 @@
 - [ ] 마진 등급 기준값 사용자 커스터마이징 허용 여부
 - [ ] 간접비 배분 로직 (매출 비중 기반 vs 균등 배분)
 
-### Implementation Details (2026-01-13)
+### Implementation Details (2026-01-14)
 
 #### 구현된 화면
 1. **MenuListScreen (1st Depth)** - FR-003-001, FR-003-002, FR-003-005 완료
@@ -177,6 +177,13 @@
    - 카테고리 변경 (ChordRadioGroup)
    - 메뉴 삭제 (ChordTwoButtonDialog 확인 + ChordOneButtonDialog 완료)
 
+4. **IngredientEditScreen (3rd Depth)** - FR-003-008 상세 구현 완료
+   - 메뉴별 재료 목록 표시 (ChordCheckboxItem)
+   - 재료 추가 (AddIngredientBottomSheet - Underline TextField)
+   - 재료 수정 (EditIngredientBottomSheet - Underline TextField)
+   - 재료 삭제 (삭제 모드 토글, 다중 선택, 다이얼로그 확인/완료)
+   - ChordTopAppBar 사용 (동적 타이틀, 삭제/취소 액션)
+
 #### 구현된 컴포넌트
 | Component | Purpose |
 |-----------|---------|
@@ -187,6 +194,9 @@
 | `RecommendedPriceSection` | 권장가격 표시 (가격 + 메시지, 중앙정렬) |
 | `IngredientListItem` | 재료 항목 (이름+수량 Row, 가격 표시) |
 | `IngredientTotalRow` | 재료 총합 Row (우측 정렬, "총" 텍스트 + 가격) |
+| `IngredientItemContent` | 재료 콘텐츠 (이름, 수량+가격 같은 Row) |
+| `AddIngredientBottomSheet` | 재료 추가 바텀시트 (Underline TextField) |
+| `EditIngredientBottomSheet` | 재료 수정 바텀시트 (Underline TextField) |
 
 #### CostAnalysisCard 구조
 ```kotlin
@@ -1150,4 +1160,4 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 
 ---
 
-*Last Updated: 2026-01-13 (FR-003-009 MenuManagementScreen 구현 완료)*
+*Last Updated: 2026-01-14 (FR-003-008 IngredientEditScreen 구현, core-ui ChordTextField Underline/ChordBottomSheet/ChordCheckboxItem 업데이트)*

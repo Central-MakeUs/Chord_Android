@@ -278,11 +278,12 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 | `ChordLargeButton` | 전체 너비 대형 버튼 |
 | `ChordOutlinedButton` | 테두리만 있는 버튼 (삭제 등 보조 액션용, Grayscale500 테두리) |
 | `ChordSearchBar` | 검색 입력 필드 |
-| `ChordTextField` | 텍스트 입력 필드 (cornerRadius, borderColor, focusedBorderColor 지원) |
+| `ChordTextField` | 텍스트 입력 필드 (Outlined/Underline 스타일 지원) |
 | `ChordRadioGroup` | 라디오 버튼 그룹 (16dp row 간격) |
-| `ChordBottomSheet` | 하단 시트 컴포넌트 |
+| `ChordBottomSheet` | 하단 시트 (skipPartiallyExpanded, navigationBars inset 지원) |
 | `ChordTwoButtonDialog` | 2버튼 다이얼로그 (취소/확인) |
 | `ChordOneButtonDialog` | 1버튼 다이얼로그 (확인만) |
+| `ChordCheckboxItem` | 체크박스 아이템 (커스텀 ic_checkbox/ic_un_checkbox 아이콘 사용) |
 | `ChordTooltip` | 툴팁 컴포넌트 (아이콘 + 버블 통합) |
 | `ChordTooltipIcon` | 툴팁 아이콘 (독립 사용 가능) |
 | `ChordTooltipBubble` | 툴팁 버블 (8방향 지원, 독립 사용 가능) |
@@ -338,4 +339,4 @@ if (isVisible) {
 
 ---
 
-*Last Updated: 2026-01-13 (core-ui 컴포넌트 추가: ChordOutlinedButton, ChordTwoButtonDialog, ChordOneButtonDialog, ChordTextField 파라미터 추가; feature-menu MenuManagementScreen 추가)*
+*Last Updated: 2026-01-14 (core-ui: ChordTextField Underline 스타일, ChordBottomSheet edge-to-edge 지원, ChordCheckboxItem 커스텀 아이콘)*
