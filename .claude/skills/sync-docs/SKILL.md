@@ -54,6 +54,7 @@
 2. 변경된 파일들 분석 (git diff 또는 작업 기록)
 3. 아키텍처/패턴 변경 사항 식별
 4. 실제 구현된 코드 변경만 문서화 대상으로 식별
+5. REQUIREMENTS.md 필수 검토: Implementation Details 섹션 업데이트 필요 여부 확인
 ```
 
 ### Step 3: 문서 업데이트
@@ -75,10 +76,17 @@
 - 새로운 모듈 **실제 구현 완료** 시에만 추가
 - 모듈 책임/역할 **실제 변경** 시
 - **계획(Planned) 상태의 모듈은 절대 추가하지 않음**
+- **코드 블록 사용 금지**
 
-#### REQUIREMENTS.md
+#### REQUIREMENTS.md (필수 검토)
+- **항상 검토 필수**: 구현된 기능의 Implementation Details 섹션 업데이트
 - 요구사항 분석 완료 시
 - 새로운 기능 요구사항 추가 시
+- 기존 기능 구현 완료 시 Status 변경 (Planned/In Progress → Done)
+- 구현된 컴포넌트 목록 업데이트
+- **코드 블록 사용 금지**
+
+> **코드 블록 규칙**: 코드 스니펫은 CONVENTIONS.md에만 작성. MODULES.md와 REQUIREMENTS.md는 설명/스펙만 기술.
 
 #### SKILL.md (이 파일)
 - 문서 구조 변경 시
@@ -210,4 +218,4 @@ Agent:
 
 ---
 
-*Last Updated: 2025-12-31*
+*Last Updated: 2026-01-13*

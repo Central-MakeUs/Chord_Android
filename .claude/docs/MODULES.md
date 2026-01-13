@@ -153,12 +153,15 @@
 |-------|---------|
 | `MenuListScreen` | 메뉴 목록 화면 (카테고리 칩, 상태 배지) |
 | `MenuListViewModel` | 메뉴 목록 상태 관리 (Mock 데이터) |
-| `MenuDetailScreen` | 메뉴 상세 화면 (원가 분석, 재료 목록) |
+| `MenuDetailScreen` | 메뉴 상세 화면 (원가 분석, 마진등급, 권장가격, 재료 목록) |
 | `MenuDetailViewModel` | 메뉴 상세 상태 관리 |
 | `MenuStatusBadge` | 안전/주의/위험 상태 배지 컴포넌트 |
 | `CategoryChip` | 카테고리 필터 칩 컴포넌트 |
-| `CostAnalysisCard` | 원가/마진 분석 카드 컴포넌트 |
-| `IngredientListItem` | 재료 목록 항목 컴포넌트 |
+| `CostAnalysisCard` | 원가 분석 카드 (마진율, 총원가, 공헌이익 표시) |
+| `MarginGradeCard` | 마진등급 카드 (ChordStatusBadge 포함, 가운데 정렬) |
+| `RecommendedPriceSection` | 권장가격 섹션 (가격 + 메시지, 가운데 정렬) |
+| `IngredientListItem` | 재료 항목 (이름+수량 Row, 가격 표시) |
+| `IngredientTotalRow` | 재료 총합 Row (우측 정렬) |
 
 ### Data Models (Feature-local)
 ```kotlin
@@ -321,4 +324,4 @@ if (isVisible) {
 
 ---
 
-*Last Updated: 2026-01-13 (core-ui ChordTooltip 컴포넌트 추가)*
+*Last Updated: 2026-01-13 (feature-menu 컴포넌트 업데이트: MarginGradeCard, RecommendedPriceSection, IngredientTotalRow 추가)*

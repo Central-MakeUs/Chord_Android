@@ -153,7 +153,7 @@
 - [ ] 마진 등급 기준값 사용자 커스터마이징 허용 여부
 - [ ] 간접비 배분 로직 (매출 비중 기반 vs 균등 배분)
 
-### Implementation Details (2026-01-02)
+### Implementation Details (2026-01-13)
 
 #### 구현된 화면
 1. **MenuListScreen (1st Depth)** - FR-003-001, FR-003-002, FR-003-005 완료
@@ -163,15 +163,33 @@
    - 상태 배지 표시 (안전/주의/위험)
 
 2. **MenuDetailScreen (2nd Depth)** - FR-003-006, FR-003-008 완료
-   - 원가 분석 요약 카드 (마진율, 총원가, 원가율, 공헌이익)
+   - 메뉴명 + 제조시간 배지 + 판매가 헤더
+   - 원가 분석 카드 (CostAnalysisCard)
+   - 마진등급 카드 (MarginGradeCard)
+   - 권장가격 섹션 (RecommendedPriceSection)
    - 재료 목록 및 총 재료비 표시
-   - "재료 관리" 버튼
+   - 재료 수정 네비게이션 (화살표 아이콘)
 
 #### 구현된 컴포넌트
-- `MenuStatusBadge`: 안전(녹색)/주의(주황)/위험(빨강) 상태 배지
-- `CategoryChip`: 카테고리 필터 칩 (활성/비활성 상태)
-- `CostAnalysisCard`: 마진율, 원가 분석 카드 (상태별 색상)
-- `IngredientListItem`: 재료명, 수량, 가격 표시
+| Component | Purpose |
+|-----------|---------|
+| `MenuStatusBadge` | 안전(녹색)/주의(주황)/위험(빨강) 상태 배지 |
+| `CategoryChip` | 카테고리 필터 칩 (활성/비활성 상태) |
+| `CostAnalysisCard` | 3행 원가 분석 카드 (마진율, 총 원가(원가율), 공헌이익) - 24dp 간격, 100dp 최소 너비 |
+| `MarginGradeCard` | 마진등급 표시 (text + ChordStatusBadge, 4dp 간격, 중앙정렬) |
+| `RecommendedPriceSection` | 권장가격 표시 (가격 + 메시지, 중앙정렬) |
+| `IngredientListItem` | 재료 항목 (이름+수량 Row, 가격 표시) |
+| `IngredientTotalRow` | 재료 총합 Row (우측 정렬, "총" 텍스트 + 가격) |
+
+#### CostAnalysisCard 구조
+```kotlin
+Column {
+    CostAnalysisRow(label = "마진율", value = "XX.X%")
+    CostAnalysisRow(label = "총 원가(원가율)", value = "X,XXX원 (XX.X%)")
+    CostAnalysisRowWithIcon(label = "공헌이익", value = "X,XXX원")  // ic_tooltip 아이콘 포함
+}
+// 각 row: 24dp 간격, label 최소 너비 100dp
+```
 
 #### 추가된 색상 (core-ui/theme/Color.kt)
 ```kotlin
