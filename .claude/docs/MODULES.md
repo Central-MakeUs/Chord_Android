@@ -139,6 +139,7 @@
 ### Responsibilities
 - 메뉴 목록 화면 UI (MenuListScreen)
 - 메뉴 상세 화면 UI (MenuDetailScreen)
+- 메뉴 관리 화면 UI (MenuManagementScreen) - 메뉴 정보 수정/삭제
 - 원가 분석 카드 표시
 - 메뉴 상태 표시 (안전/주의/위험)
 - 카테고리 필터링
@@ -155,6 +156,11 @@
 | `MenuListViewModel` | 메뉴 목록 상태 관리 (Mock 데이터) |
 | `MenuDetailScreen` | 메뉴 상세 화면 (원가 분석, 마진등급, 권장가격, 재료 목록) |
 | `MenuDetailViewModel` | 메뉴 상세 상태 관리 |
+| `MenuManagementScreen` | 메뉴 관리 화면 (이름/가격/제조시간/카테고리 수정, 삭제) |
+| `MenuManagementViewModel` | 메뉴 관리 상태 관리 |
+| `EditMenuNameBottomSheet` | 메뉴명 수정 바텀시트 |
+| `EditPriceBottomSheet` | 가격 수정 바텀시트 |
+| `EditPreparationTimeBottomSheet` | 제조시간 수정 바텀시트 |
 | `MenuStatusBadge` | 안전/주의/위험 상태 배지 컴포넌트 |
 | `CategoryChip` | 카테고리 필터 칩 컴포넌트 |
 | `CostAnalysisCard` | 원가 분석 카드 (마진율, 총원가, 공헌이익 표시) |
@@ -182,6 +188,7 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 |-------|--------|------------|
 | `menu_list` | MenuListScreen | - |
 | `menu_detail/{menuId}` | MenuDetailScreen | menuId: Long |
+| `menu_management/{menuId}` | MenuManagementScreen | menuId: Long |
 
 ---
 
@@ -266,9 +273,16 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 | Component | Purpose |
 |-----------|---------|
 | `ChordTopAppBar` | 상단 앱바 (뒤로가기 버튼, 타이틀) |
+| `ChordTopAppBarWithBackTitle` | 뒤로가기 + 타이틀 상단 앱바 |
 | `ChordButton` | 기본 버튼 컴포넌트 |
 | `ChordLargeButton` | 전체 너비 대형 버튼 |
+| `ChordOutlinedButton` | 테두리만 있는 버튼 (삭제 등 보조 액션용, Grayscale500 테두리) |
 | `ChordSearchBar` | 검색 입력 필드 |
+| `ChordTextField` | 텍스트 입력 필드 (cornerRadius, borderColor, focusedBorderColor 지원) |
+| `ChordRadioGroup` | 라디오 버튼 그룹 (16dp row 간격) |
+| `ChordBottomSheet` | 하단 시트 컴포넌트 |
+| `ChordTwoButtonDialog` | 2버튼 다이얼로그 (취소/확인) |
+| `ChordOneButtonDialog` | 1버튼 다이얼로그 (확인만) |
 | `ChordTooltip` | 툴팁 컴포넌트 (아이콘 + 버블 통합) |
 | `ChordTooltipIcon` | 툴팁 아이콘 (독립 사용 가능) |
 | `ChordTooltipBubble` | 툴팁 버블 (8방향 지원, 독립 사용 가능) |
@@ -324,4 +338,4 @@ if (isVisible) {
 
 ---
 
-*Last Updated: 2026-01-13 (feature-menu 컴포넌트 업데이트: MarginGradeCard, RecommendedPriceSection, IngredientTotalRow 추가)*
+*Last Updated: 2026-01-13 (core-ui 컴포넌트 추가: ChordOutlinedButton, ChordTwoButtonDialog, ChordOneButtonDialog, ChordTextField 파라미터 추가; feature-menu MenuManagementScreen 추가)*

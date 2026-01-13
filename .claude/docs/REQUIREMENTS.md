@@ -170,6 +170,13 @@
    - 재료 목록 및 총 재료비 표시
    - 재료 수정 네비게이션 (화살표 아이콘)
 
+3. **MenuManagementScreen (3rd Depth)** - FR-003-009 완료
+   - 메뉴명 수정 (EditMenuNameBottomSheet)
+   - 가격 수정 (EditPriceBottomSheet)
+   - 제조시간 수정 (EditPreparationTimeBottomSheet)
+   - 카테고리 변경 (ChordRadioGroup)
+   - 메뉴 삭제 (ChordTwoButtonDialog 확인 + ChordOneButtonDialog 완료)
+
 #### 구현된 컴포넌트
 | Component | Purpose |
 |-----------|---------|
@@ -205,7 +212,6 @@ val StatusDangerBg = Color(0xFFFFEBEE)  // 위험 배경
 - FR-003-003: 마진 등급별 정렬
 - FR-003-004: 메뉴 검색
 - FR-003-007: 수익 전략 실행 섹션
-- FR-003-009: 메뉴 기본 설정 (카테고리 변경, 삭제)
 - FR-003-010: 원가 상세 분해 보기
 - FR-003-011~015: 실제 원가 계산 로직 (현재 Mock 데이터)
 
@@ -1144,4 +1150,4 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 
 ---
 
-*Last Updated: 2026-01-13 (FR-013 Store Info Setup 구현 완료)*
+*Last Updated: 2026-01-13 (FR-003-009 MenuManagementScreen 구현 완료)*
