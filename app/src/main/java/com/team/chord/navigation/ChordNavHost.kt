@@ -18,10 +18,14 @@ import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToHome
 import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
+import com.team.chord.feature.menu.navigation.ingredientEditScreen
 import com.team.chord.feature.menu.navigation.menuDetailScreen
 import com.team.chord.feature.menu.navigation.menuListScreen
+import com.team.chord.feature.menu.navigation.menuManagementScreen
+import com.team.chord.feature.menu.navigation.navigateToIngredientEdit
 import com.team.chord.feature.menu.navigation.navigateToMenuDetail
 import com.team.chord.feature.menu.navigation.navigateToMenuList
+import com.team.chord.feature.menu.navigation.navigateToMenuManagement
 import com.team.chord.feature.onboarding.navigation.ONBOARDING_ROUTE
 import com.team.chord.feature.onboarding.navigation.onboardingScreen
 import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
@@ -109,9 +113,33 @@ fun ChordNavHost(
             onNavigateToDetail = { menuId ->
                 navController.navigateToMenuDetail(menuId)
             },
+            onAddMenuClick = {
+                // TODO: Navigate to add menu screen
+            },
         )
 
         menuDetailScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onNavigateToManagement = { menuId ->
+                navController.navigateToMenuManagement(menuId)
+            },
+            onNavigateToIngredientEdit = { menuId ->
+                navController.navigateToIngredientEdit(menuId)
+            },
+        )
+
+        menuManagementScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onMenuDeleted = {
+                navController.popBackStack(MENU_LIST_ROUTE, inclusive = false)
+            },
+        )
+
+        ingredientEditScreen(
             onNavigateBack = {
                 navController.popBackStack()
             },

@@ -19,34 +19,50 @@ class ChordNavHostViewModel
         onboardingRepository: OnboardingRepository,
         authRepository: AuthRepository,
     ) : ViewModel() {
+        // TODO: 테스트 후 주석 해제 필요
+//        val navigationState: StateFlow<NavigationState> =
+//            combine(
+//                onboardingRepository.isOnboardingCompleted(),
+//                authRepository.observeAuthState(),
+//            ) { isOnboardingCompleted, authState ->
+//                when {
+//                    authState is AuthState.Loading -> {
+//                        NavigationState.Loading
+//                    }
+//
+//                    authState is AuthState.Authenticated -> {
+//                        NavigationState.Ready(
+//                            startDestination = StartDestination.HOME,
+//                        )
+//                    }
+//
+//                    !isOnboardingCompleted -> {
+//                        NavigationState.Ready(
+//                            startDestination = StartDestination.ONBOARDING,
+//                        )
+//                    }
+//
+//                    else -> {
+//                        NavigationState.Ready(
+//                            startDestination = StartDestination.LOGIN,
+//                        )
+//                    }
+//                }
+//            }.stateIn(
+//                scope = viewModelScope,
+//                started = SharingStarted.WhileSubscribed(5_000),
+//                initialValue = NavigationState.Loading,
+//            )
+
+        // 테스트용: 항상 HOME에서 시작
         val navigationState: StateFlow<NavigationState> =
             combine(
                 onboardingRepository.isOnboardingCompleted(),
                 authRepository.observeAuthState(),
-            ) { isOnboardingCompleted, authState ->
-                when {
-                    authState is AuthState.Loading -> {
-                        NavigationState.Loading
-                    }
-
-                    authState is AuthState.Authenticated -> {
-                        NavigationState.Ready(
-                            startDestination = StartDestination.HOME,
-                        )
-                    }
-
-                    !isOnboardingCompleted -> {
-                        NavigationState.Ready(
-                            startDestination = StartDestination.ONBOARDING,
-                        )
-                    }
-
-                    else -> {
-                        NavigationState.Ready(
-                            startDestination = StartDestination.LOGIN,
-                        )
-                    }
-                }
+            ) { _, _ ->
+                NavigationState.Ready(
+                    startDestination = StartDestination.HOME,
+                )
             }.stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
