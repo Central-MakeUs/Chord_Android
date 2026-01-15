@@ -17,6 +17,12 @@ import com.team.chord.feature.auth.navigation.signUpScreen
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToHome
+import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
+import com.team.chord.feature.ingredient.navigation.ingredientDetailScreen
+import com.team.chord.feature.ingredient.navigation.ingredientListScreen
+import com.team.chord.feature.ingredient.navigation.ingredientSearchScreen
+import com.team.chord.feature.ingredient.navigation.navigateToIngredientDetail
+import com.team.chord.feature.ingredient.navigation.navigateToIngredientSearch
 import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
 import com.team.chord.feature.menu.navigation.ingredientEditScreen
 import com.team.chord.feature.menu.navigation.menuDetailScreen
@@ -140,6 +146,33 @@ fun ChordNavHost(
         )
 
         ingredientEditScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
+
+        ingredientListScreen(
+            onNavigateToDetail = { ingredientId ->
+                navController.navigateToIngredientDetail(ingredientId)
+            },
+            onNavigateToSearch = {
+                navController.navigateToIngredientSearch()
+            },
+        )
+
+        ingredientDetailScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onNavigateToPriceEdit = { ingredientId ->
+                // TODO: Navigate to price edit screen
+            },
+            onNavigateToSupplierEdit = { ingredientId ->
+                // TODO: Navigate to supplier edit screen
+            },
+        )
+
+        ingredientSearchScreen(
             onNavigateBack = {
                 navController.popBackStack()
             },

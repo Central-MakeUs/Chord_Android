@@ -18,6 +18,8 @@ import androidx.navigation.navOptions
 import com.team.chord.core.ui.theme.ChordTheme
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.navigateToHome
+import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
+import com.team.chord.feature.ingredient.navigation.navigateToIngredientList
 import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
 import com.team.chord.feature.menu.navigation.navigateToMenuList
 import com.team.chord.navigation.ChordNavHost
@@ -46,7 +48,7 @@ private fun MainScreen(navController: NavHostController) {
 
     val shouldShowBottomBar =
         currentDestination?.hierarchy?.any { destination ->
-            destination.route in listOf(HOME_ROUTE, MENU_LIST_ROUTE, "ingredient", "ai_coach")
+            destination.route in listOf(HOME_ROUTE, MENU_LIST_ROUTE, INGREDIENT_LIST_ROUTE, "ai_coach")
         } == true
 
     Scaffold(
@@ -91,7 +93,9 @@ private fun navigateToTopLevelDestination(
             navController.navigateToMenuList(topLevelNavOptions)
         }
 
-        TopLevelDestination.INGREDIENT -> { }
+        TopLevelDestination.INGREDIENT -> {
+            navController.navigateToIngredientList(topLevelNavOptions)
+        }
 
         TopLevelDestination.AI_COACH -> { }
     }

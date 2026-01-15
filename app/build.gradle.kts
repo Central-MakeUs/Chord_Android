@@ -36,6 +36,7 @@ dependencies {
     implementation(projects.feature.featureAuth)
     implementation(projects.feature.featureSetup)
     implementation(projects.feature.featureMenu)
+    implementation(projects.feature.featureIngredient)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
