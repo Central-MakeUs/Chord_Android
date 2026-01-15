@@ -18,6 +18,7 @@
 - `feature-auth`
 - `feature-setup`
 - `feature-menu`
+- `feature-ingredient`
 - `core-ui`
 
 ### Key Classes/Functions
@@ -192,6 +193,48 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 
 ---
 
+## feature-ingredient
+
+### Purpose
+재료 관리 기능 제공 (FR-004 구현)
+
+### Responsibilities
+- 재료 목록 화면 UI (IngredientListScreen)
+- 재료 상세 화면 UI (IngredientDetailScreen)
+- 재료 검색 화면 UI (IngredientSearchScreen)
+- 다중 필터링 (즐겨찾기, 식재료, 운영 재료)
+- 최근 검색어 관리
+- 재료 추가/즐겨찾기/삭제
+
+### Dependencies
+- `core-domain`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `IngredientListScreen` | 재료 목록 화면 (필터 칩, 리스트) |
+| `IngredientListViewModel` | 재료 목록 상태 관리 |
+| `IngredientDetailScreen` | 재료 상세 화면 (가격 이력, 사용 메뉴) |
+| `IngredientDetailViewModel` | 재료 상세 상태 관리 |
+| `IngredientSearchScreen` | 재료 검색 화면 (최근 검색, 검색 결과) |
+| `IngredientSearchViewModel` | 검색 상태 관리 |
+| `IngredientFilterChip` | 다중 선택 필터 칩 (X 버튼 포함) |
+| `IngredientListItem` | 재료 항목 (이름, 가격, 사용량) |
+| `RecentSearchItem` | 최근 검색어 항목 |
+| `SearchResultItem` | 검색 결과 항목 (원형 + 아이콘) |
+| `UsedMenuChip` | 사용 메뉴 칩 |
+| `PriceHistoryItem` | 가격 이력 타임라인 항목 |
+
+### Navigation
+| Route | Screen | Parameters |
+|-------|--------|------------|
+| `ingredient_list` | IngredientListScreen | - |
+| `ingredient_detail/{ingredientId}` | IngredientDetailScreen | ingredientId: Long |
+| `ingredient_search` | IngredientSearchScreen | - |
+
+---
+
 ## core-common
 
 ### Purpose
@@ -227,6 +270,10 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 |-------|---------|
 | `OnboardingRepositoryImpl` | DataStore 기반 온보딩 상태 저장 |
 | `AuthRepositoryImpl` | DataStore 기반 인증 상태 관리 (MVP Mock) |
+| `IngredientRepositoryImpl` | 재료 Repository 구현체 |
+| `FakeIngredientDataSource` | Mock 재료 데이터 소스 |
+| `FakeRecentSearchDataSource` | Mock 최근 검색어 데이터 소스 |
+| `IngredientDataModule` | 재료 관련 Hilt 모듈 |
 | `DataModule` | Hilt 모듈 (Repository 바인딩) |
 
 ---
@@ -249,10 +296,19 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 |-------|---------|
 | `OnboardingRepository` | 온보딩 완료 상태 관리 인터페이스 |
 | `AuthRepository` | 인증 상태 관리 인터페이스 |
+| `IngredientRepository` | 재료 관리 인터페이스 |
 | `User` | 사용자 도메인 모델 |
 | `AuthToken` | 인증 토큰 모델 |
 | `AuthResult` | 인증 결과 sealed interface |
 | `AuthState` | 인증 상태 (Loading, Authenticated, Unauthenticated) |
+| `Ingredient` | 재료 도메인 모델 |
+| `IngredientFilter` | 재료 필터 enum (FAVORITE, FOOD_INGREDIENT, OPERATIONAL_SUPPLY) |
+| `IngredientCategory` | 재료 카테고리 enum (FOOD_MATERIAL, OPERATIONAL) |
+| `RecentSearch` | 최근 검색어 모델 |
+| `GetIngredientListUseCase` | 재료 목록 조회 UseCase |
+| `GetIngredientDetailUseCase` | 재료 상세 조회 UseCase |
+| `SearchIngredientUseCase` | 재료 검색 UseCase |
+| `ManageRecentSearchUseCase` | 최근 검색어 관리 UseCase |
 
 ---
 
@@ -277,7 +333,7 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 | `ChordButton` | 기본 버튼 컴포넌트 |
 | `ChordLargeButton` | 전체 너비 대형 버튼 |
 | `ChordOutlinedButton` | 테두리만 있는 버튼 (삭제 등 보조 액션용, Grayscale500 테두리) |
-| `ChordSearchBar` | 검색 입력 필드 |
+| `ChordSearchBar` | 검색 입력 필드 (backgroundColor 파라미터, 입력 시 삭제 버튼 표시) |
 | `ChordTextField` | 텍스트 입력 필드 (Outlined/Underline 스타일 지원) |
 | `ChordRadioGroup` | 라디오 버튼 그룹 (16dp row 간격) |
 | `ChordBottomSheet` | 하단 시트 (skipPartiallyExpanded, navigationBars inset 지원) |
@@ -339,4 +395,4 @@ if (isVisible) {
 
 ---
 
-*Last Updated: 2026-01-14 (core-ui: ChordTextField Underline 스타일, ChordBottomSheet edge-to-edge 지원, ChordCheckboxItem 커스텀 아이콘)*
+*Last Updated: 2026-01-15 (feature-ingredient 모듈 추가, core-domain/core-data 재료 관련 클래스 추가, ChordSearchBar backgroundColor 파라미터 및 삭제 버튼 추가)*

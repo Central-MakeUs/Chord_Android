@@ -230,7 +230,7 @@ val StatusDangerBg = Color(0xFFFFEBEE)  // 위험 배경
 ## 4. 재료 관리 (Ingredient Management)
 
 ### Status
-`Planned`
+`In Progress`
 
 ### Overview
 메뉴에 사용되는 모든 재료를 등록, 수정, 삭제하고, 가격 변동 이력을 관리하는 기능.
@@ -284,6 +284,69 @@ val StatusDangerBg = Color(0xFFFFEBEE)  // 위험 배경
 ### Open Questions
 - [ ] 재료 단위 환산 로직 (100g = 100ml 가정 여부)
 - [ ] 가격 이력 최대 보관 기간
+
+### Implementation Details (2026-01-15)
+
+#### 구현된 화면
+1. **IngredientListScreen (1st Depth)** - FR-004-001, FR-004-002 완료
+   - 전체 재료 리스트 표시 (재료명, 가격, 사용량)
+   - 다중 필터링 (즐겨찾기, 식재료, 운영 재료) - AND 조건
+   - 필터 칩 X 버튼으로 개별 해제
+   - 흰색 박스 (상단 코너 24dp radius) + Divider
+
+2. **IngredientSearchScreen** - FR-004-003 완료
+   - ChordSearchBar 사용 (입력 시 삭제 버튼 표시)
+   - 최근 검색어 섹션 (최대 10개, 로컬 저장)
+   - 검색 결과 섹션 (원형 + 아이콘으로 추가)
+
+3. **IngredientDetailScreen (2nd Depth)** - FR-004-005, FR-004-006, FR-004-007, FR-004-010 완료
+   - 재료명 + 즐겨찾기 토글
+   - 가격/공급처 정보 표시
+   - 사용 메뉴 칩 목록
+   - 가격 이력 타임라인 (원형 인디케이터)
+   - 삭제 버튼
+
+#### 구현된 컴포넌트
+| Component | Purpose |
+|-----------|---------|
+| `IngredientFilterChip` | 다중 선택 필터 칩 (활성 시 X 버튼 표시) |
+| `IngredientListItem` | 재료 항목 (이름, 가격, 사용량 표시) |
+| `RecentSearchItem` | 최근 검색어 항목 (클릭 시 검색, X로 삭제) |
+| `SearchResultItem` | 검색 결과 항목 (전체 Row 클릭 가능, 원형 + 아이콘) |
+| `UsedMenuChip` | 사용 메뉴 칩 (Outlined 스타일) |
+| `PriceHistoryItem` | 가격 이력 타임라인 항목 |
+
+#### 구현된 도메인 레이어
+| Class | Purpose |
+|-------|---------|
+| `Ingredient` | 재료 도메인 모델 (id, name, price, unit, category, isFavorite, supplier) |
+| `IngredientFilter` | 필터 enum (FAVORITE, FOOD_INGREDIENT, OPERATIONAL_SUPPLY) |
+| `IngredientCategory` | 카테고리 enum (FOOD_MATERIAL, OPERATIONAL) |
+| `RecentSearch` | 최근 검색어 모델 |
+| `IngredientRepository` | 재료 관리 인터페이스 |
+| `GetIngredientListUseCase` | 재료 목록 조회 (필터 지원) |
+| `GetIngredientDetailUseCase` | 재료 상세 조회 |
+| `SearchIngredientUseCase` | 재료 검색 |
+| `ManageRecentSearchUseCase` | 최근 검색어 CRUD |
+| `AddIngredientToListUseCase` | 재료 목록에 추가 |
+| `UpdateIngredientUseCase` | 재료 수정 (즐겨찾기 토글) |
+| `DeleteIngredientUseCase` | 재료 삭제 |
+
+#### 구현된 데이터 레이어
+| Class | Purpose |
+|-------|---------|
+| `IngredientDataSource` | 재료 데이터 소스 인터페이스 |
+| `FakeIngredientDataSource` | Mock 재료 데이터 (10+ 항목) |
+| `RecentSearchDataSource` | 검색어 데이터 소스 인터페이스 |
+| `FakeRecentSearchDataSource` | Mock 검색어 데이터 (최대 10개) |
+| `IngredientRepositoryImpl` | Repository 구현체 |
+| `IngredientDataModule` | Hilt DI 모듈 |
+
+#### 미구현 항목 (Phase 2)
+- FR-004-004: 재료 추가 버튼/화면
+- FR-004-008: 가격 수정 기능 (바텀시트)
+- FR-004-009: 단위 변경 기능
+- 더보기(⋮) 아이콘 액션
 
 ---
 
@@ -1160,4 +1223,4 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 
 ---
 
-*Last Updated: 2026-01-14 (FR-003-008 IngredientEditScreen 구현, core-ui ChordTextField Underline/ChordBottomSheet/ChordCheckboxItem 업데이트)*
+*Last Updated: 2026-01-15 (FR-004 재료 관리 구현 - IngredientListScreen, IngredientSearchScreen, IngredientDetailScreen)*
