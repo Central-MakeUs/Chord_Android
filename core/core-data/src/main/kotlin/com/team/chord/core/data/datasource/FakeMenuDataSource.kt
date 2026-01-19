@@ -5,8 +5,10 @@ import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.model.menu.MarginGrade
 import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuIngredient
+import com.team.chord.core.domain.model.menu.MenuTemplate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -94,6 +96,100 @@ class FakeMenuDataSource @Inject constructor() : MenuDataSource {
     }
 
     override fun getCategories(): Flow<List<Category>> = categories
+
+    override fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>> {
+        if (query.isBlank()) return flowOf(emptyList())
+
+        val filtered = menuTemplates.filter { template ->
+            template.name.contains(query, ignoreCase = true)
+        }
+        return flowOf(filtered)
+    }
+
+    private val menuTemplates: List<MenuTemplate> by lazy {
+        createMenuTemplates()
+    }
+
+    private fun createMenuTemplates(): List<MenuTemplate> {
+        val beverageCategory = Category(id = 1L, name = "음료", order = 1)
+        val dessertCategory = Category(id = 2L, name = "디저트", order = 2)
+
+        return listOf(
+            MenuTemplate(
+                id = 1L,
+                name = "흑임자라떼",
+                suggestedPrice = 5500,
+                category = beverageCategory,
+                preparationTimeSeconds = 120,
+                ingredients = listOf(
+                    MenuIngredient(1L, "흑임자파우더", 30.0, IngredientUnit.G, 50, 1500),
+                    MenuIngredient(2L, "우유", 200.0, IngredientUnit.ML, 2, 400),
+                    MenuIngredient(3L, "얼음", 100.0, IngredientUnit.G, 1, 100),
+                    MenuIngredient(4L, "종이컵", 1.0, IngredientUnit.EA, 100, 100),
+                ),
+            ),
+            MenuTemplate(
+                id = 2L,
+                name = "흑임자스콘",
+                suggestedPrice = 4000,
+                category = dessertCategory,
+                preparationTimeSeconds = 30,
+                ingredients = listOf(
+                    MenuIngredient(5L, "흑임자스콘", 1.0, IngredientUnit.EA, 1200, 1200),
+                    MenuIngredient(6L, "포장용기", 1.0, IngredientUnit.EA, 100, 100),
+                ),
+            ),
+            MenuTemplate(
+                id = 3L,
+                name = "흑임자케익",
+                suggestedPrice = 6500,
+                category = dessertCategory,
+                preparationTimeSeconds = 30,
+                ingredients = listOf(
+                    MenuIngredient(7L, "흑임자케이크", 1.0, IngredientUnit.EA, 2000, 2000),
+                    MenuIngredient(8L, "포장용기", 1.0, IngredientUnit.EA, 200, 200),
+                ),
+            ),
+            MenuTemplate(
+                id = 4L,
+                name = "흑임자우유",
+                suggestedPrice = 4500,
+                category = beverageCategory,
+                preparationTimeSeconds = 60,
+                ingredients = listOf(
+                    MenuIngredient(9L, "흑임자파우더", 20.0, IngredientUnit.G, 50, 1000),
+                    MenuIngredient(10L, "우유", 300.0, IngredientUnit.ML, 2, 600),
+                    MenuIngredient(11L, "종이컵", 1.0, IngredientUnit.EA, 100, 100),
+                ),
+            ),
+            MenuTemplate(
+                id = 5L,
+                name = "아메리카노",
+                suggestedPrice = 4500,
+                category = beverageCategory,
+                preparationTimeSeconds = 60,
+                ingredients = listOf(
+                    MenuIngredient(12L, "원두", 20.0, IngredientUnit.G, 15, 300),
+                    MenuIngredient(13L, "물", 200.0, IngredientUnit.ML, 1, 200),
+                    MenuIngredient(14L, "얼음", 100.0, IngredientUnit.G, 1, 100),
+                    MenuIngredient(15L, "종이컵", 1.0, IngredientUnit.EA, 100, 100),
+                ),
+            ),
+            MenuTemplate(
+                id = 6L,
+                name = "카페라떼",
+                suggestedPrice = 5000,
+                category = beverageCategory,
+                preparationTimeSeconds = 90,
+                ingredients = listOf(
+                    MenuIngredient(16L, "원두", 20.0, IngredientUnit.G, 15, 300),
+                    MenuIngredient(17L, "우유", 200.0, IngredientUnit.ML, 2, 400),
+                    MenuIngredient(18L, "얼음", 100.0, IngredientUnit.G, 1, 100),
+                    MenuIngredient(19L, "종이컵", 1.0, IngredientUnit.EA, 100, 100),
+                ),
+            ),
+        )
+    }
 
     private fun createInitialCategories(): List<Category> = listOf(
         Category(id = 1L, name = "음료", order = 1),
