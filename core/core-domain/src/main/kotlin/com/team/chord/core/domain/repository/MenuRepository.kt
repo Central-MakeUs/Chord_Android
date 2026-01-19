@@ -4,6 +4,7 @@ import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuIngredient
+import com.team.chord.core.domain.model.menu.MenuTemplate
 import kotlinx.coroutines.flow.Flow
 
 interface MenuRepository {
@@ -30,4 +31,7 @@ interface MenuRepository {
 
     // 카테고리
     fun getCategories(): Flow<List<Category>>
+
+    // 메뉴 템플릿 검색
+    fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>>
 }
