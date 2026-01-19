@@ -1,0 +1,568 @@
+package com.team.chord.feature.setup.menudetail
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.team.chord.core.ui.R
+import com.team.chord.core.ui.component.ChordLargeButton
+import com.team.chord.core.ui.component.ChordToast
+import com.team.chord.core.ui.component.ChordTooltipBubble
+import com.team.chord.core.ui.component.TooltipDirection
+import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale200
+import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale400
+import com.team.chord.core.ui.theme.Grayscale500
+import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale700
+import com.team.chord.core.ui.theme.Grayscale800
+import com.team.chord.core.ui.theme.Grayscale900
+import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.PrimaryBlue100
+import com.team.chord.core.ui.theme.PrimaryBlue500
+import com.team.chord.feature.setup.component.StepIndicator
+import java.text.NumberFormat
+import java.util.Locale
+
+@Composable
+fun MenuDetailScreen(
+    onNavigateBack: () -> Unit,
+    onNavigateToIngredientInput: (MenuDetailData) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: MenuDetailViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    MenuDetailScreenContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onMenuNameChanged = viewModel::onMenuNameChanged,
+        onPriceChanged = viewModel::onPriceChanged,
+        onCategorySelected = viewModel::onCategorySelected,
+        onPreparationTimeClick = { /* TODO: Open time picker bottom sheet */ },
+        onPreviousClick = onNavigateBack,
+        onNextClick = {
+            onNavigateToIngredientInput(viewModel.createMenuDetailData())
+        },
+        modifier = modifier,
+    )
+}
+
+@Composable
+internal fun MenuDetailScreenContent(
+    uiState: MenuDetailUiState,
+    onNavigateBack: () -> Unit,
+    onMenuNameChanged: (String) -> Unit,
+    onPriceChanged: (String) -> Unit,
+    onCategorySelected: (MenuCategory) -> Unit,
+    onPreparationTimeClick: () -> Unit,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show snackbar when template is applied
+    LaunchedEffect(uiState.isTemplateApplied) {
+        if (uiState.isTemplateApplied) {
+            snackbarHostState.showSnackbar(
+                message = "템플릿이 적용됐어요",
+            )
+        }
+    }
+
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Grayscale100,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) {
+                ChordToast(
+                    text = it.visuals.message,
+                    leadingIcon = R.drawable.ic_check,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                )
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            // Top Bar with back button and favorite icon
+            MenuDetailTopBar(
+                onBackClick = onNavigateBack,
+                onFavoriteClick = { /* TODO: Toggle favorite */ },
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(scrollState),
+            ) {
+                // Step Indicator
+                StepIndicator(
+                    currentStep = 1,
+                    totalSteps = 2,
+                    modifier = Modifier.padding(start = 20.dp, top = 16.dp),
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Menu Name Field
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    FieldLabel(text = "메뉴명")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    MenuNameTextField(
+                        value = uiState.menuName,
+                        onValueChange = onMenuNameChanged,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Price Field
+                Column(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    FieldLabel(text = "가격")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PriceTextField(
+                        value = uiState.price,
+                        onValueChange = onPriceChanged,
+                        placeholder = "가격을 입력해주세요",
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Divider
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp)
+                        .background(Grayscale200),
+                )
+
+                // Show category section only when price is entered
+                if (uiState.price.isNotBlank()) {
+
+                    // Gray background section for category and preparation time
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Grayscale100)
+                            .padding(horizontal = 20.dp, vertical = 24.dp),
+                    ) {
+                        // Category Section
+                        FieldLabel(text = "카테고리")
+                        Spacer(modifier = Modifier.height(16.dp))
+                        CategoryRadioGroup(
+                            selectedCategory = uiState.selectedCategory,
+                            onCategorySelected = onCategorySelected,
+                        )
+
+                        Spacer(modifier = Modifier.height(62.dp))
+
+                        // Preparation Time Section
+                        PreparationTimeRow(
+                            minutes = uiState.preparationMinutes,
+                            seconds = uiState.preparationSeconds,
+                            onClick = onPreparationTimeClick,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            // Bottom Buttons
+            BottomNavigationButtons(
+                isNextEnabled = uiState.isNextEnabled,
+                onPreviousClick = onPreviousClick,
+                onNextClick = onNextClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MenuDetailTopBar(
+    onBackClick: () -> Unit,
+    onFavoriteClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .padding(horizontal = 16.dp),
+    ) {
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            contentDescription = "뒤로가기",
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .size(24.dp)
+                .clickable(onClick = onBackClick),
+            tint = Grayscale900,
+        )
+
+        Icon(
+            painter = painterResource(R.drawable.ic_favorite),
+            contentDescription = "즐겨찾기",
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(24.dp)
+                .clickable(onClick = onFavoriteClick),
+            tint = Grayscale900,
+        )
+    }
+}
+
+@Composable
+private fun MenuNameTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.weight(1f),
+                textStyle = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    color = Grayscale900,
+                ),
+                singleLine = true,
+                cursorBrush = SolidColor(Grayscale800),
+            )
+            if (value.isNotEmpty()) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_close_circle),
+                    contentDescription = "지우기",
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clickable { onValueChange("") },
+                    tint = Grayscale500,
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(color = Grayscale300, thickness = 1.dp)
+    }
+}
+
+@Composable
+private fun PriceTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+) {
+    val numberFormat = remember { NumberFormat.getNumberInstance(Locale.KOREA) }
+    val formattedValue = value.toLongOrNull()?.let { numberFormat.format(it) } ?: value
+    val displayValue = if (value.isEmpty()) "" else "${formattedValue} 원"
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        BasicTextField(
+            value = displayValue,
+            onValueChange = { newValue ->
+                val numericValue = newValue.filter { it.isDigit() }
+                onValueChange(numericValue)
+            },
+            textStyle = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
+                color = Grayscale900,
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            cursorBrush = SolidColor(Grayscale800),
+            decorationBox = { innerTextField ->
+                Box {
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            style = TextStyle(
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 20.sp,
+                                color = PrimaryBlue500,
+                            ),
+                        )
+                    }
+                    innerTextField()
+                }
+            },
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(
+            color = if (value.isEmpty()) PrimaryBlue500 else Grayscale300,
+            thickness = 1.dp,
+        )
+    }
+}
+
+@Composable
+private fun CategoryRadioGroup(
+    selectedCategory: MenuCategory,
+    onCategorySelected: (MenuCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        MenuCategory.entries.forEachIndexed { index, category ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(x = (-12).dp)
+                    .clickable { onCategorySelected(category) },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(
+                    selected = category == selectedCategory,
+                    onClick = { onCategorySelected(category) },
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = PrimaryBlue500,
+                        unselectedColor = Grayscale500,
+                    ),
+                )
+                Text(
+                    text = category.displayName,
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 18.sp,
+                        color = if (category == selectedCategory) PrimaryBlue500 else Grayscale900,
+                    ),
+                )
+            }
+            if (index < MenuCategory.entries.lastIndex) {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun PreparationTimeRow(
+    minutes: Int,
+    seconds: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var showTooltip by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        kotlinx.coroutines.delay(3000L)
+        showTooltip = false
+    }
+
+    Column(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(8.dp))
+                .background(Grayscale200)
+                .clickable(onClick = onClick)
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "제조시간",
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Grayscale700,
+                ),
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "${minutes}분 ${seconds}초",
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 18.sp,
+                        color = Grayscale900,
+                    ),
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = "시간 선택",
+                    modifier = Modifier.size(16.dp),
+                    tint = Grayscale500,
+                )
+            }
+        }
+
+        // Tooltip (auto-dismiss after 3 seconds)
+        if (showTooltip) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                ChordTooltipBubble(
+                    text = "평균적인 제조시간이에요",
+                    direction = TooltipDirection.UpRight,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun BottomNavigationButtons(
+    isNextEnabled: Boolean,
+    onPreviousClick: () -> Unit,
+    onNextClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(7.dp),
+    ) {
+        // Previous Button
+        ChordLargeButton(
+            text = "이전",
+            onClick = onPreviousClick,
+            modifier = Modifier.weight(1f),
+            backgroundColor = Grayscale400,
+            textColor = Grayscale600,
+        )
+
+        // Next Button
+        ChordLargeButton(
+            text = "다음",
+            onClick = onNextClick,
+            modifier = Modifier.weight(1f),
+            enabled = isNextEnabled,
+        )
+    }
+}
+
+@Composable
+private fun FieldLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text = text,
+        fontFamily = PretendardFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        color = Grayscale900,
+        modifier = modifier,
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MenuDetailScreenContentPreview() {
+    MenuDetailScreenContent(
+        uiState = MenuDetailUiState(
+            menuName = "흑임자라떼",
+            price = "6500",
+            selectedCategory = MenuCategory.BEVERAGE,
+            preparationMinutes = 1,
+            preparationSeconds = 30,
+            isTemplateApplied = true,
+            isNextEnabled = true,
+        ),
+        onNavigateBack = {},
+        onMenuNameChanged = {},
+        onPriceChanged = {},
+        onCategorySelected = {},
+        onPreparationTimeClick = {},
+        onPreviousClick = {},
+        onNextClick = {},
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MenuDetailScreenContentEmptyPricePreview() {
+    MenuDetailScreenContent(
+        uiState = MenuDetailUiState(
+            menuName = "흑임자라떼",
+            price = "",
+            selectedCategory = MenuCategory.BEVERAGE,
+            preparationMinutes = 1,
+            preparationSeconds = 30,
+            isTemplateApplied = false,
+            isNextEnabled = false,
+        ),
+        onNavigateBack = {},
+        onMenuNameChanged = {},
+        onPriceChanged = {},
+        onCategorySelected = {},
+        onPreparationTimeClick = {},
+        onPreviousClick = {},
+        onNextClick = {},
+    )
+}

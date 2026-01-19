@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -315,7 +314,7 @@ private fun EmployeeCountBottomSheetContent(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "현재 근무중인 직원수를 알려주세요",
+            text = "근무중인 직원수를 알려주세요",
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
@@ -327,9 +326,9 @@ private fun EmployeeCountBottomSheetContent(
         Text(
             text = "언제든지 수정할 수 있어요",
             fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            color = Grayscale600,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = Grayscale700,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -359,7 +358,7 @@ private fun EmployeeCountBottomSheetContent(
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .border(1.dp, Grayscale300, RoundedCornerShape(8.dp))
+                        .border(1.dp, Grayscale500, RoundedCornerShape(8.dp))
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { onDecrement() },
                     contentAlignment = Alignment.Center,
@@ -368,7 +367,7 @@ private fun EmployeeCountBottomSheetContent(
                         painter = painterResource(R.drawable.ic_minus),
                         contentDescription = "감소",
                         modifier = Modifier.size(16.dp),
-                        tint = Grayscale700,
+                        tint = Grayscale900,
                     )
                 }
 
@@ -385,7 +384,7 @@ private fun EmployeeCountBottomSheetContent(
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .border(1.dp, Grayscale300, RoundedCornerShape(8.dp))
+                        .border(1.dp, Grayscale500, RoundedCornerShape(8.dp))
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { onIncrement() },
                     contentAlignment = Alignment.Center,
@@ -394,7 +393,7 @@ private fun EmployeeCountBottomSheetContent(
                         painter = painterResource(R.drawable.ic_add),
                         contentDescription = "증가",
                         modifier = Modifier.size(16.dp),
-                        tint = Grayscale700,
+                        tint = Grayscale900,
                     )
                 }
             }
@@ -522,7 +521,7 @@ private fun UnderlineTextField(
         Text(
             text = label,
             fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
             color = if (isFocused) PrimaryBlue500 else Grayscale900,
         )
@@ -538,8 +537,8 @@ private fun UnderlineTextField(
             enabled = enabled,
             textStyle = TextStyle(
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                fontSize = 20.sp,
                 color = Grayscale900,
             ),
             singleLine = true,
@@ -586,7 +585,7 @@ private fun UnderlineSearchField(
         Text(
             text = label,
             fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             fontSize = 14.sp,
             color = if (isFocused) PrimaryBlue500 else Grayscale900,
         )
@@ -605,8 +604,8 @@ private fun UnderlineSearchField(
                     .onFocusChanged { isFocused = it.isFocused },
                 textStyle = TextStyle(
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
                     color = Grayscale900,
                 ),
                 singleLine = true,
