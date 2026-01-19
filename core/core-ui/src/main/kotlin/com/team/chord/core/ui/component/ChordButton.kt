@@ -46,6 +46,8 @@ fun ChordLargeButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    backgroundColor: Color = PrimaryBlue500,
+    textColor: Color = Grayscale100,
 ) {
     Button(
         onClick = onClick,
@@ -55,8 +57,10 @@ fun ChordLargeButton(
         enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = PrimaryBlue500,
-            contentColor = Grayscale100,
+            containerColor = backgroundColor,
+            contentColor = textColor,
+            disabledContainerColor = backgroundColor,
+            disabledContentColor = textColor,
         ),
         contentPadding = PaddingValues(vertical = 14.5.dp),
     ) {

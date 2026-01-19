@@ -82,7 +82,7 @@ fun ChordTooltipIcon(
         painter = painterResource(R.drawable.ic_tooltip),
         contentDescription = "도움말",
         modifier = modifier
-            .size(16.dp)
+            .size(10.dp)
             .clickable { onClick() },
         tint = Grayscale500,
     )
