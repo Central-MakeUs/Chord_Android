@@ -1217,10 +1217,83 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 | FR-013-005 | 설정 완료 화면 | High | ✅ Done | 체크 아이콘, 입력 정보 요약 카드 |
 
 ### Navigation Flow
-```
-매장명 입력 → 매장 위치 검색 → 확인 → 직원수 바텀시트 → 설정 완료
-```
+매장명 입력 → 매장 위치 검색 → 확인 → 직원수 바텀시트 → 메뉴 등록 온보딩
 
 ---
 
-*Last Updated: 2026-01-15 (FR-004 재료 관리 구현 - IngredientListScreen, IngredientSearchScreen, IngredientDetailScreen)*
+## 14. 초기 설정 - 메뉴 등록 온보딩 (Menu Registration Onboarding)
+
+### Status
+`In Progress`
+
+### Overview
+매장 정보 입력 후 메뉴를 등록하는 온보딩 플로우. 메뉴 템플릿 검색, 상세 정보 입력, 재료 추가를 통해 최소 1개 이상의 메뉴를 등록.
+
+### User Stories
+| ID | User Story | Priority |
+|----|------------|----------|
+| US-014-001 | As a 신규 사용자, I want to 메뉴 템플릿을 검색하고 싶다 so that 빠르게 메뉴를 등록할 수 있다 | High |
+| US-014-002 | As a 신규 사용자, I want to 메뉴 가격과 카테고리를 입력하고 싶다 so that 원가 분석에 활용할 수 있다 | High |
+| US-014-003 | As a 신규 사용자, I want to 재료를 추가하고 싶다 so that 정확한 원가를 계산할 수 있다 | High |
+
+### Functional Requirements
+| ID | Requirement | Priority | Status | Acceptance Criteria |
+|----|-------------|----------|--------|---------------------|
+| FR-014-001 | 메뉴 등록 시작 화면 | High | ✅ Done | 계산기 아이콘, "메뉴 등록 시작하기" 버튼 |
+| FR-014-002 | 메뉴 템플릿 검색 화면 | High | ✅ Done | 검색 자동완성, 템플릿 적용 다이얼로그 |
+| FR-014-003 | 메뉴 상세 입력 화면 | High | ✅ Done | 메뉴명, 가격(천단위 포맷), 카테고리, 제조시간 |
+| FR-014-004 | 재료 입력 화면 | High | ✅ Done | 재료 추가 바텀시트, 재료 목록 표시 |
+| FR-014-005 | 메뉴 등록 확인 화면 | High | ✅ Done | 등록 완료 메시지, 추가 등록/마치기 버튼 |
+
+### Navigation Flow
+MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm → (추가 등록: MenuSearch / 마치기: SetupComplete)
+
+### Implementation Details (2026-01-20)
+
+#### 구현된 화면
+1. **MenuSuggestionScreen** - FR-014-001 완료
+   - 계산기 3D 아이콘 (ic_3d_calculator)
+   - "메뉴 등록 시작하기" ChordLargeButton
+
+2. **MenuSearchScreen** - FR-014-002 완료
+   - ChordSearchBar 사용 (입력 시 툴팁 숨김)
+   - 검색 결과 자동완성 (FakeMenuDataSource)
+   - TemplateApplyDialog (ModalBottomSheet) - 템플릿 적용 확인
+
+3. **MenuDetailScreen** - FR-014-003 완료
+   - StepIndicator (1/2 단계 표시)
+   - 메뉴명 입력 (BasicTextField + 삭제 버튼)
+   - 가격 입력 (천단위 콤마 포맷팅, "원" 접미사)
+   - 카테고리 라디오 버튼 (offset으로 정렬 보정)
+   - 제조시간 Row (ic_chevron_right, 툴팁 3초 자동 숨김)
+   - 템플릿 적용 시 Snackbar 토스트 (SnackbarHostState)
+   - ChordLargeButton (이전/다음 버튼, 색상 커스터마이징)
+
+4. **IngredientInputScreen** - FR-014-004 완료
+   - 재료 추가 바텀시트
+   - 재료 목록 표시
+
+5. **MenuConfirmScreen** - FR-014-005 완료
+   - 등록 완료 메시지
+   - "추가 등록" → MenuSearchScreen
+   - "마치기" → SetupCompleteScreen
+
+#### 구현된 컴포넌트
+| Component | Purpose |
+|-----------|---------|
+| `StepIndicator` | 단계 표시 (1-2 진행률, Grayscale400 비활성) |
+| `TemplateApplyDialog` | 템플릿 적용 바텀시트 (lineHeight 160%) |
+| `PriceTextField` | 가격 입력 필드 (천단위 포맷팅, "원" 접미사) |
+| `CategoryRadioGroup` | 카테고리 선택 (offset -12dp 정렬) |
+| `PreparationTimeRow` | 제조시간 설정 (툴팁 3초 자동 숨김) |
+| `BottomNavigationButtons` | 이전/다음 버튼 (ChordLargeButton 사용) |
+
+#### 추가된 core-ui 컴포넌트
+| Component | Purpose |
+|-----------|---------|
+| `ChordToast` | 재사용 가능한 토스트 (배경 #151B26B2, leadingIcon 원형) |
+| `ChordLargeButton` | backgroundColor, textColor 파라미터 추가 |
+
+---
+
+*Last Updated: 2026-01-20 (FR-014 메뉴 등록 온보딩 구현 - MenuSuggestionScreen, MenuSearchScreen, MenuDetailScreen, IngredientInputScreen, MenuConfirmScreen)*

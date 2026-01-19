@@ -102,33 +102,42 @@
 ## feature-setup
 
 ### Purpose
-신규 사용자 초기 설정 플로우 (매장 정보, 메뉴 등록)
+신규 사용자 초기 설정 플로우 (매장 정보, 메뉴 등록 온보딩)
 
 ### Responsibilities
 - 매장 정보 입력 화면 (StoreInfoScreen)
-- 메뉴 입력 화면 (MenuEntryScreen)
-- 메뉴 관리 화면 (MenuManagementScreen)
+- 메뉴 등록 온보딩 플로우 (MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm)
 - 설정 완료 화면 (SetupCompleteScreen)
 - 초기 설정 네비게이션 그래프
 
 ### Dependencies
 - `core-domain`
+- `core-data`
 - `core-ui`
 
 ### Key Classes/Functions
 | Class | Purpose |
 |-------|---------|
 | `StoreInfoScreen` | 매장 정보 입력 (매장명, 위치, 직원 수) |
-| `MenuEntryScreen` | 메뉴 입력 (카테고리, 가격, 재료, 제조시간) |
-| `MenuManagementScreen` | 등록된 메뉴 목록 관리 |
+| `MenuSuggestionScreen` | 메뉴 등록 시작 화면 (계산기 아이콘) |
+| `MenuSearchScreen` | 메뉴 템플릿 검색 화면 (자동완성, 템플릿 적용 다이얼로그) |
+| `MenuDetailScreen` | 메뉴 상세 입력 (메뉴명, 가격, 카테고리, 제조시간) |
+| `IngredientInputScreen` | 재료 입력 화면 (바텀시트로 재료 추가) |
+| `MenuConfirmScreen` | 메뉴 등록 확인 화면 |
 | `SetupCompleteScreen` | 초기 설정 완료 화면 |
-| `SetupTextField` | 설정 화면용 입력 필드 컴포넌트 |
-| `SetupDropdown` | 드롭다운 선택 컴포넌트 |
+| `StepIndicator` | 단계 표시 컴포넌트 (1/2 진행률) |
+| `TemplateApplyDialog` | 템플릿 적용 바텀시트 다이얼로그 |
 
 ### Navigation Flow
-```
-로그인 "처음이신가요?" → StoreInfo → MenuManagement ↔ MenuEntry → SetupComplete → Home
-```
+로그인 "처음이신가요?" → StoreInfo → MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm → SetupComplete → Home
+
+### MenuDetailScreen Features
+- 가격 입력 시 천단위 콤마 포맷팅 (NumberFormat)
+- 카테고리 라디오 버튼 (offset으로 정렬 보정)
+- 제조시간 설정 Row (ic_chevron_right 아이콘)
+- 툴팁 3초 후 자동 숨김 (LaunchedEffect + delay)
+- 템플릿 적용 시 Snackbar로 토스트 표시 (SnackbarHostState)
+- ChordLargeButton 사용 (이전/다음 버튼)
 
 ---
 
@@ -331,7 +340,7 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 | `ChordTopAppBar` | 상단 앱바 (뒤로가기 버튼, 타이틀) |
 | `ChordTopAppBarWithBackTitle` | 뒤로가기 + 타이틀 상단 앱바 |
 | `ChordButton` | 기본 버튼 컴포넌트 |
-| `ChordLargeButton` | 전체 너비 대형 버튼 |
+| `ChordLargeButton` | 전체 너비 대형 버튼 (backgroundColor, textColor 커스터마이징 지원) |
 | `ChordOutlinedButton` | 테두리만 있는 버튼 (삭제 등 보조 액션용, Grayscale500 테두리) |
 | `ChordSearchBar` | 검색 입력 필드 (backgroundColor 파라미터, 입력 시 삭제 버튼 표시) |
 | `ChordTextField` | 텍스트 입력 필드 (Outlined/Underline 스타일 지원) |
@@ -340,6 +349,7 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 | `ChordTwoButtonDialog` | 2버튼 다이얼로그 (취소/확인) |
 | `ChordOneButtonDialog` | 1버튼 다이얼로그 (확인만) |
 | `ChordCheckboxItem` | 체크박스 아이템 (커스텀 ic_checkbox/ic_un_checkbox 아이콘 사용) |
+| `ChordToast` | 토스트 컴포넌트 (leadingIcon 원형 배경, 배경색 #151B26B2) |
 | `ChordTooltip` | 툴팁 컴포넌트 (아이콘 + 버블 통합) |
 | `ChordTooltipIcon` | 툴팁 아이콘 (독립 사용 가능) |
 | `ChordTooltipBubble` | 툴팁 버블 (8방향 지원, 독립 사용 가능) |
@@ -395,4 +405,4 @@ if (isVisible) {
 
 ---
 
-*Last Updated: 2026-01-15 (feature-ingredient 모듈 추가, core-domain/core-data 재료 관련 클래스 추가, ChordSearchBar backgroundColor 파라미터 및 삭제 버튼 추가)*
+*Last Updated: 2026-01-20 (feature-setup 메뉴 등록 온보딩 플로우 추가, ChordLargeButton 색상 파라미터 추가, ChordToast 컴포넌트 추가)*
