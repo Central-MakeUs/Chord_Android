@@ -441,7 +441,7 @@ private fun NoResultsContent(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "'템플릿 없는 메뉴 입력'",
+                text = "'$searchQuery'",
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
