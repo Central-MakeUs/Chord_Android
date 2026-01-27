@@ -230,7 +230,6 @@ internal fun MenuDetailScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .padding(bottom = 24.dp),
             )
         }
     }
@@ -492,8 +491,6 @@ private fun BottomNavigationButtons(
             text = "이전",
             onClick = onPreviousClick,
             modifier = Modifier.weight(1f),
-            backgroundColor = Grayscale400,
-            textColor = Grayscale600,
         )
 
         // Next Button
