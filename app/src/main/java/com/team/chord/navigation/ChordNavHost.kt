@@ -37,6 +37,7 @@ import com.team.chord.feature.onboarding.navigation.onboardingScreen
 import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
 import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
+import com.team.chord.feature.aicoach.navigation.aiCoachScreen
 
 @Composable
 fun ChordNavHost(
@@ -171,5 +172,7 @@ fun ChordNavHost(
                 navController.popBackStack()
             },
         )
+
+        aiCoachScreen()
     }
 }

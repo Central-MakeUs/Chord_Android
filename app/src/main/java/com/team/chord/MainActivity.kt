@@ -22,6 +22,8 @@ import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
 import com.team.chord.feature.ingredient.navigation.navigateToIngredientList
 import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
 import com.team.chord.feature.menu.navigation.navigateToMenuList
+import com.team.chord.feature.aicoach.navigation.AI_COACH_ROUTE
+import com.team.chord.feature.aicoach.navigation.navigateToAiCoach
 import com.team.chord.navigation.ChordNavHost
 import com.team.chord.ui.ChordBottomNavBar
 import com.team.chord.ui.TopLevelDestination
@@ -48,7 +50,7 @@ private fun MainScreen(navController: NavHostController) {
 
     val shouldShowBottomBar =
         currentDestination?.hierarchy?.any { destination ->
-            destination.route in listOf(HOME_ROUTE, MENU_LIST_ROUTE, INGREDIENT_LIST_ROUTE, "ai_coach")
+            destination.route in listOf(HOME_ROUTE, MENU_LIST_ROUTE, INGREDIENT_LIST_ROUTE, AI_COACH_ROUTE)
         } == true
 
     Scaffold(
@@ -97,6 +99,8 @@ private fun navigateToTopLevelDestination(
             navController.navigateToIngredientList(topLevelNavOptions)
         }
 
-        TopLevelDestination.AI_COACH -> { }
+        TopLevelDestination.AI_COACH -> {
+            navController.navigateToAiCoach(topLevelNavOptions)
+        }
     }
 }
