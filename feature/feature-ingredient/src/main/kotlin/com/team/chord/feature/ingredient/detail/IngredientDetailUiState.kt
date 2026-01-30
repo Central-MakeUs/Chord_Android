@@ -1,5 +1,6 @@
 package com.team.chord.feature.ingredient.detail
 
+import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
 
 sealed interface IngredientDetailUiState {
@@ -17,6 +18,7 @@ sealed interface IngredientDetailUiState {
 data class IngredientDetailUi(
     val id: Long,
     val name: String,
+    val category: IngredientFilter,
     val price: Int,
     val unitAmount: Int,
     val unit: IngredientUnit,
@@ -30,6 +32,7 @@ data class IngredientDetailUi(
 data class UsedMenuUi(
     val id: Long,
     val name: String,
+    val usageAmount: String,
 )
 
 data class PriceHistoryUi(

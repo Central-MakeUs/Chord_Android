@@ -4,8 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.Result
+import com.team.chord.core.domain.model.ingredient.IngredientCategory
+import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.ingredient.PriceHistoryItem
 import com.team.chord.core.domain.model.ingredient.UsedMenu
+import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.usecase.ingredient.DeleteIngredientUseCase
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientDetailUseCase
 import com.team.chord.core.domain.usecase.ingredient.UpdateIngredientUseCase
@@ -79,6 +82,60 @@ class IngredientDetailViewModel @Inject constructor(
         }
     }
 
+    fun onUpdatePriceInfo(
+        category: IngredientFilter,
+        price: Int,
+        unitAmount: Int,
+        unit: IngredientUnit,
+    ) {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState !is IngredientDetailUiState.Success) return@launch
+
+            when (val result = updateIngredientUseCase.updatePrice(ingredientId, price, unitAmount)) {
+                is Result.Success -> {
+                    _uiState.value = currentState.copy(
+                        ingredientDetail = currentState.ingredientDetail.copy(
+                            category = category,
+                            price = price,
+                            unitAmount = unitAmount,
+                            unit = unit,
+                        ),
+                    )
+                }
+                is Result.Error -> {
+                    // Keep current state, optionally show error
+                }
+                is Result.Loading -> {
+                    // No-op
+                }
+            }
+        }
+    }
+
+    fun onUpdateSupplier(supplier: String) {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState !is IngredientDetailUiState.Success) return@launch
+
+            when (val result = updateIngredientUseCase.updateSupplier(ingredientId, supplier)) {
+                is Result.Success -> {
+                    _uiState.value = currentState.copy(
+                        ingredientDetail = currentState.ingredientDetail.copy(
+                            supplier = supplier,
+                        ),
+                    )
+                }
+                is Result.Error -> {
+                    // Keep current state, optionally show error
+                }
+                is Result.Loading -> {
+                    // No-op
+                }
+            }
+        }
+    }
+
     private fun loadIngredientDetail() {
         viewModelScope.launch {
             _uiState.value = IngredientDetailUiState.Loading
@@ -92,6 +149,7 @@ class IngredientDetailViewModel @Inject constructor(
                 _uiState.value = IngredientDetailUiState.Success(
                     IngredientDetailUi(
                         id = ingredient.id,
+                        category = ingredient.category.toIngredientFilter(),
                         name = ingredient.name,
                         price = ingredient.price,
                         unitAmount = ingredient.unitAmount,
@@ -102,6 +160,7 @@ class IngredientDetailViewModel @Inject constructor(
                             UsedMenuUi(
                                 id = usedMenu.id,
                                 name = usedMenu.name,
+                                usageAmount = usedMenu.usageAmount,
                             )
                         },
                         priceHistory = priceHistory.map { historyItem ->
@@ -123,11 +182,16 @@ class IngredientDetailViewModel @Inject constructor(
 
     // TODO: Replace with actual use case calls when domain layer is implemented
     private fun getFakeUsedMenus(): List<UsedMenu> = listOf(
-        UsedMenu(id = 1L, name = "아메리카노"),
-        UsedMenu(id = 2L, name = "카페라떼"),
-        UsedMenu(id = 3L, name = "돌체라떼"),
-        UsedMenu(id = 4L, name = "아인슈페너"),
+        UsedMenu(id = 1L, name = "아메리카노", usageAmount = "10g"),
+        UsedMenu(id = 2L, name = "카페라떼", usageAmount = "10g"),
+        UsedMenu(id = 3L, name = "돌체라떼", usageAmount = "15g"),
+        UsedMenu(id = 4L, name = "아인슈페너", usageAmount = "12g"),
     )
+
+    private fun IngredientCategory.toIngredientFilter(): IngredientFilter = when (this) {
+        IngredientCategory.FOOD_MATERIAL -> IngredientFilter.FOOD_INGREDIENT
+        IngredientCategory.OPERATIONAL -> IngredientFilter.OPERATIONAL_SUPPLY
+    }
 
     private fun getFakePriceHistory(): List<PriceHistoryItem> = listOf(
         PriceHistoryItem(

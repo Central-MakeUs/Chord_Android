@@ -40,8 +40,6 @@ fun NavGraphBuilder.ingredientListScreen(
 
 fun NavGraphBuilder.ingredientDetailScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToPriceEdit: (Long) -> Unit,
-    onNavigateToSupplierEdit: (Long) -> Unit,
 ) {
     composable(
         route = "$INGREDIENT_DETAIL_ROUTE/{ingredientId}",
@@ -49,8 +47,6 @@ fun NavGraphBuilder.ingredientDetailScreen(
     ) {
         IngredientDetailScreen(
             onNavigateBack = onNavigateBack,
-            onNavigateToPriceEdit = onNavigateToPriceEdit,
-            onNavigateToSupplierEdit = onNavigateToSupplierEdit,
         )
     }
 }

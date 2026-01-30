@@ -164,12 +164,6 @@ fun ChordNavHost(
             onNavigateBack = {
                 navController.popBackStack()
             },
-            onNavigateToPriceEdit = { ingredientId ->
-                // TODO: Navigate to price edit screen
-            },
-            onNavigateToSupplierEdit = { ingredientId ->
-                // TODO: Navigate to supplier edit screen
-            },
         )
 
         ingredientSearchScreen(
