@@ -1,9 +1,7 @@
 package com.team.chord.feature.setup.storeinfo
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,12 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -41,18 +37,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
+import com.team.chord.core.ui.component.ChordCheckboxItem
 import com.team.chord.core.ui.component.ChordLargeButton
-import com.team.chord.core.ui.component.ChordTooltipBubble
-import com.team.chord.core.ui.component.ChordTooltipIcon
+import com.team.chord.core.ui.component.ChordTextField
 import com.team.chord.core.ui.component.ChordTopAppBar
-import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale700
@@ -75,13 +72,11 @@ fun StoreInfoScreen(
         uiState = uiState,
         onStoreNameChanged = viewModel::onStoreNameChanged,
         onStoreNameConfirmed = viewModel::onStoreNameConfirmed,
-        onLocationChanged = viewModel::onLocationChanged,
-        onLocationSelected = viewModel::onLocationSelected,
-        onConfirmClicked = viewModel::onConfirmClicked,
-        onEmployeeCountIncrement = viewModel::onEmployeeCountIncrement,
-        onEmployeeCountDecrement = viewModel::onEmployeeCountDecrement,
-        onEmployeeCountBottomSheetDismiss = viewModel::onEmployeeCountBottomSheetDismiss,
-        onCompleteClicked = viewModel::onCompleteClicked,
+        onEmployeeCountChanged = viewModel::onEmployeeCountChanged,
+        onIsOwnerSoloChanged = viewModel::onIsOwnerSoloChanged,
+        onHourlyWageChanged = viewModel::onHourlyWageChanged,
+        onIncludeWeeklyAllowanceChanged = viewModel::onIncludeWeeklyAllowanceChanged,
+        onPostStoreNameNextClicked = viewModel::onPostStoreNameNextClicked,
         onBackClicked = {
             when (uiState.screenState) {
                 StoreInfoScreenState.StoreNameInput -> onBackClick()
@@ -93,25 +88,20 @@ fun StoreInfoScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun StoreInfoScreenContent(
     uiState: StoreInfoUiState,
     onStoreNameChanged: (String) -> Unit,
     onStoreNameConfirmed: () -> Unit,
-    onLocationChanged: (String) -> Unit,
-    onLocationSelected: (String) -> Unit,
-    onConfirmClicked: () -> Unit,
-    onEmployeeCountIncrement: () -> Unit,
-    onEmployeeCountDecrement: () -> Unit,
-    onEmployeeCountBottomSheetDismiss: () -> Unit,
-    onCompleteClicked: () -> Unit,
+    onEmployeeCountChanged: (String) -> Unit,
+    onIsOwnerSoloChanged: (Boolean) -> Unit,
+    onHourlyWageChanged: (String) -> Unit,
+    onIncludeWeeklyAllowanceChanged: (Boolean) -> Unit,
+    onPostStoreNameNextClicked: () -> Unit,
     onBackClicked: () -> Unit,
     onNavigateToMenuEntry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -121,7 +111,6 @@ internal fun StoreInfoScreenContent(
             StoreInfoScreenState.Completed -> {
                 CompletedContent(
                     storeName = uiState.storeName,
-                    location = uiState.location,
                     employeeCount = uiState.employeeCount,
                     onNavigateToMenuEntry = onNavigateToMenuEntry,
                 )
@@ -136,13 +125,18 @@ internal fun StoreInfoScreenContent(
                     )
 
                     Column(
-                        modifier = Modifier.padding(horizontal = 24.dp),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp),
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Title
                         Text(
-                            text = "매장 정보를 알려주세요",
+                            text = when (uiState.screenState) {
+                                StoreInfoScreenState.PostStoreName -> "매장의 운영 정보를 알려주세요"
+                                else -> "매장 정보를 알려주세요"
+                            },
                             fontFamily = PretendardFontFamily,
                             fontWeight = FontWeight.Bold,
                             fontSize = 24.sp,
@@ -159,20 +153,18 @@ internal fun StoreInfoScreenContent(
                                 onStoreNameConfirmed = onStoreNameConfirmed,
                             )
                         }
-                        StoreInfoScreenState.LocationInput -> {
-                            LocationInputContent(
-                                storeName = uiState.storeName,
-                                location = uiState.location,
-                                onLocationChanged = onLocationChanged,
-                                onLocationSelected = onLocationSelected,
-                            )
-                        }
-                        StoreInfoScreenState.Confirmation -> {
-                            ConfirmationContent(
-                                storeName = uiState.storeName,
-                                location = uiState.location,
-                                isConfirmEnabled = uiState.isConfirmEnabled,
-                                onConfirmClicked = onConfirmClicked,
+                        StoreInfoScreenState.PostStoreName -> {
+                            PostStoreNameContent(
+                                employeeCountInput = uiState.employeeCountInput,
+                                ownerSolo = uiState.ownerSolo,
+                                hourlyWageInput = uiState.hourlyWageInput,
+                                includeWeeklyAllowance = uiState.includeWeeklyAllowance,
+                                isNextEnabled = uiState.isPostStoreNameNextEnabled,
+                                onEmployeeCountChanged = onEmployeeCountChanged,
+                                onIsOwnerSoloChanged = onIsOwnerSoloChanged,
+                                onHourlyWageChanged = onHourlyWageChanged,
+                                onIncludeWeeklyAllowanceChanged = onIncludeWeeklyAllowanceChanged,
+                                onNextClicked = onPostStoreNameNextClicked,
                             )
                         }
                         StoreInfoScreenState.Completed -> Unit
@@ -182,32 +174,6 @@ internal fun StoreInfoScreenContent(
             }
         }
 
-        // Employee count bottom sheet
-        if (uiState.isEmployeeCountBottomSheetVisible) {
-            ModalBottomSheet(
-                onDismissRequest = onEmployeeCountBottomSheetDismiss,
-                sheetState = sheetState,
-                containerColor = Grayscale100,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                dragHandle = {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 12.dp)
-                            .width(40.dp)
-                            .height(4.dp)
-                            .clip(RoundedCornerShape(2.dp))
-                            .background(Grayscale300),
-                    )
-                },
-            ) {
-                EmployeeCountBottomSheetContent(
-                    employeeCount = uiState.employeeCount,
-                    onIncrement = onEmployeeCountIncrement,
-                    onDecrement = onEmployeeCountDecrement,
-                    onCompleteClicked = onCompleteClicked,
-                )
-            }
-        }
     }
 }
 
@@ -233,185 +199,105 @@ private fun StoreNameInputContent(
 }
 
 @Composable
-private fun LocationInputContent(
-    storeName: String,
-    location: String,
-    onLocationChanged: (String) -> Unit,
-    onLocationSelected: (String) -> Unit,
+private fun PostStoreNameContent(
+    employeeCountInput: String,
+    ownerSolo: Boolean,
+    hourlyWageInput: String,
+    includeWeeklyAllowance: Boolean,
+    isNextEnabled: Boolean,
+    onEmployeeCountChanged: (String) -> Unit,
+    onIsOwnerSoloChanged: (Boolean) -> Unit,
+    onHourlyWageChanged: (String) -> Unit,
+    onIncludeWeeklyAllowanceChanged: (Boolean) -> Unit,
+    onNextClicked: () -> Unit,
 ) {
-    Column {
-        UnderlineSearchField(
-            label = "매장 위치",
-            value = location,
-            onValueChange = onLocationChanged,
-            placeholder = "예)청파동",
-            onSearch = { onLocationSelected(location) },
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Text(
+            text = "직원수",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = Grayscale900,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        ChordTextField(
+            value = employeeCountInput,
+            onValueChange = { newValue ->
+                if (!ownerSolo) {
+                    onEmployeeCountChanged(newValue)
+                }
+            },
+            placeholder = "사장님을 제외한 직원수 입력",
+            keyboardType = KeyboardType.Number,
+            modifier = Modifier.alpha(if (ownerSolo) 0.5f else 1f),
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        UnderlineTextField(
-            label = "매장명",
-            value = storeName,
-            onValueChange = {},
-            placeholder = "",
-            enabled = false,
-        )
-    }
-}
-
-@Composable
-private fun ConfirmationContent(
-    storeName: String,
-    location: String,
-    isConfirmEnabled: Boolean,
-    onConfirmClicked: () -> Unit,
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        UnderlineTextField(
-            label = "매장 위치",
-            value = location,
-            onValueChange = {},
-            placeholder = "",
-            enabled = false,
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            color = Grayscale300,
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        ChordCheckboxItem(
+            checked = ownerSolo,
+            onCheckedChange = onIsOwnerSoloChanged,
+        ) {
+            Text(
+                text = "사장님 혼자 근무중이신가요?",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Grayscale900,
+            )
+        }
 
-        UnderlineTextField(
-            label = "매장명",
-            value = storeName,
-            onValueChange = {},
-            placeholder = "",
-            enabled = false,
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            color = Grayscale300,
         )
+
+        Text(
+            text = "인건비",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = Grayscale900,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        ChordTextField(
+            value = hourlyWageInput,
+            onValueChange = onHourlyWageChanged,
+            placeholder = "시급 기준으로 입력",
+            keyboardType = KeyboardType.Number,
+        )
+
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 16.dp),
+            color = Grayscale300,
+        )
+
+        ChordCheckboxItem(
+            checked = includeWeeklyAllowance,
+            onCheckedChange = onIncludeWeeklyAllowanceChanged,
+        ) {
+            Text(
+                text = "주휴수당 포함",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Grayscale900,
+            )
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 
         ChordLargeButton(
-            text = "확인",
-            onClick = onConfirmClicked,
-            enabled = isConfirmEnabled,
-            modifier = Modifier.padding(bottom = 32.dp),
-        )
-    }
-}
-
-@Composable
-private fun EmployeeCountBottomSheetContent(
-    employeeCount: Int,
-    onIncrement: () -> Unit,
-    onDecrement: () -> Unit,
-    onCompleteClicked: () -> Unit,
-) {
-    var isTooltipVisible by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-    ) {
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "근무중인 직원수를 알려주세요",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            color = Grayscale900,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "언제든지 수정할 수 있어요",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp,
-            color = Grayscale700,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Employee count row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "직원수",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp,
-                    color = Grayscale900,
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                ChordTooltipIcon(onClick = { isTooltipVisible = !isTooltipVisible })
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Minus button
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .border(1.dp, Grayscale500, RoundedCornerShape(8.dp))
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onDecrement() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_minus),
-                        contentDescription = "감소",
-                        modifier = Modifier.size(16.dp),
-                        tint = Grayscale900,
-                    )
-                }
-
-                Text(
-                    text = employeeCount.toString(),
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Grayscale900,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
-
-                // Plus button
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .border(1.dp, Grayscale500, RoundedCornerShape(8.dp))
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onIncrement() },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_add),
-                        contentDescription = "증가",
-                        modifier = Modifier.size(16.dp),
-                        tint = Grayscale900,
-                    )
-                }
-            }
-        }
-
-        // Tooltip bubble below the row
-        if (isTooltipVisible) {
-            ChordTooltipBubble(
-                text = "사장님을 포함한 직원수를 의미해요",
-                direction = TooltipDirection.UpLeft,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        ChordLargeButton(
-            text = "완료",
-            onClick = onCompleteClicked,
+            text = "다음",
+            onClick = onNextClicked,
+            enabled = isNextEnabled,
+            backgroundColor = if (isNextEnabled) PrimaryBlue500 else Grayscale400,
+            textColor = if (isNextEnabled) Grayscale100 else Grayscale600,
             modifier = Modifier.padding(bottom = 32.dp),
         )
     }
@@ -420,7 +306,6 @@ private fun EmployeeCountBottomSheetContent(
 @Composable
 private fun CompletedContent(
     storeName: String,
-    location: String,
     employeeCount: Int,
     onNavigateToMenuEntry: () -> Unit,
 ) {
@@ -468,8 +353,6 @@ private fun CompletedContent(
         ) {
             Column {
                 SummaryRow(label = "매장명", value = storeName)
-                Spacer(modifier = Modifier.height(8.dp))
-                SummaryRow(label = "위치", value = location)
                 Spacer(modifier = Modifier.height(8.dp))
                 SummaryRow(label = "직원수", value = "${employeeCount}명")
             }

@@ -21,24 +21,63 @@ class StoreInfoViewModel
             }
         }
 
-        fun onLocationChanged(location: String) {
-            _uiState.update {
-                it.copy(location = location).updateConfirmEnabled()
-            }
-        }
-
-        fun onLocationSelected(location: String) {
-            _uiState.update {
-                it.copy(
-                    location = location,
-                    screenState = StoreInfoScreenState.Confirmation,
-                ).updateConfirmEnabled()
-            }
-        }
-
         fun onStoreNameConfirmed() {
             _uiState.update {
-                it.copy(screenState = StoreInfoScreenState.LocationInput)
+                it.copy(screenState = StoreInfoScreenState.PostStoreName)
+            }
+        }
+
+        fun onEmployeeCountChanged(text: String) {
+            if (text.isNotEmpty() && !text.all { it.isDigit() }) {
+                return
+            }
+
+            _uiState.update {
+                if (it.ownerSolo) {
+                    it.copy(employeeCountInput = "0")
+                } else {
+                    it.copy(employeeCountInput = text)
+                }
+            }
+        }
+
+        fun onIsOwnerSoloChanged(checked: Boolean) {
+            _uiState.update {
+                if (checked) {
+                    it.copy(ownerSolo = true, employeeCountInput = "0")
+                } else {
+                    it.copy(ownerSolo = false)
+                }
+            }
+        }
+
+        fun onHourlyWageChanged(text: String) {
+            if (text.isNotEmpty() && !text.all { it.isDigit() }) {
+                return
+            }
+
+            _uiState.update {
+                it.copy(hourlyWageInput = text)
+            }
+        }
+
+        fun onIncludeWeeklyAllowanceChanged(checked: Boolean) {
+            _uiState.update {
+                it.copy(includeWeeklyAllowance = checked)
+            }
+        }
+
+        fun onPostStoreNameNextClicked() {
+            _uiState.update {
+                if (it.isPostStoreNameNextEnabled) {
+                    val employeeCountValue = it.employeeCountValue ?: it.employeeCount
+                    it.copy(
+                        employeeCount = employeeCountValue,
+                        screenState = StoreInfoScreenState.Completed,
+                    )
+                } else {
+                    it
+                }
             }
         }
 
@@ -82,15 +121,9 @@ class StoreInfoViewModel
         fun onBackClicked() {
             _uiState.update {
                 when (it.screenState) {
-                    StoreInfoScreenState.LocationInput -> it.copy(screenState = StoreInfoScreenState.StoreNameInput)
-                    StoreInfoScreenState.Confirmation -> it.copy(screenState = StoreInfoScreenState.LocationInput)
+                    StoreInfoScreenState.PostStoreName -> it.copy(screenState = StoreInfoScreenState.StoreNameInput)
                     else -> it
                 }
             }
         }
-
-        private fun StoreInfoUiState.updateConfirmEnabled(): StoreInfoUiState =
-            copy(
-                isConfirmEnabled = storeName.isNotBlank() && location.isNotBlank(),
-            )
     }
