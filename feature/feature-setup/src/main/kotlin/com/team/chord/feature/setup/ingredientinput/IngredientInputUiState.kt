@@ -12,7 +12,7 @@ data class IngredientInputUiState(
     val selectedIngredients: List<SelectedIngredient> = emptyList(),
     val showAddBottomSheet: Boolean = false,
     val bottomSheetIngredient: IngredientBottomSheetState? = null,
-    val isNextEnabled: Boolean = false,
+    val isNextEnabled: Boolean = true,
     val isSearching: Boolean = false,
 )
 

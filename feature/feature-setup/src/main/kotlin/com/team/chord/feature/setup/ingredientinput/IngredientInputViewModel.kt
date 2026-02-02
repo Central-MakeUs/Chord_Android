@@ -202,7 +202,6 @@ class IngredientInputViewModel @Inject constructor(
                 bottomSheetIngredient = null,
                 searchQuery = "",
                 searchResults = emptyList(),
-                isNextEnabled = updatedIngredients.isNotEmpty(),
             )
         }
     }
@@ -212,7 +211,6 @@ class IngredientInputViewModel @Inject constructor(
             val updatedIngredients = state.selectedIngredients.filter { it.id != ingredientId }
             state.copy(
                 selectedIngredients = updatedIngredients,
-                isNextEnabled = updatedIngredients.isNotEmpty(),
             )
         }
     }
