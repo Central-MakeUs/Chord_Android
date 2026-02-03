@@ -1,10 +1,10 @@
 package com.team.chord.feature.home
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.lazy.LazyColumn
+import com.team.chord.core.ui.theme.Grayscale200
+import com.team.chord.feature.home.component.HomePrimaryCtaBar
+import com.team.chord.feature.home.component.HomeSectionHeader
+import com.team.chord.feature.home.component.HomeStatsRow
+import com.team.chord.feature.home.component.HomeTodoSummaryCard
+import com.team.chord.feature.home.component.HomeTopBar
 
 @Composable
 fun HomeScreen(
@@ -34,28 +41,64 @@ internal fun HomeScreenContent(
     uiState: HomeUiState,
     modifier: Modifier = Modifier,
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-    ) {
-        when (uiState) {
-            is HomeUiState.Loading -> {
+    when (uiState) {
+        is HomeUiState.Loading -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
                 CircularProgressIndicator()
             }
+        }
 
-            is HomeUiState.Success -> {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(
-                        text = uiState.message,
-                        style = MaterialTheme.typography.headlineMedium,
+        is HomeUiState.Success -> {
+            LazyColumn(
+                modifier =
+                    modifier
+                        .fillMaxSize()
+                        .background(Grayscale200),
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item {
+                    HomeTopBar(
+                        onNotificationClick = {
+                            // TODO: navigate to notification page
+                        },
+                        onMenuClick = {},
                     )
                 }
+                item {
+                    HomePrimaryCtaBar(
+                        title = uiState.ctaTitle,
+                        onClick = {
+                            // TODO: navigate to diagnosis page
+                        },
+                    )
+                }
+                item {
+                    HomeSectionHeader(title = uiState.todoSectionTitle)
+                }
+                item {
+                    HomeTodoSummaryCard(
+                        title = uiState.todoCardTitle,
+                        items = uiState.todoItems,
+                    )
+                }
+                item {
+                    HomeSectionHeader(title = uiState.statsSectionTitle)
+                }
+                item {
+                    HomeStatsRow(stats = uiState.stats)
+                }
             }
+        }
 
-            is HomeUiState.Error -> {
+        is HomeUiState.Error -> {
+            Box(
+                modifier = modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
                 Text(
                     text = uiState.message,
                     color = MaterialTheme.colorScheme.error,
