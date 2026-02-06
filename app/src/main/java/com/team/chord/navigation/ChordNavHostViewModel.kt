@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -16,9 +17,12 @@ import javax.inject.Inject
 class ChordNavHostViewModel
     @Inject
     constructor(
-        onboardingRepository: OnboardingRepository,
+        private val onboardingRepository: OnboardingRepository,
         authRepository: AuthRepository,
     ) : ViewModel() {
+        suspend fun isOnboardingCompleted(): Boolean =
+            onboardingRepository.isOnboardingCompleted().first()
+
         val navigationState: StateFlow<NavigationState> =
             combine(
                 onboardingRepository.isOnboardingCompleted(),

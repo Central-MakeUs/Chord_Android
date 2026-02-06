@@ -2,6 +2,7 @@ package com.team.chord.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -13,7 +14,10 @@ import com.team.chord.feature.auth.navigation.SIGNUP_ROUTE
 import com.team.chord.feature.auth.navigation.loginScreen
 import com.team.chord.feature.auth.navigation.navigateToLogin
 import com.team.chord.feature.auth.navigation.navigateToSignUp
+import com.team.chord.feature.auth.navigation.navigateToSignUpComplete
+import com.team.chord.feature.auth.navigation.signUpCompleteScreen
 import com.team.chord.feature.auth.navigation.signUpScreen
+import com.team.chord.feature.auth.navigation.SIGNUP_COMPLETE_ROUTE
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToHome
@@ -38,6 +42,7 @@ import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
 import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
 import com.team.chord.feature.aicoach.navigation.aiCoachScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChordNavHost(
@@ -46,6 +51,7 @@ fun ChordNavHost(
     viewModel: ChordNavHostViewModel = hiltViewModel(),
 ) {
     val navigationState by viewModel.navigationState.collectAsStateWithLifecycle()
+    val coroutineScope = rememberCoroutineScope()
 
     if (navigationState is NavigationState.Loading) {
         return
@@ -76,29 +82,52 @@ fun ChordNavHost(
 
         loginScreen(
             onLoginSuccess = {
-                navController.navigateToHome(
-                    navOptions =
-                        navOptions {
-                            popUpTo(LOGIN_ROUTE) { inclusive = true }
-                        },
-                )
+                coroutineScope.launch {
+                    val isOnboardingDone = viewModel.isOnboardingCompleted()
+                    if (isOnboardingDone) {
+                        navController.navigateToHome(
+                            navOptions =
+                                navOptions {
+                                    popUpTo(LOGIN_ROUTE) { inclusive = true }
+                                },
+                        )
+                    } else {
+                        navController.navigateToSetupGraph(
+                            navOptions =
+                                navOptions {
+                                    popUpTo(LOGIN_ROUTE) { inclusive = true }
+                                },
+                        )
+                    }
+                }
             },
             onNavigateToSignUp = {
-                navController.navigateToSetupGraph()
+                navController.navigateToSignUp()
             },
         )
 
         signUpScreen(
             onSignUpSuccess = {
-                navController.navigateToHome(
+                navController.navigateToSignUpComplete(
                     navOptions =
                         navOptions {
-                            popUpTo(0) { inclusive = true }
+                            popUpTo(SIGNUP_ROUTE) { inclusive = true }
                         },
                 )
             },
             onNavigateBack = {
                 navController.popBackStack()
+            },
+        )
+
+        signUpCompleteScreen(
+            onNavigateToLogin = {
+                navController.navigateToLogin(
+                    navOptions =
+                        navOptions {
+                            popUpTo(SIGNUP_COMPLETE_ROUTE) { inclusive = true }
+                        },
+                )
             },
         )
 
