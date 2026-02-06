@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.core.coreData)
     implementation(projects.core.coreCommon)
     implementation(projects.core.coreUi)
+    implementation(projects.core.coreNetwork)
     implementation(projects.feature.featureHome)
     implementation(projects.feature.featureOnboarding)
     implementation(projects.feature.featureAuth)
