@@ -7,6 +7,7 @@ import com.team.chord.core.network.model.UnauthorizedException
 import kotlinx.serialization.json.Json
 import retrofit2.Response
 
+@Suppress("UNCHECKED_CAST")
 suspend fun <T> safeApiCall(
     json: Json = Json { ignoreUnknownKeys = true },
     apiCall: suspend () -> Response<ApiResponse<T>>,
@@ -15,7 +16,7 @@ suspend fun <T> safeApiCall(
     if (response.isSuccessful) {
         val body = response.body()
             ?: throw ApiException(code = "UNKNOWN", message = "Empty response body")
-        return body.data
+        return body.data ?: (Unit as T)
     } else {
         val errorBody = response.errorBody()?.string()
         if (response.code() == 401) {
