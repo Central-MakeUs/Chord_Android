@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
@@ -48,6 +49,8 @@ fun ChordLargeButton(
     enabled: Boolean = true,
     backgroundColor: Color = PrimaryBlue500,
     textColor: Color = Grayscale100,
+    disabledBackgroundColor: Color = Grayscale400,
+    disabledTextColor: Color = Grayscale600,
 ) {
     Button(
         onClick = onClick,
@@ -59,8 +62,8 @@ fun ChordLargeButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor,
             contentColor = textColor,
-            disabledContainerColor = backgroundColor,
-            disabledContentColor = textColor,
+            disabledContainerColor = disabledBackgroundColor,
+            disabledContentColor = disabledTextColor,
         ),
         contentPadding = PaddingValues(vertical = 14.5.dp),
     ) {

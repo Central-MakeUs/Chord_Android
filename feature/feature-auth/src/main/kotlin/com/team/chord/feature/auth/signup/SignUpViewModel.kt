@@ -23,65 +23,62 @@ class SignUpViewModel
 
         fun onUsernameChanged(username: String) {
             val validation = validateUsername(username)
+            val currentState = _uiState.value
+            val passwordValidation = validatePassword(currentState.password, username)
             _uiState.update {
                 it.copy(
                     username = username,
                     usernameValidation = validation,
-                    errorMessage = null,
+                    passwordValidation = passwordValidation,
                 )
             }
         }
 
         fun onPasswordChanged(password: String) {
             val currentState = _uiState.value
-            val validation = validatePassword(password, currentState.passwordConfirm)
+            val validation = validatePassword(password, currentState.username)
+            val confirmError =
+                if (currentState.passwordConfirm.isNotEmpty() && password != currentState.passwordConfirm) {
+                    "동일한 비밀번호를 입력해주세요"
+                } else {
+                    null
+                }
             _uiState.update {
                 it.copy(
                     password = password,
                     passwordValidation = validation,
-                    errorMessage = null,
+                    passwordConfirmError = confirmError,
                 )
             }
         }
 
         fun onPasswordConfirmChanged(passwordConfirm: String) {
             val currentState = _uiState.value
+            val confirmError =
+                if (passwordConfirm.isNotEmpty() && currentState.password != passwordConfirm) {
+                    "동일한 비밀번호를 입력해주세요"
+                } else {
+                    null
+                }
             _uiState.update {
                 it.copy(
                     passwordConfirm = passwordConfirm,
-                    passwordValidation =
-                        it.passwordValidation.copy(
-                            isConfirmMatch = currentState.password == passwordConfirm && passwordConfirm.isNotEmpty(),
-                        ),
-                    errorMessage = null,
+                    passwordConfirmError = confirmError,
                 )
             }
-        }
-
-        fun onTermsAgreedChanged(isAgreed: Boolean) {
-            _uiState.update { it.copy(isTermsAgreed = isAgreed) }
         }
 
         fun onSignUpClicked() {
             val currentState = _uiState.value
 
-            if (!currentState.usernameValidation.isValid) {
-                _uiState.update { it.copy(errorMessage = "아이디를 확인해주세요") }
-                return
-            }
-
-            if (!currentState.passwordValidation.isValid) {
-                _uiState.update { it.copy(errorMessage = "비밀번호를 확인해주세요") }
-                return
-            }
-
-            if (!currentState.isTermsAgreed) {
-                _uiState.update { it.copy(errorMessage = "이용약관에 동의해주세요") }
-                return
-            }
+            if (!currentState.usernameValidation.isValid) return
+            if (!currentState.passwordValidation.isValid) return
+            if (currentState.passwordConfirmError != null) return
+            if (currentState.password != currentState.passwordConfirm) return
+            if (currentState.passwordConfirm.isEmpty()) return
 
             viewModelScope.launch {
-                _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+                _uiState.update { it.copy(isLoading = true) }
 
                 when (val result = authRepository.signUp(currentState.username, currentState.password)) {
                     is AuthResult.SignUpSuccess -> {
@@ -89,7 +86,6 @@ class SignUpViewModel
                     }
 
                     is AuthResult.LoginSuccess -> {
-                        // Not expected during sign-up flow
                         _uiState.update { it.copy(isLoading = false) }
                     }
 
@@ -97,23 +93,46 @@ class SignUpViewModel
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                errorMessage = result.message,
-                                usernameValidation = it.usernameValidation.copy(isAvailable = false),
+                                usernameValidation =
+                                    it.usernameValidation.copy(
+                                        error = result.message,
+                                        isAvailable = false,
+                                    ),
                             )
                         }
                     }
 
                     is AuthResult.NetworkError -> {
-                        _uiState.update { it.copy(isLoading = false, errorMessage = "네트워크 오류가 발생했습니다") }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                usernameValidation =
+                                    it.usernameValidation.copy(
+                                        error = "네트워크 오류가 발생했습니다",
+                                    ),
+                            )
+                        }
                     }
 
                     is AuthResult.InvalidCredentials -> {
-                        _uiState.update { it.copy(isLoading = false, errorMessage = result.message) }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                usernameValidation =
+                                    it.usernameValidation.copy(error = result.message),
+                            )
+                        }
                     }
 
                     is AuthResult.ValidationError -> {
                         val errorMsg = result.errors.values.firstOrNull() ?: "입력값을 확인해주세요"
-                        _uiState.update { it.copy(isLoading = false, errorMessage = errorMsg) }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                usernameValidation =
+                                    it.usernameValidation.copy(error = errorMsg),
+                            )
+                        }
                     }
                 }
             }
@@ -123,28 +142,46 @@ class SignUpViewModel
             _uiState.update { it.copy(isSignUpSuccess = false) }
         }
 
-        private fun validateUsername(username: String): UsernameValidation =
-            UsernameValidation(
-                isLengthValid = username.length >= MIN_USERNAME_LENGTH,
-                isPatternValid = USERNAME_PATTERN.matches(username),
+        private fun validateUsername(username: String): UsernameValidation {
+            if (username.isEmpty()) {
+                return UsernameValidation()
+            }
+            val isLengthValid = username.length >= MIN_USERNAME_LENGTH
+            val isPatternValid = USERNAME_PATTERN.matches(username)
+            val error =
+                when {
+                    !isLengthValid -> "3자 이상 입력해주세요"
+                    !isPatternValid -> "잘못된 입력 형식입니다. (영문 소문자 + 숫자만 가능)"
+                    else -> null
+                }
+            return UsernameValidation(
+                error = error,
+                isLengthValid = isLengthValid,
+                isPatternValid = isPatternValid,
                 isAvailable = null,
             )
+        }
 
         private fun validatePassword(
             password: String,
-            passwordConfirm: String,
-        ): PasswordValidation =
-            PasswordValidation(
-                hasLetter = PASSWORD_HAS_LETTER.containsMatchIn(password),
-                hasDigit = PASSWORD_HAS_DIGIT.containsMatchIn(password),
-                hasSpecialChar = PASSWORD_HAS_SPECIAL.containsMatchIn(password),
+            username: String,
+        ): PasswordValidation {
+            val hasLetter = PASSWORD_HAS_LETTER.containsMatchIn(password)
+            val hasDigit = PASSWORD_HAS_DIGIT.containsMatchIn(password)
+            val hasSpecialChar = PASSWORD_HAS_SPECIAL.containsMatchIn(password)
+            val typeCount = listOf(hasLetter, hasDigit, hasSpecialChar).count { it }
+            val containsUsername = username.isNotEmpty() && password.contains(username)
+
+            return PasswordValidation(
                 hasMinLength = password.length >= MIN_PASSWORD_LENGTH,
-                isConfirmMatch = password == passwordConfirm && passwordConfirm.isNotEmpty(),
+                hasTwoOrMoreTypes = typeCount >= 2,
+                containsUsername = containsUsername,
             )
+        }
 
         companion object {
-            const val MIN_USERNAME_LENGTH = 4
-            val USERNAME_PATTERN = Regex("^[A-Za-z0-9]+$")
+            const val MIN_USERNAME_LENGTH = 3
+            val USERNAME_PATTERN = Regex("^[a-z0-9]+$")
 
             const val MIN_PASSWORD_LENGTH = 8
             val PASSWORD_HAS_LETTER = Regex("[A-Za-z]")

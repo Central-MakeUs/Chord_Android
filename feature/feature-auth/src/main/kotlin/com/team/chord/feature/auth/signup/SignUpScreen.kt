@@ -1,31 +1,22 @@
 package com.team.chord.feature.auth.signup
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,14 +29,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.team.chord.core.ui.component.ChordLargeButton
+import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue600
+import com.team.chord.core.ui.theme.StatusDanger
 import com.team.chord.feature.auth.component.AuthTextField
 
 @Composable
@@ -69,7 +62,6 @@ fun SignUpScreen(
         onUsernameChanged = viewModel::onUsernameChanged,
         onPasswordChanged = viewModel::onPasswordChanged,
         onPasswordConfirmChanged = viewModel::onPasswordConfirmChanged,
-        onTermsAgreedChanged = viewModel::onTermsAgreedChanged,
         onSignUpClicked = viewModel::onSignUpClicked,
         onNavigateBack = onNavigateBack,
         modifier = modifier,
@@ -82,260 +74,177 @@ internal fun SignUpScreenContent(
     onUsernameChanged: (String) -> Unit,
     onPasswordChanged: (String) -> Unit,
     onPasswordConfirmChanged: (String) -> Unit,
-    onTermsAgreedChanged: (Boolean) -> Unit,
     onSignUpClicked: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
 
-    Box(
+    val isButtonEnabled =
+        !uiState.isLoading &&
+            uiState.usernameValidation.isValid &&
+            uiState.passwordValidation.isValid &&
+            uiState.passwordConfirmError == null &&
+            uiState.password == uiState.passwordConfirm &&
+            uiState.passwordConfirm.isNotEmpty()
+
+    Column(
         modifier =
             modifier
                 .fillMaxSize()
-                .background(Grayscale100),
+                .background(Grayscale100)
+                .imePadding(),
     ) {
+        // TopBar
+        ChordTopAppBar(
+            title = "회원가입",
+            onBackClick = onNavigateBack,
+        )
+
+        // Scrollable content
         Column(
             modifier =
                 Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState),
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 24.dp),
         ) {
-            IconButton(
-                onClick = onNavigateBack,
-                modifier = Modifier.padding(start = 8.dp, top = 8.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "뒤로가기",
-                    tint = Grayscale900,
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Username field
+            Text(
+                text = "아이디",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = Grayscale800,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AuthTextField(
+                value = uiState.username,
+                onValueChange = onUsernameChanged,
+                placeholder = "아이디 입력",
+                isError = uiState.usernameValidation.error != null,
+                imeAction = ImeAction.Next,
+            )
+
+            if (uiState.usernameValidation.error != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = uiState.usernameValidation.error,
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = StatusDanger,
                 )
             }
 
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-            ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Password field
+            Text(
+                text = "비밀번호",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = Grayscale800,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AuthTextField(
+                value = uiState.password,
+                onValueChange = onPasswordChanged,
+                placeholder = "비밀번호 입력",
+                isPassword = true,
+                isError = uiState.passwordValidation.containsUsername,
+                imeAction = ImeAction.Next,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            PasswordValidationHints(validation = uiState.passwordValidation)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Password confirm field
+            Text(
+                text = "비밀번호 확인",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = Grayscale800,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AuthTextField(
+                value = uiState.passwordConfirm,
+                onValueChange = onPasswordConfirmChanged,
+                placeholder = "비밀번호 재입력",
+                isPassword = true,
+                isError = uiState.passwordConfirmError != null,
+                imeAction = ImeAction.Done,
+                onImeAction = onSignUpClicked,
+            )
+
+            if (uiState.passwordConfirmError != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "회원가입",
+                    text = uiState.passwordConfirmError,
                     fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    color = Grayscale900,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = StatusDanger,
                 )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Text(
-                    text = "아이디",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    color = Grayscale800,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                AuthTextField(
-                    value = uiState.username,
-                    onValueChange = onUsernameChanged,
-                    placeholder = "아이디 입력",
-                    imeAction = ImeAction.Next,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                UsernameValidationIndicator(validation = uiState.usernameValidation)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "비밀번호",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    color = Grayscale800,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                AuthTextField(
-                    value = uiState.password,
-                    onValueChange = onPasswordChanged,
-                    placeholder = "비밀번호 입력",
-                    isPassword = true,
-                    imeAction = ImeAction.Next,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                PasswordValidationIndicator(validation = uiState.passwordValidation)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = "비밀번호 확인",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    color = Grayscale800,
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                AuthTextField(
-                    value = uiState.passwordConfirm,
-                    onValueChange = onPasswordConfirmChanged,
-                    placeholder = "비밀번호 재입력",
-                    isPassword = true,
-                    imeAction = ImeAction.Done,
-                    onImeAction = onSignUpClicked,
-                )
-
-                if (uiState.passwordConfirm.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ValidationItem(
-                        isValid = uiState.passwordValidation.isConfirmMatch,
-                        text = "비밀번호 일치",
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { onTermsAgreedChanged(!uiState.isTermsAgreed) },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Checkbox(
-                        checked = uiState.isTermsAgreed,
-                        onCheckedChange = onTermsAgreedChanged,
-                        colors =
-                            CheckboxDefaults.colors(
-                                checkedColor = Grayscale800,
-                                uncheckedColor = Grayscale400,
-                                checkmarkColor = Grayscale100,
-                            ),
-                    )
-                    Text(
-                        text = "이용약관에 동의합니다",
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        color = Grayscale800,
-                    )
-                }
-
-                if (uiState.errorMessage != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = uiState.errorMessage,
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        color = PrimaryBlue600,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Button(
-                    onClick = onSignUpClicked,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                    shape = RoundedCornerShape(28.dp),
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            containerColor = PrimaryBlue600,
-                            contentColor = Grayscale100,
-                            disabledContainerColor = Grayscale200,
-                            disabledContentColor = Grayscale500,
-                        ),
-                    enabled =
-                        !uiState.isLoading &&
-                            uiState.usernameValidation.isValid &&
-                            uiState.passwordValidation.isValid &&
-                            uiState.isTermsAgreed,
-                ) {
-                    if (uiState.isLoading) {
-                        CircularProgressIndicator(
-                            color = Grayscale100,
-                            strokeWidth = 2.dp,
-                            modifier = Modifier.height(24.dp),
-                        )
-                    } else {
-                        Text(
-                            text = "회원가입",
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(48.dp))
             }
+
+            Spacer(modifier = Modifier.height(48.dp))
         }
+
+        // Bottom fixed button
+        ChordLargeButton(
+            text = "가입하기",
+            onClick = onSignUpClicked,
+            modifier =
+                Modifier
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+            enabled = isButtonEnabled,
+        )
     }
 }
 
 @Composable
-private fun UsernameValidationIndicator(
-    validation: UsernameValidation,
+private fun PasswordValidationHints(
+    validation: PasswordValidation,
     modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        ValidationItem(
-            isValid = validation.isLengthValid,
-            text = "4자 이상",
-        )
-        ValidationItem(
-            isValid = validation.isPatternValid,
-            text = "영문/숫자만 사용",
-        )
-        if (validation.isLengthValid && validation.isPatternValid) {
+        if (validation.containsUsername) {
+            Text(
+                text = "비밀번호에 아이디가 포함될 수 없습니다",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 12.sp,
+                color = StatusDanger,
+            )
+        } else {
             ValidationItem(
-                isValid = validation.isAvailable == true,
-                text = if (validation.isAvailable == true) "사용 가능한 아이디" else "이미 사용 중인 아이디",
+                isValid = validation.hasMinLength,
+                text = "8자리 이상",
+            )
+            ValidationItem(
+                isValid = validation.hasTwoOrMoreTypes,
+                text = "영문 대소문자, 숫자, 특수문자 중 2가지 이상 포함",
             )
         }
-    }
-}
-
-@Composable
-private fun PasswordValidationIndicator(
-    validation: PasswordValidation,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        ValidationItem(
-            isValid = validation.hasLetter,
-            text = "영문",
-        )
-        ValidationItem(
-            isValid = validation.hasDigit,
-            text = "숫자",
-        )
-        ValidationItem(
-            isValid = validation.hasSpecialChar,
-            text = "특수문자",
-        )
-        ValidationItem(
-            isValid = validation.hasMinLength,
-            text = "8자 이상",
-        )
     }
 }
 

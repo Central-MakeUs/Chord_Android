@@ -36,6 +36,7 @@ import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.StatusDanger
 
 @Composable
 fun AuthTextField(
@@ -44,6 +45,7 @@ fun AuthTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     isPassword: Boolean = false,
+    isError: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Next,
     onImeAction: () -> Unit = {},
@@ -135,7 +137,7 @@ fun AuthTextField(
         HorizontalDivider(
             modifier = Modifier.fillMaxWidth(),
             thickness = 1.dp,
-            color = Grayscale300,
+            color = if (isError) StatusDanger else Grayscale300,
         )
     }
 }
