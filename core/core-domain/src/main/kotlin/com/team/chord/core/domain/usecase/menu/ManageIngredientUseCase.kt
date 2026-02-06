@@ -1,28 +1,43 @@
 package com.team.chord.core.domain.usecase.menu
 
 import com.team.chord.core.domain.model.Result
-import com.team.chord.core.domain.model.menu.Menu
-import com.team.chord.core.domain.model.menu.MenuIngredient
+import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.repository.MenuRepository
 import javax.inject.Inject
 
-class AddIngredientUseCase @Inject constructor(
+class GetMenuRecipesUseCase @Inject constructor(
     private val menuRepository: MenuRepository,
 ) {
-    suspend operator fun invoke(menuId: Long, ingredient: MenuIngredient): Result<Menu> =
-        menuRepository.addIngredientToMenu(menuId, ingredient)
+    suspend operator fun invoke(menuId: Long): List<MenuRecipe> =
+        menuRepository.getMenuRecipes(menuId)
 }
 
-class UpdateIngredientUseCase @Inject constructor(
+class AddExistingRecipeUseCase @Inject constructor(
     private val menuRepository: MenuRepository,
 ) {
-    suspend operator fun invoke(menuId: Long, ingredient: MenuIngredient): Result<Menu> =
-        menuRepository.updateMenuIngredient(menuId, ingredient)
+    suspend operator fun invoke(menuId: Long, ingredientId: Long, amount: Int): Result<Unit> =
+        menuRepository.addExistingRecipe(menuId, ingredientId, amount)
 }
 
-class RemoveIngredientsUseCase @Inject constructor(
+class AddNewRecipeUseCase @Inject constructor(
     private val menuRepository: MenuRepository,
 ) {
-    suspend operator fun invoke(menuId: Long, ingredientIds: List<Long>): Result<Menu> =
-        menuRepository.removeIngredientsFromMenu(menuId, ingredientIds)
+    suspend operator fun invoke(
+        menuId: Long,
+        amount: Int,
+        price: Int,
+        unitCode: String,
+        ingredientCategoryCode: String,
+        ingredientName: String,
+        supplier: String? = null,
+    ): Result<Unit> = menuRepository.addNewRecipe(
+        menuId, amount, price, unitCode, ingredientCategoryCode, ingredientName, supplier,
+    )
+}
+
+class DeleteRecipesUseCase @Inject constructor(
+    private val menuRepository: MenuRepository,
+) {
+    suspend operator fun invoke(menuId: Long, recipeIds: List<Long>): Result<Unit> =
+        menuRepository.deleteRecipes(menuId, recipeIds)
 }

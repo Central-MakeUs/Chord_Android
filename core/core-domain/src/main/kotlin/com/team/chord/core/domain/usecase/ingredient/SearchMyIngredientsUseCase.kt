@@ -5,9 +5,9 @@ import com.team.chord.core.domain.repository.IngredientRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetIngredientListUseCase @Inject constructor(
+class SearchMyIngredientsUseCase @Inject constructor(
     private val ingredientRepository: IngredientRepository,
 ) {
-    operator fun invoke(categoryCode: String? = null): Flow<List<Ingredient>> =
-        ingredientRepository.getIngredientList(categoryCode)
+    operator fun invoke(query: String): Flow<List<Ingredient>> =
+        ingredientRepository.searchMyIngredients(query)
 }

@@ -1,9 +1,9 @@
 package com.team.chord.core.data.di
 
-import com.team.chord.core.data.datasource.FakeIngredientDataSource
 import com.team.chord.core.data.datasource.FakeRecentSearchDataSource
 import com.team.chord.core.data.datasource.IngredientDataSource
 import com.team.chord.core.data.datasource.RecentSearchDataSource
+import com.team.chord.core.data.datasource.remote.RemoteIngredientDataSource
 import com.team.chord.core.data.repository.IngredientRepositoryImpl
 import com.team.chord.core.domain.repository.IngredientRepository
 import dagger.Binds
@@ -22,7 +22,7 @@ abstract class IngredientDataModule {
 
     @Binds
     @Singleton
-    abstract fun bindIngredientDataSource(impl: FakeIngredientDataSource): IngredientDataSource
+    abstract fun bindIngredientDataSource(impl: RemoteIngredientDataSource): IngredientDataSource
 
     @Binds
     @Singleton

@@ -8,8 +8,6 @@ import javax.inject.Inject
 class GetMenuListUseCase @Inject constructor(
     private val menuRepository: MenuRepository,
 ) {
-    operator fun invoke(): Flow<List<Menu>> = menuRepository.getMenuList()
-
-    operator fun invoke(categoryId: Long): Flow<List<Menu>> =
-        menuRepository.getMenuListByCategory(categoryId)
+    operator fun invoke(categoryCode: String? = null): Flow<List<Menu>> =
+        menuRepository.getMenuList(categoryCode)
 }

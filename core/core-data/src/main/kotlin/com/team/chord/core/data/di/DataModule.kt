@@ -5,6 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.team.chord.core.data.datasource.AuthDataSource
+import com.team.chord.core.data.datasource.remote.RemoteAuthDataSource
 import com.team.chord.core.data.repository.AuthRepositoryImpl
 import com.team.chord.core.data.repository.OnboardingRepositoryImpl
 import com.team.chord.core.domain.repository.AuthRepository
@@ -27,6 +29,10 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthDataSource(impl: RemoteAuthDataSource): AuthDataSource
 
     companion object {
         @Provides

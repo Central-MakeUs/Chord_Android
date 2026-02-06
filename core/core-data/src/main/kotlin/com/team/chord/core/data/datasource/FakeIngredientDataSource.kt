@@ -2,10 +2,12 @@ package com.team.chord.core.data.datasource
 
 import com.team.chord.core.domain.model.ingredient.Ingredient
 import com.team.chord.core.domain.model.ingredient.IngredientCategory
-import com.team.chord.core.domain.model.ingredient.IngredientFilter
+import com.team.chord.core.domain.model.ingredient.IngredientSearchResult
+import com.team.chord.core.domain.model.ingredient.PriceHistoryItem
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
@@ -15,239 +17,89 @@ import javax.inject.Singleton
 class FakeIngredientDataSource @Inject constructor() : IngredientDataSource {
 
     private val myIngredients = MutableStateFlow(createInitialMyIngredients())
-    private val allIngredients = MutableStateFlow(createAllIngredients())
 
-    override fun getIngredientList(): Flow<List<Ingredient>> = myIngredients
+    override fun getIngredientList(categoryCode: String?): Flow<List<Ingredient>> =
+        if (categoryCode == null) myIngredients
+        else myIngredients.map { list -> list.filter { it.categoryCode == categoryCode } }
 
-    override fun getIngredientListByFilters(filters: Set<IngredientFilter>): Flow<List<Ingredient>> {
-        return myIngredients.map { ingredients ->
-            if (filters.isEmpty()) {
-                ingredients
-            } else {
-                ingredients.filter { ingredient ->
-                    filters.all { filter ->
-                        when (filter) {
-                            IngredientFilter.FAVORITE -> ingredient.isFavorite
-                            IngredientFilter.FOOD_INGREDIENT -> ingredient.category == IngredientCategory.FOOD_MATERIAL
-                            IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.category == IngredientCategory.OPERATIONAL
-                        }
-                    }
-                }
+    override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? =
+        myIngredients.value.find { it.id == ingredientId }
+
+    override suspend fun getPriceHistory(ingredientId: Long): List<PriceHistoryItem> = listOf(
+        PriceHistoryItem(1L, "25.11.12", 5000, 100, IngredientUnit.G),
+        PriceHistoryItem(2L, "25.10.11", 4800, 100, IngredientUnit.G),
+    )
+
+    override fun searchIngredients(query: String): Flow<List<IngredientSearchResult>> =
+        if (query.isBlank()) flowOf(emptyList())
+        else myIngredients.map { list ->
+            list.filter { it.name.contains(query, ignoreCase = true) }
+                .map { IngredientSearchResult(isTemplate = false, ingredientId = it.id, ingredientName = it.name) }
+        }
+
+    override suspend fun checkDuplicate(name: String) {
+        // no-op for fake - server returns error on dup
+    }
+
+    override fun searchMyIngredients(query: String): Flow<List<Ingredient>> =
+        if (query.isBlank()) flowOf(emptyList())
+        else myIngredients.map { list -> list.filter { it.name.contains(query, ignoreCase = true) } }
+
+    override suspend fun createIngredient(
+        categoryCode: String, ingredientName: String, unitCode: String,
+        price: Int, amount: Int, supplier: String?,
+    ) {
+        val newId = (myIngredients.value.maxOfOrNull { it.id } ?: 0) + 1
+        val ingredient = Ingredient(
+            id = newId, name = ingredientName, categoryCode = categoryCode,
+            unit = IngredientUnit.entries.find { it.name == unitCode } ?: IngredientUnit.G,
+            baseQuantity = amount, currentUnitPrice = price, supplier = supplier,
+        )
+        myIngredients.update { it + ingredient }
+    }
+
+    override suspend fun toggleFavorite(ingredientId: Long, favorite: Boolean) {
+        myIngredients.update { list ->
+            list.map { if (it.id == ingredientId) it.copy(isFavorite = favorite) else it }
+        }
+    }
+
+    override suspend fun updateSupplier(ingredientId: Long, supplier: String?) {
+        myIngredients.update { list ->
+            list.map { if (it.id == ingredientId) it.copy(supplier = supplier) else it }
+        }
+    }
+
+    override suspend fun updateIngredient(ingredientId: Long, category: String, price: Int, amount: Int, unitCode: String) {
+        myIngredients.update { list ->
+            list.map {
+                if (it.id == ingredientId) it.copy(
+                    categoryCode = category, currentUnitPrice = price, baseQuantity = amount,
+                    unit = IngredientUnit.entries.find { u -> u.name == unitCode } ?: it.unit,
+                ) else it
             }
         }
-    }
-
-    override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? {
-        return myIngredients.value.find { it.id == ingredientId }
-            ?: allIngredients.value.find { it.id == ingredientId }
-    }
-
-    override suspend fun updateIngredient(ingredient: Ingredient): Ingredient {
-        myIngredients.update { list ->
-            list.map { if (it.id == ingredient.id) ingredient else it }
-        }
-        allIngredients.update { list ->
-            list.map { if (it.id == ingredient.id) ingredient else it }
-        }
-        return ingredient
     }
 
     override suspend fun deleteIngredient(ingredientId: Long) {
         myIngredients.update { list -> list.filter { it.id != ingredientId } }
     }
 
-    override suspend fun addIngredientToList(ingredientId: Long): Ingredient? {
-        val ingredientToAdd = allIngredients.value.find { it.id == ingredientId }
-        if (ingredientToAdd != null) {
-            val alreadyExists = myIngredients.value.any { it.id == ingredientId }
-            if (!alreadyExists) {
-                myIngredients.update { list -> list + ingredientToAdd }
-            }
-        }
-        return ingredientToAdd
-    }
-
-    override fun searchIngredients(query: String): Flow<List<Ingredient>> {
-        return allIngredients.map { list ->
-            if (query.isBlank()) {
-                emptyList()
-            } else {
-                list.filter { ingredient ->
-                    ingredient.name.contains(query, ignoreCase = true)
-                }
-            }
-        }
-    }
-
-    override fun getAllIngredients(): Flow<List<Ingredient>> = allIngredients
-
-    private fun createInitialMyIngredients(): List<Ingredient> = listOf(
-        Ingredient(
-            id = 1L,
-            name = "우유",
-            price = 4500,
-            unitAmount = 1000,
-            unit = IngredientUnit.ML,
-            supplier = "서울우유",
-            isFavorite = true,
-            category = IngredientCategory.FOOD_MATERIAL,
-        ),
-        Ingredient(
-            id = 2L,
-            name = "설탕",
-            price = 3000,
-            unitAmount = 1000,
-            unit = IngredientUnit.G,
-            supplier = "CJ제일제당",
-            isFavorite = false,
-            category = IngredientCategory.FOOD_MATERIAL,
-        ),
-        Ingredient(
-            id = 3L,
-            name = "시럽",
-            price = 8000,
-            unitAmount = 500,
-            unit = IngredientUnit.ML,
-            supplier = "모닌",
-            isFavorite = true,
-            category = IngredientCategory.FOOD_MATERIAL,
-        ),
-        Ingredient(
-            id = 4L,
-            name = "초콜릿 가루",
-            price = 12000,
-            unitAmount = 500,
-            unit = IngredientUnit.G,
-            supplier = "기라델리",
-            isFavorite = false,
-            category = IngredientCategory.FOOD_MATERIAL,
-        ),
-        Ingredient(
-            id = 5L,
-            name = "생크림",
-            price = 6500,
-            unitAmount = 500,
-            unit = IngredientUnit.ML,
-            supplier = "서울우유",
-            isFavorite = false,
-            category = IngredientCategory.FOOD_MATERIAL,
-        ),
-        Ingredient(
-            id = 6L,
-            name = "바닐라 엑스트랙",
-            price = 15000,
-            unitAmount = 100,
-            unit = IngredientUnit.ML,
-            supplier = "매콜믹",
-            isFavorite = true,
-            category = IngredientCategory.FOOD_MATERIAL,
-        ),
-        Ingredient(
-            id = 7L,
-            name = "종이컵",
-            price = 5000,
-            unitAmount = 100,
-            unit = IngredientUnit.EA,
-            supplier = "컵월드",
-            isFavorite = false,
-            category = IngredientCategory.OPERATIONAL,
-        ),
-        Ingredient(
-            id = 8L,
-            name = "컵 홀더",
-            price = 3000,
-            unitAmount = 100,
-            unit = IngredientUnit.EA,
-            supplier = "컵월드",
-            isFavorite = false,
-            category = IngredientCategory.OPERATIONAL,
-        ),
+    override fun getCategories(): Flow<List<IngredientCategory>> = flowOf(
+        listOf(
+            IngredientCategory(code = "FOOD_MATERIAL", name = "식재료", displayOrder = 1),
+            IngredientCategory(code = "OPERATIONAL", name = "운영 재료", displayOrder = 2),
+        )
     )
 
-    private fun createAllIngredients(): List<Ingredient> {
-        val myList = createInitialMyIngredients()
-        val additionalIngredients = listOf(
-            Ingredient(
-                id = 9L,
-                name = "딸기",
-                price = 15000,
-                unitAmount = 500,
-                unit = IngredientUnit.G,
-                supplier = "농협",
-                isFavorite = false,
-                category = IngredientCategory.FOOD_MATERIAL,
-            ),
-            Ingredient(
-                id = 10L,
-                name = "원두",
-                price = 25000,
-                unitAmount = 1000,
-                unit = IngredientUnit.G,
-                supplier = "스타벅스",
-                isFavorite = false,
-                category = IngredientCategory.FOOD_MATERIAL,
-            ),
-            Ingredient(
-                id = 11L,
-                name = "아몬드 가루",
-                price = 18000,
-                unitAmount = 500,
-                unit = IngredientUnit.G,
-                supplier = "오뚜기",
-                isFavorite = false,
-                category = IngredientCategory.FOOD_MATERIAL,
-            ),
-            Ingredient(
-                id = 12L,
-                name = "카라멜 소스",
-                price = 9500,
-                unitAmount = 500,
-                unit = IngredientUnit.ML,
-                supplier = "토라니",
-                isFavorite = false,
-                category = IngredientCategory.FOOD_MATERIAL,
-            ),
-            Ingredient(
-                id = 13L,
-                name = "빨대",
-                price = 2000,
-                unitAmount = 200,
-                unit = IngredientUnit.EA,
-                supplier = "에코스토어",
-                isFavorite = false,
-                category = IngredientCategory.OPERATIONAL,
-            ),
-            Ingredient(
-                id = 14L,
-                name = "플라스틱 컵",
-                price = 8000,
-                unitAmount = 100,
-                unit = IngredientUnit.EA,
-                supplier = "컵월드",
-                isFavorite = false,
-                category = IngredientCategory.OPERATIONAL,
-            ),
-            Ingredient(
-                id = 15L,
-                name = "녹차 가루",
-                price = 22000,
-                unitAmount = 200,
-                unit = IngredientUnit.G,
-                supplier = "오설록",
-                isFavorite = false,
-                category = IngredientCategory.FOOD_MATERIAL,
-            ),
-            Ingredient(
-                id = 16L,
-                name = "꿀",
-                price = 12000,
-                unitAmount = 500,
-                unit = IngredientUnit.ML,
-                supplier = "꿀마을",
-                isFavorite = false,
-                category = IngredientCategory.FOOD_MATERIAL,
-            ),
-        )
-        return myList + additionalIngredients
-    }
+    private fun createInitialMyIngredients(): List<Ingredient> = listOf(
+        Ingredient(1L, "우유", "FOOD_MATERIAL", IngredientUnit.ML, 1000, 4500, "서울우유", true),
+        Ingredient(2L, "설탕", "FOOD_MATERIAL", IngredientUnit.G, 1000, 3000, "CJ제일제당", false),
+        Ingredient(3L, "시럽", "FOOD_MATERIAL", IngredientUnit.ML, 500, 8000, "모닌", true),
+        Ingredient(4L, "초콜릿 가루", "FOOD_MATERIAL", IngredientUnit.G, 500, 12000, "기라델리", false),
+        Ingredient(5L, "생크림", "FOOD_MATERIAL", IngredientUnit.ML, 500, 6500, "서울우유", false),
+        Ingredient(6L, "바닐라 엑스트랙", "FOOD_MATERIAL", IngredientUnit.ML, 100, 15000, "매콜믹", true),
+        Ingredient(7L, "종이컵", "OPERATIONAL", IngredientUnit.EA, 100, 5000, "컵월드", false),
+        Ingredient(8L, "컵 홀더", "OPERATIONAL", IngredientUnit.EA, 100, 3000, "컵월드", false),
+    )
 }

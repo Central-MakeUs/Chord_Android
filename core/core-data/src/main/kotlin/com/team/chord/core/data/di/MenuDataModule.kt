@@ -1,7 +1,7 @@
 package com.team.chord.core.data.di
 
-import com.team.chord.core.data.datasource.FakeMenuDataSource
 import com.team.chord.core.data.datasource.MenuDataSource
+import com.team.chord.core.data.datasource.remote.RemoteMenuDataSource
 import com.team.chord.core.data.repository.MenuRepositoryImpl
 import com.team.chord.core.domain.repository.MenuRepository
 import dagger.Binds
@@ -20,5 +20,5 @@ abstract class MenuDataModule {
 
     @Binds
     @Singleton
-    abstract fun bindMenuDataSource(impl: FakeMenuDataSource): MenuDataSource
+    abstract fun bindMenuDataSource(impl: RemoteMenuDataSource): MenuDataSource
 }

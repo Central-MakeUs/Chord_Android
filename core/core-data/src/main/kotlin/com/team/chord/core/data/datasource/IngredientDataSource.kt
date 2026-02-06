@@ -1,16 +1,29 @@
 package com.team.chord.core.data.datasource
 
 import com.team.chord.core.domain.model.ingredient.Ingredient
-import com.team.chord.core.domain.model.ingredient.IngredientFilter
+import com.team.chord.core.domain.model.ingredient.IngredientCategory
+import com.team.chord.core.domain.model.ingredient.IngredientSearchResult
+import com.team.chord.core.domain.model.ingredient.PriceHistoryItem
 import kotlinx.coroutines.flow.Flow
 
 interface IngredientDataSource {
-    fun getIngredientList(): Flow<List<Ingredient>>
-    fun getIngredientListByFilters(filters: Set<IngredientFilter>): Flow<List<Ingredient>>
+    fun getIngredientList(categoryCode: String? = null): Flow<List<Ingredient>>
     suspend fun getIngredientDetail(ingredientId: Long): Ingredient?
-    suspend fun updateIngredient(ingredient: Ingredient): Ingredient
+    suspend fun getPriceHistory(ingredientId: Long): List<PriceHistoryItem>
+    fun searchIngredients(query: String): Flow<List<IngredientSearchResult>>
+    suspend fun checkDuplicate(name: String)
+    fun searchMyIngredients(query: String): Flow<List<Ingredient>>
+    suspend fun createIngredient(
+        categoryCode: String,
+        ingredientName: String,
+        unitCode: String,
+        price: Int,
+        amount: Int,
+        supplier: String?,
+    )
+    suspend fun toggleFavorite(ingredientId: Long, favorite: Boolean)
+    suspend fun updateSupplier(ingredientId: Long, supplier: String?)
+    suspend fun updateIngredient(ingredientId: Long, category: String, price: Int, amount: Int, unitCode: String)
     suspend fun deleteIngredient(ingredientId: Long)
-    suspend fun addIngredientToList(ingredientId: Long): Ingredient?
-    fun searchIngredients(query: String): Flow<List<Ingredient>>
-    fun getAllIngredients(): Flow<List<Ingredient>>
+    fun getCategories(): Flow<List<IngredientCategory>>
 }

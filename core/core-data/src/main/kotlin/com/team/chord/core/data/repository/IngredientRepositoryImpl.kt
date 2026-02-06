@@ -4,7 +4,9 @@ import com.team.chord.core.data.datasource.IngredientDataSource
 import com.team.chord.core.data.datasource.RecentSearchDataSource
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.ingredient.Ingredient
-import com.team.chord.core.domain.model.ingredient.IngredientFilter
+import com.team.chord.core.domain.model.ingredient.IngredientCategory
+import com.team.chord.core.domain.model.ingredient.IngredientSearchResult
+import com.team.chord.core.domain.model.ingredient.PriceHistoryItem
 import com.team.chord.core.domain.model.ingredient.RecentSearch
 import com.team.chord.core.domain.repository.IngredientRepository
 import kotlinx.coroutines.flow.Flow
@@ -17,54 +19,60 @@ class IngredientRepositoryImpl @Inject constructor(
     private val recentSearchDataSource: RecentSearchDataSource,
 ) : IngredientRepository {
 
-    override fun getIngredientList(): Flow<List<Ingredient>> =
-        ingredientDataSource.getIngredientList()
-
-    override fun getIngredientListByFilters(filters: Set<IngredientFilter>): Flow<List<Ingredient>> =
-        ingredientDataSource.getIngredientListByFilters(filters)
+    override fun getIngredientList(categoryCode: String?): Flow<List<Ingredient>> =
+        ingredientDataSource.getIngredientList(categoryCode)
 
     override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? =
         ingredientDataSource.getIngredientDetail(ingredientId)
 
-    override suspend fun updateIngredientPrice(ingredientId: Long, price: Int, unitAmount: Int): Result<Ingredient> {
-        return updateIngredientField(ingredientId) {
-            it.copy(price = price, unitAmount = unitAmount)
-        }
+    override suspend fun getPriceHistory(ingredientId: Long): List<PriceHistoryItem> =
+        ingredientDataSource.getPriceHistory(ingredientId)
+
+    override fun getCategories(): Flow<List<IngredientCategory>> =
+        ingredientDataSource.getCategories()
+
+    override suspend fun updateIngredient(
+        ingredientId: Long,
+        categoryCode: String,
+        price: Int,
+        amount: Int,
+        unitCode: String,
+    ): Result<Unit> = runCatching {
+        ingredientDataSource.updateIngredient(ingredientId, categoryCode, price, amount, unitCode)
     }
 
-    override suspend fun updateIngredientSupplier(ingredientId: Long, supplier: String): Result<Ingredient> {
-        return updateIngredientField(ingredientId) {
-            it.copy(supplier = supplier)
-        }
+    override suspend fun updateSupplier(ingredientId: Long, supplier: String): Result<Unit> = runCatching {
+        ingredientDataSource.updateSupplier(ingredientId, supplier)
     }
 
-    override suspend fun toggleFavorite(ingredientId: Long): Result<Ingredient> {
-        return updateIngredientField(ingredientId) {
-            it.copy(isFavorite = !it.isFavorite)
-        }
+    override suspend fun setFavorite(ingredientId: Long, favorite: Boolean): Result<Unit> = runCatching {
+        ingredientDataSource.toggleFavorite(ingredientId, favorite)
     }
 
-    override suspend fun deleteIngredient(ingredientId: Long): Result<Unit> {
-        return try {
-            ingredientDataSource.deleteIngredient(ingredientId)
-            Result.Success(Unit)
-        } catch (e: Exception) {
-            Result.Error(e)
-        }
+    override suspend fun deleteIngredient(ingredientId: Long): Result<Unit> = runCatching {
+        ingredientDataSource.deleteIngredient(ingredientId)
     }
 
-    override suspend fun addIngredientToList(ingredientId: Long): Result<Ingredient> {
-        return try {
-            val added = ingredientDataSource.addIngredientToList(ingredientId)
-                ?: return Result.Error(NoSuchElementException("Ingredient not found: $ingredientId"))
-            Result.Success(added)
-        } catch (e: Exception) {
-            Result.Error(e)
-        }
+    override suspend fun createIngredient(
+        categoryCode: String,
+        ingredientName: String,
+        unitCode: String,
+        price: Int,
+        amount: Int,
+        supplier: String?,
+    ): Result<Unit> = runCatching {
+        ingredientDataSource.createIngredient(categoryCode, ingredientName, unitCode, price, amount, supplier)
     }
 
-    override fun searchIngredients(query: String): Flow<List<Ingredient>> =
+    override fun searchIngredients(query: String): Flow<List<IngredientSearchResult>> =
         ingredientDataSource.searchIngredients(query)
+
+    override suspend fun checkDuplicate(name: String): Result<Unit> = runCatching {
+        ingredientDataSource.checkDuplicate(name)
+    }
+
+    override fun searchMyIngredients(query: String): Flow<List<Ingredient>> =
+        ingredientDataSource.searchMyIngredients(query)
 
     override fun getRecentSearches(): Flow<List<RecentSearch>> =
         recentSearchDataSource.getRecentSearches()
@@ -78,16 +86,10 @@ class IngredientRepositoryImpl @Inject constructor(
     override suspend fun clearRecentSearches() =
         recentSearchDataSource.clearRecentSearches()
 
-    private suspend fun updateIngredientField(
-        ingredientId: Long,
-        transform: (Ingredient) -> Ingredient,
-    ): Result<Ingredient> {
+    private inline fun runCatching(block: () -> Unit): Result<Unit> {
         return try {
-            val ingredient = ingredientDataSource.getIngredientDetail(ingredientId)
-                ?: return Result.Error(NoSuchElementException("Ingredient not found: $ingredientId"))
-
-            val updatedIngredient = ingredientDataSource.updateIngredient(transform(ingredient))
-            Result.Success(updatedIngredient)
+            block()
+            Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e)
         }
