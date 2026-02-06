@@ -3,7 +3,6 @@ package com.team.chord.feature.setup.ingredientinput
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.team.chord.core.domain.model.ingredient.IngredientCategory
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -67,15 +66,13 @@ class IngredientInputViewModel @Inject constructor(
             .onStart {
                 _uiState.update { it.copy(isSearching = true) }
             }
-            .onEach { ingredients ->
-                val suggestions = ingredients.map { ingredient ->
+            .onEach { searchResults ->
+                val suggestions = searchResults.map { result ->
                     IngredientSuggestion(
-                        id = ingredient.id,
-                        name = ingredient.name,
-                        hasTemplate = ingredient.price > 0 && ingredient.unitAmount > 0,
-                        suggestedPrice = if (ingredient.price > 0) ingredient.price else null,
-                        suggestedAmount = if (ingredient.unitAmount > 0) ingredient.unitAmount else null,
-                        suggestedUnit = ingredient.unit,
+                        ingredientId = result.ingredientId,
+                        templateId = result.templateId,
+                        name = result.ingredientName,
+                        isTemplate = result.isTemplate,
                     )
                 }
                 _uiState.update {
@@ -94,15 +91,9 @@ class IngredientInputViewModel @Inject constructor(
     fun onSuggestionClicked(suggestion: IngredientSuggestion) {
         // Open bottom sheet with suggestion data
         val bottomSheetState = IngredientBottomSheetState(
-            id = suggestion.id,
+            id = suggestion.ingredientId,
             name = suggestion.name,
-            hasTemplate = suggestion.hasTemplate,
-            suggestedPrice = suggestion.suggestedPrice,
-            suggestedAmount = suggestion.suggestedAmount,
-            suggestedUnit = suggestion.suggestedUnit,
-            unit = suggestion.suggestedUnit ?: IngredientUnit.G,
-            price = suggestion.suggestedPrice?.toString() ?: "",
-            amount = suggestion.suggestedAmount?.toString() ?: "",
+            isTemplate = suggestion.isTemplate,
         )
 
         _uiState.update {
@@ -118,7 +109,7 @@ class IngredientInputViewModel @Inject constructor(
         val bottomSheetState = IngredientBottomSheetState(
             id = null,
             name = _uiState.value.searchQuery,
-            hasTemplate = false,
+            isTemplate = false,
         )
 
         _uiState.update {
@@ -138,10 +129,10 @@ class IngredientInputViewModel @Inject constructor(
         }
     }
 
-    fun onBottomSheetCategoryChanged(category: IngredientCategory) {
+    fun onBottomSheetCategoryChanged(categoryCode: String) {
         _uiState.update { state ->
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(category = category),
+                bottomSheetIngredient = state.bottomSheetIngredient?.copy(categoryCode = categoryCode),
             )
         }
     }
@@ -190,7 +181,7 @@ class IngredientInputViewModel @Inject constructor(
             amount = bottomSheetState.amount.toIntOrNull() ?: 0,
             unit = bottomSheetState.unit,
             price = bottomSheetState.price.toIntOrNull() ?: 0,
-            category = bottomSheetState.category,
+            categoryCode = bottomSheetState.categoryCode,
             supplier = bottomSheetState.supplier,
         )
 

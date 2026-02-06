@@ -58,7 +58,7 @@ fun MenuListScreen(
 @Composable
 internal fun MenuListScreenContent(
     uiState: MenuListUiState,
-    onCategorySelected: (Long?) -> Unit,
+    onCategorySelected: (String?) -> Unit,
     onNavigateToDetail: (Long) -> Unit,
     onAddMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -86,7 +86,7 @@ internal fun MenuListScreenContent(
 
             CategoryChipRow(
                 categories = uiState.categories,
-                selectedCategoryId = uiState.selectedCategoryId,
+                selectedCategoryCode = uiState.selectedCategoryCode,
                 onCategorySelected = onCategorySelected,
             )
 

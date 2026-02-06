@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,10 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.component.ChordSearchBar
-import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale700
-import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.feature.ingredient.component.RecentSearchItem
 import com.team.chord.feature.ingredient.component.SearchResultItem
@@ -33,6 +30,7 @@ import com.team.chord.feature.ingredient.component.SearchResultItem
 @Composable
 fun IngredientSearchScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (Long) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: IngredientSearchViewModel = hiltViewModel(),
 ) {
@@ -45,7 +43,7 @@ fun IngredientSearchScreen(
         onCancelClick = onNavigateBack,
         onRecentSearchClick = viewModel::onRecentSearchClick,
         onRecentSearchDelete = viewModel::onRecentSearchDelete,
-        onAddIngredient = viewModel::onAddIngredient,
+        onResultClick = onNavigateToDetail,
         modifier = modifier,
     )
 }
@@ -58,7 +56,7 @@ internal fun IngredientSearchScreenContent(
     onCancelClick: () -> Unit,
     onRecentSearchClick: (String) -> Unit,
     onRecentSearchDelete: (Long) -> Unit,
-    onAddIngredient: (Long) -> Unit,
+    onResultClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -87,7 +85,7 @@ internal fun IngredientSearchScreenContent(
             // Search results section
             SearchResultsSection(
                 searchResults = uiState.searchResults,
-                onAddClick = onAddIngredient,
+                onResultClick = onResultClick,
             )
         }
     }
@@ -139,7 +137,7 @@ private fun RecentSearchesSection(
 @Composable
 private fun SearchResultsSection(
     searchResults: List<SearchResultItemUi>,
-    onAddClick: (Long) -> Unit,
+    onResultClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -159,7 +157,7 @@ private fun SearchResultsSection(
             SearchResultItem(
                 name = result.name,
                 isAdded = result.isAdded,
-                onAddClick = { onAddClick(result.id) },
+                onAddClick = { onResultClick(result.id) },
             )
         }
     }
@@ -182,7 +180,7 @@ private fun IngredientSearchScreenRecentSearchesPreview() {
         onCancelClick = {},
         onRecentSearchClick = {},
         onRecentSearchDelete = {},
-        onAddIngredient = {},
+        onResultClick = {},
     )
 }
 
@@ -194,11 +192,11 @@ private fun IngredientSearchScreenSearchResultsPreview() {
             query = "돌체 라떼",
             showRecentSearches = false,
             searchResults = listOf(
-                SearchResultItemUi(id = 1, name = "원두", isAdded = false),
-                SearchResultItemUi(id = 2, name = "돌체 시나몬 시럽", isAdded = false),
-                SearchResultItemUi(id = 3, name = "우유", isAdded = false),
-                SearchResultItemUi(id = 4, name = "종이컵", isAdded = false),
-                SearchResultItemUi(id = 5, name = "컵 홀더", isAdded = false),
+                SearchResultItemUi(id = 1, name = "원두"),
+                SearchResultItemUi(id = 2, name = "돌체 시나몬 시럽"),
+                SearchResultItemUi(id = 3, name = "우유"),
+                SearchResultItemUi(id = 4, name = "종이컵"),
+                SearchResultItemUi(id = 5, name = "컵 홀더"),
             ),
         ),
         onQueryChange = {},
@@ -206,6 +204,6 @@ private fun IngredientSearchScreenSearchResultsPreview() {
         onCancelClick = {},
         onRecentSearchClick = {},
         onRecentSearchDelete = {},
-        onAddIngredient = {},
+        onResultClick = {},
     )
 }

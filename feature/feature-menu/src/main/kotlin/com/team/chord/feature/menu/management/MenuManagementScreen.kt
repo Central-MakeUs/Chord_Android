@@ -96,7 +96,7 @@ internal fun MenuManagementScreenContent(
     onShowTimeBottomSheet: () -> Unit,
     onHideTimeBottomSheet: () -> Unit,
     onUpdateTime: (Int) -> Unit,
-    onCategorySelected: (Long) -> Unit,
+    onCategorySelected: (String) -> Unit,
     onShowDeleteDialog: () -> Unit,
     onHideDeleteDialog: () -> Unit,
     onConfirmDelete: () -> Unit,
@@ -259,9 +259,9 @@ internal fun MenuManagementScreenContent(
                 )
 
                 ChordRadioGroup(
-                    options = uiState.categories.map { RadioOption(it.id.toString(), it.name) },
-                    selectedOptionId = uiState.selectedCategoryId.toString(),
-                    onOptionSelected = { id -> onCategorySelected(id.toLong()) },
+                    options = uiState.categories.map { RadioOption(it.code, it.name) },
+                    selectedOptionId = uiState.selectedCategoryCode,
+                    onOptionSelected = { code -> onCategorySelected(code) },
                     modifier = Modifier.padding(horizontal = 20.dp),
                 )
 

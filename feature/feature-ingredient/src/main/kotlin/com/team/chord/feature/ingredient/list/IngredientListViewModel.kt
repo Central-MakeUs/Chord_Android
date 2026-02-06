@@ -2,7 +2,6 @@ package com.team.chord.feature.ingredient.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.team.chord.core.domain.model.ingredient.IngredientCategory
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,8 +53,8 @@ class IngredientListViewModel @Inject constructor(
                         filters.all { filter ->
                             when (filter) {
                                 IngredientFilter.FAVORITE -> ingredient.isFavorite
-                                IngredientFilter.FOOD_INGREDIENT -> ingredient.category == IngredientCategory.FOOD_MATERIAL
-                                IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.category == IngredientCategory.OPERATIONAL
+                                IngredientFilter.FOOD_INGREDIENT -> ingredient.categoryCode == "FOOD_MATERIAL"
+                                IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.categoryCode == "OPERATIONAL"
                             }
                         }
                     }
@@ -67,8 +66,8 @@ class IngredientListViewModel @Inject constructor(
                         IngredientListItemUi(
                             id = ingredient.id,
                             name = ingredient.name,
-                            price = ingredient.price,
-                            usage = "사용량 ${ingredient.unitAmount}${ingredient.unit.displayName}",
+                            price = ingredient.currentUnitPrice,
+                            usage = "사용량 ${ingredient.baseQuantity}${ingredient.unit.displayName}",
                         )
                     },
                     activeFilters = filters,

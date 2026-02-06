@@ -1,6 +1,5 @@
 package com.team.chord.feature.setup.ingredientinput
 
-import com.team.chord.core.domain.model.ingredient.IngredientCategory
 import com.team.chord.core.domain.model.menu.IngredientUnit
 
 /**
@@ -20,12 +19,10 @@ data class IngredientInputUiState(
  * Suggestion item from search results
  */
 data class IngredientSuggestion(
-    val id: Long,
+    val ingredientId: Long? = null,
+    val templateId: Long? = null,
     val name: String,
-    val hasTemplate: Boolean,
-    val suggestedPrice: Int? = null,
-    val suggestedAmount: Int? = null,
-    val suggestedUnit: IngredientUnit? = null,
+    val isTemplate: Boolean,
 )
 
 /**
@@ -37,7 +34,7 @@ data class SelectedIngredient(
     val amount: Int,
     val unit: IngredientUnit,
     val price: Int,
-    val category: IngredientCategory = IngredientCategory.FOOD_MATERIAL,
+    val categoryCode: String = "FOOD_MATERIAL",
     val supplier: String = "",
 )
 
@@ -47,12 +44,12 @@ data class SelectedIngredient(
 data class IngredientBottomSheetState(
     val id: Long? = null,
     val name: String,
-    val category: IngredientCategory = IngredientCategory.FOOD_MATERIAL,
+    val categoryCode: String = "FOOD_MATERIAL",
     val price: String = "",
     val amount: String = "",
     val unit: IngredientUnit = IngredientUnit.G,
     val supplier: String = "",
-    val hasTemplate: Boolean = false,
+    val isTemplate: Boolean = false,
     val suggestedPrice: Int? = null,
     val suggestedAmount: Int? = null,
     val suggestedUnit: IngredientUnit? = null,

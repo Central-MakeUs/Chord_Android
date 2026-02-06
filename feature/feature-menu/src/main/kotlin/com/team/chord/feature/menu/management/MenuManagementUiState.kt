@@ -9,7 +9,7 @@ data class MenuManagementUiState(
     val price: Int = 0,
     val preparationTimeSeconds: Int = 0,
     val categories: List<Category> = emptyList(),
-    val selectedCategoryId: Long = 0L,
+    val selectedCategoryCode: String = "",
     val showNameBottomSheet: Boolean = false,
     val showPriceBottomSheet: Boolean = false,
     val showTimeBottomSheet: Boolean = false,

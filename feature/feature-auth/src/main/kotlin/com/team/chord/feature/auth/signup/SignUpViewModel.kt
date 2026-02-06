@@ -30,21 +30,6 @@ class SignUpViewModel
                     errorMessage = null,
                 )
             }
-
-            if (validation.isLengthValid && validation.isPatternValid) {
-                checkUsernameAvailability(username)
-            }
-        }
-
-        private fun checkUsernameAvailability(username: String) {
-            viewModelScope.launch {
-                val isAvailable = authRepository.isUsernameAvailable(username)
-                _uiState.update {
-                    it.copy(
-                        usernameValidation = it.usernameValidation.copy(isAvailable = isAvailable),
-                    )
-                }
-            }
         }
 
         fun onPasswordChanged(password: String) {
@@ -99,8 +84,13 @@ class SignUpViewModel
                 _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
                 when (val result = authRepository.signUp(currentState.username, currentState.password)) {
-                    is AuthResult.Success -> {
+                    is AuthResult.SignUpSuccess -> {
                         _uiState.update { it.copy(isLoading = false, isSignUpSuccess = true) }
+                    }
+
+                    is AuthResult.LoginSuccess -> {
+                        // Not expected during sign-up flow
+                        _uiState.update { it.copy(isLoading = false) }
                     }
 
                     is AuthResult.UsernameAlreadyExists -> {

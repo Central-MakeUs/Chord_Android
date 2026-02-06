@@ -171,6 +171,9 @@ fun ChordNavHost(
             onNavigateBack = {
                 navController.popBackStack()
             },
+            onNavigateToDetail = { ingredientId ->
+                navController.navigateToIngredientDetail(ingredientId)
+            },
         )
 
         aiCoachScreen()

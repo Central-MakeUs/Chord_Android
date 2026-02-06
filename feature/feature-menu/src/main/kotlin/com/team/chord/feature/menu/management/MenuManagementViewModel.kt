@@ -120,11 +120,11 @@ class MenuManagementViewModel @Inject constructor(
         }
     }
 
-    fun updateCategory(categoryId: Long) {
+    fun updateCategory(categoryCode: String) {
         viewModelScope.launch {
-            updateMenuCategoryUseCase(menuId, categoryId).onSuccess {
+            updateMenuCategoryUseCase(menuId, categoryCode).onSuccess {
                 _uiState.update { state ->
-                    state.copy(selectedCategoryId = categoryId)
+                    state.copy(selectedCategoryCode = categoryCode)
                 }
             }
         }
@@ -154,7 +154,7 @@ class MenuManagementViewModel @Inject constructor(
                         price = menu.price,
                         preparationTimeSeconds = menu.preparationTimeSeconds,
                         categories = categories,
-                        selectedCategoryId = menu.category.id,
+                        selectedCategoryCode = menu.categoryCode,
                     )
                 }
             } else {

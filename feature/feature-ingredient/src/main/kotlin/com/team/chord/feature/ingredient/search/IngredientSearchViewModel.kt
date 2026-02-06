@@ -2,10 +2,8 @@ package com.team.chord.feature.ingredient.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.team.chord.core.domain.model.Result
-import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
 import com.team.chord.core.domain.usecase.ingredient.ManageRecentSearchUseCase
-import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
+import com.team.chord.core.domain.usecase.ingredient.SearchMyIngredientsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,13 +20,11 @@ import javax.inject.Inject
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class IngredientSearchViewModel @Inject constructor(
-    private val searchIngredientUseCase: SearchIngredientUseCase,
+    private val searchMyIngredientsUseCase: SearchMyIngredientsUseCase,
     private val manageRecentSearchUseCase: ManageRecentSearchUseCase,
-    private val addIngredientToListUseCase: AddIngredientToListUseCase,
 ) : ViewModel() {
 
     private val _query = MutableStateFlow("")
-    private val _addedIngredientIds = MutableStateFlow<Set<Long>>(emptySet())
 
     private val recentSearches = manageRecentSearchUseCase.getRecentSearches()
         .map { searches ->
@@ -44,12 +40,11 @@ class IngredientSearchViewModel @Inject constructor(
         if (query.isBlank()) {
             flowOf(emptyList())
         } else {
-            searchIngredientUseCase(query).map { ingredients ->
+            searchMyIngredientsUseCase(query).map { ingredients ->
                 ingredients.map { ingredient ->
                     SearchResultItemUi(
                         id = ingredient.id,
                         name = ingredient.name,
-                        isAdded = false,
                     )
                 }
             }
@@ -60,17 +55,12 @@ class IngredientSearchViewModel @Inject constructor(
         _query,
         recentSearches,
         searchResults,
-        _addedIngredientIds,
-    ) { query, recentSearches, searchResults, addedIds ->
-        val updatedResults = searchResults.map { item ->
-            item.copy(isAdded = addedIds.contains(item.id))
-        }
-
+    ) { query, recentSearches, searchResults ->
         IngredientSearchUiState(
             query = query,
             isSearching = false,
             recentSearches = recentSearches,
-            searchResults = updatedResults,
+            searchResults = searchResults,
             showRecentSearches = query.isBlank(),
         )
     }.stateIn(
@@ -100,22 +90,6 @@ class IngredientSearchViewModel @Inject constructor(
     fun onRecentSearchDelete(id: Long) {
         viewModelScope.launch {
             manageRecentSearchUseCase.deleteRecentSearch(id)
-        }
-    }
-
-    fun onAddIngredient(ingredientId: Long) {
-        viewModelScope.launch {
-            when (addIngredientToListUseCase(ingredientId)) {
-                is Result.Success -> {
-                    _addedIngredientIds.value = _addedIngredientIds.value + ingredientId
-                }
-                is Result.Error -> {
-                    // TODO: Handle error - show snackbar or toast
-                }
-                is Result.Loading -> {
-                    // No-op: Loading state is handled elsewhere
-                }
-            }
         }
     }
 

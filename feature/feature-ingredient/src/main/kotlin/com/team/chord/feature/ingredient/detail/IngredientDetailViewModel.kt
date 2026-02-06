@@ -4,10 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.Result
-import com.team.chord.core.domain.model.ingredient.IngredientCategory
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
-import com.team.chord.core.domain.model.ingredient.PriceHistoryItem
-import com.team.chord.core.domain.model.ingredient.UsedMenu
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.usecase.ingredient.DeleteIngredientUseCase
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientDetailUseCase
@@ -41,11 +38,12 @@ class IngredientDetailViewModel @Inject constructor(
             val currentState = _uiState.value
             if (currentState !is IngredientDetailUiState.Success) return@launch
 
-            when (val result = updateIngredientUseCase.toggleFavorite(ingredientId)) {
+            val currentFavorite = currentState.ingredientDetail.isFavorite
+            when (updateIngredientUseCase.setFavorite(ingredientId, !currentFavorite)) {
                 is Result.Success -> {
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
-                            isFavorite = result.data.isFavorite,
+                            isFavorite = !currentFavorite,
                         ),
                     )
                 }
@@ -92,7 +90,14 @@ class IngredientDetailViewModel @Inject constructor(
             val currentState = _uiState.value
             if (currentState !is IngredientDetailUiState.Success) return@launch
 
-            when (val result = updateIngredientUseCase.updatePrice(ingredientId, price, unitAmount)) {
+            val categoryCode = category.toCategoryCode()
+            when (updateIngredientUseCase.updateIngredient(
+                ingredientId = ingredientId,
+                categoryCode = categoryCode,
+                price = price,
+                amount = unitAmount,
+                unitCode = unit.name,
+            )) {
                 is Result.Success -> {
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
@@ -118,7 +123,7 @@ class IngredientDetailViewModel @Inject constructor(
             val currentState = _uiState.value
             if (currentState !is IngredientDetailUiState.Success) return@launch
 
-            when (val result = updateIngredientUseCase.updateSupplier(ingredientId, supplier)) {
+            when (updateIngredientUseCase.updateSupplier(ingredientId, supplier)) {
                 is Result.Success -> {
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
@@ -142,36 +147,24 @@ class IngredientDetailViewModel @Inject constructor(
 
             val ingredient = getIngredientDetailUseCase(ingredientId)
             if (ingredient != null) {
-                // TODO: Fetch used menus and price history from respective use cases when available
-                val usedMenus = getFakeUsedMenus()
-                val priceHistory = getFakePriceHistory()
-
                 _uiState.value = IngredientDetailUiState.Success(
                     IngredientDetailUi(
                         id = ingredient.id,
-                        category = ingredient.category.toIngredientFilter(),
+                        category = ingredient.categoryCode.toIngredientFilter(),
                         name = ingredient.name,
-                        price = ingredient.price,
-                        unitAmount = ingredient.unitAmount,
+                        price = ingredient.currentUnitPrice,
+                        unitAmount = ingredient.baseQuantity,
                         unit = ingredient.unit,
-                        supplier = ingredient.supplier,
+                        supplier = ingredient.supplier ?: "",
                         isFavorite = ingredient.isFavorite,
-                        usedMenus = usedMenus.map { usedMenu ->
+                        usedMenus = ingredient.usedMenus.map { usedMenu ->
                             UsedMenuUi(
                                 id = usedMenu.id,
                                 name = usedMenu.name,
                                 usageAmount = usedMenu.usageAmount,
                             )
                         },
-                        priceHistory = priceHistory.map { historyItem ->
-                            PriceHistoryUi(
-                                id = historyItem.id,
-                                date = historyItem.date,
-                                price = historyItem.price,
-                                unitAmount = historyItem.unitAmount,
-                                unitDisplayName = historyItem.unitType.displayName,
-                            )
-                        },
+                        priceHistory = emptyList(),
                     ),
                 )
             } else {
@@ -180,47 +173,15 @@ class IngredientDetailViewModel @Inject constructor(
         }
     }
 
-    // TODO: Replace with actual use case calls when domain layer is implemented
-    private fun getFakeUsedMenus(): List<UsedMenu> = listOf(
-        UsedMenu(id = 1L, name = "아메리카노", usageAmount = "10g"),
-        UsedMenu(id = 2L, name = "카페라떼", usageAmount = "10g"),
-        UsedMenu(id = 3L, name = "돌체라떼", usageAmount = "15g"),
-        UsedMenu(id = 4L, name = "아인슈페너", usageAmount = "12g"),
-    )
-
-    private fun IngredientCategory.toIngredientFilter(): IngredientFilter = when (this) {
-        IngredientCategory.FOOD_MATERIAL -> IngredientFilter.FOOD_INGREDIENT
-        IngredientCategory.OPERATIONAL -> IngredientFilter.OPERATIONAL_SUPPLY
+    private fun String.toIngredientFilter(): IngredientFilter = when (this) {
+        "FOOD_MATERIAL" -> IngredientFilter.FOOD_INGREDIENT
+        "OPERATIONAL" -> IngredientFilter.OPERATIONAL_SUPPLY
+        else -> IngredientFilter.FOOD_INGREDIENT
     }
 
-    private fun getFakePriceHistory(): List<PriceHistoryItem> = listOf(
-        PriceHistoryItem(
-            id = 1L,
-            date = "25.11.12",
-            price = 5000,
-            unitAmount = 100,
-            unitType = com.team.chord.core.domain.model.ingredient.IngredientUnitType.GRAM,
-        ),
-        PriceHistoryItem(
-            id = 2L,
-            date = "25.11.09",
-            price = 5000,
-            unitAmount = 100,
-            unitType = com.team.chord.core.domain.model.ingredient.IngredientUnitType.GRAM,
-        ),
-        PriceHistoryItem(
-            id = 3L,
-            date = "25.10.11",
-            price = 5000,
-            unitAmount = 100,
-            unitType = com.team.chord.core.domain.model.ingredient.IngredientUnitType.GRAM,
-        ),
-        PriceHistoryItem(
-            id = 4L,
-            date = "25.09.08",
-            price = 4800,
-            unitAmount = 100,
-            unitType = com.team.chord.core.domain.model.ingredient.IngredientUnitType.GRAM,
-        ),
-    )
+    private fun IngredientFilter.toCategoryCode(): String = when (this) {
+        IngredientFilter.FOOD_INGREDIENT -> "FOOD_MATERIAL"
+        IngredientFilter.OPERATIONAL_SUPPLY -> "OPERATIONAL"
+        IngredientFilter.FAVORITE -> "FOOD_MATERIAL"
+    }
 }

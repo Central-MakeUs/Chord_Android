@@ -55,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.team.chord.core.domain.model.ingredient.IngredientCategory
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordLargeButton
@@ -113,7 +112,7 @@ internal fun IngredientInputScreenContent(
     onAddNewIngredient: () -> Unit,
     onRemoveIngredient: (Long) -> Unit,
     onBottomSheetDismissed: () -> Unit,
-    onBottomSheetCategoryChanged: (IngredientCategory) -> Unit,
+    onBottomSheetCategoryChanged: (String) -> Unit,
     onBottomSheetPriceChanged: (String) -> Unit,
     onBottomSheetAmountChanged: (String) -> Unit,
     onBottomSheetUnitChanged: (IngredientUnit) -> Unit,
@@ -414,7 +413,7 @@ private fun SearchResultItem(
                 fontSize = 16.sp,
                 color = Grayscale900,
             )
-            if (suggestion.hasTemplate) {
+            if (suggestion.isTemplate) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "자동완성",
@@ -475,7 +474,7 @@ private fun IngredientListItem(
 private fun AddIngredientBottomSheet(
     state: IngredientBottomSheetState,
     onDismiss: () -> Unit,
-    onCategoryChanged: (IngredientCategory) -> Unit,
+    onCategoryChanged: (String) -> Unit,
     onPriceChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onUnitChanged: (IngredientUnit) -> Unit,
@@ -533,11 +532,11 @@ private fun AddIngredientBottomSheet(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                IngredientCategory.entries.forEach { category ->
+                ingredientCategoryOptions.forEach { (code, displayName) ->
                     CategoryChip(
-                        text = category.displayName,
-                        isSelected = state.category == category,
-                        onClick = { onCategoryChanged(category) },
+                        text = displayName,
+                        isSelected = state.categoryCode == code,
+                        onClick = { onCategoryChanged(code) },
                     )
                 }
             }
@@ -545,7 +544,7 @@ private fun AddIngredientBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Price Field
-            FieldLabel(text = if (state.hasTemplate) "단가" else "가격")
+            FieldLabel(text = if (state.isTemplate) "단가" else "가격")
             Spacer(modifier = Modifier.height(8.dp))
             BottomSheetTextField(
                 value = if (state.price.isNotEmpty()) {
@@ -807,6 +806,11 @@ private fun BottomNavigationButtons(
     }
 }
 
+private val ingredientCategoryOptions = listOf(
+    "FOOD_MATERIAL" to "식재료",
+    "OPERATIONAL" to "운영 재료",
+)
+
 @Composable
 private fun FieldLabel(
     text: String,
@@ -870,12 +874,9 @@ private fun IngredientInputScreenContentSearchPreview() {
             searchQuery = "흑임자",
             searchResults = listOf(
                 IngredientSuggestion(
-                    id = 1,
+                    ingredientId = 1,
                     name = "흑임자 토핑",
-                    hasTemplate = true,
-                    suggestedPrice = 5000,
-                    suggestedAmount = 200,
-                    suggestedUnit = IngredientUnit.G,
+                    isTemplate = true,
                 ),
             ),
         ),

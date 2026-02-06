@@ -22,10 +22,7 @@ import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.core.ui.theme.StatusDanger
-import com.team.chord.core.ui.theme.StatusMid
-import com.team.chord.core.ui.theme.StatusSafe
-import com.team.chord.core.ui.theme.StatusWarning
+import com.team.chord.core.ui.component.toStatusColor
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -41,12 +38,7 @@ fun MenuListItem(
 ) {
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
 
-    val marginColor = when (marginGrade) {
-        MarginGrade.SAFE -> StatusSafe
-        MarginGrade.MID -> StatusMid
-        MarginGrade.WARNING -> StatusWarning
-        MarginGrade.DANGER -> StatusDanger
-    }
+    val marginColor = marginGrade.toStatusColor()
 
     Row(
         modifier = modifier

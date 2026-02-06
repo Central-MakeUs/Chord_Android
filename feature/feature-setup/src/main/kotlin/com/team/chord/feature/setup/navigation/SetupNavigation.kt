@@ -170,14 +170,14 @@ fun NavGraphBuilder.setupGraph(
                 onNavigateToDetailWithTemplate = { template ->
                     // Store template data in shared ViewModel
                     onboardingViewModel.startNewMenu(
-                        name = template.name,
+                        name = template.menuName,
                         isTemplateApplied = true,
-                        templatePrice = template.suggestedPrice,
+                        templatePrice = template.defaultSellingPrice,
                     )
                     navController.navigateToMenuDetail(
-                        menuName = template.name,
+                        menuName = template.menuName,
                         isTemplateApplied = true,
-                        templatePrice = template.suggestedPrice,
+                        templatePrice = template.defaultSellingPrice,
                     )
                 },
                 onNavigateToDetailWithoutTemplate = { menuName ->

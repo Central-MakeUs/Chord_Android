@@ -28,11 +28,12 @@ fun ChordStatusBadge(
     grade: MarginGrade,
     modifier: Modifier = Modifier,
 ) {
-    val (text, textColor, backgroundColor) = when (grade) {
-        MarginGrade.SAFE -> Triple("안정", StatusSafe, StatusSafeBackground)
-        MarginGrade.MID -> Triple("보통", StatusMid, StatusMidBackground)
-        MarginGrade.WARNING -> Triple("주의", StatusWarning, StatusWarningBackground)
-        MarginGrade.DANGER -> Triple("위험", StatusDanger, StatusDangerBackground)
+    val (text, textColor, backgroundColor) = when (grade.code) {
+        "SAFE" -> Triple(grade.name, StatusSafe, StatusSafeBackground)
+        "MID" -> Triple(grade.name, StatusMid, StatusMidBackground)
+        "WARNING" -> Triple(grade.name, StatusWarning, StatusWarningBackground)
+        "DANGER" -> Triple(grade.name, StatusDanger, StatusDangerBackground)
+        else -> Triple(grade.name, StatusMid, StatusMidBackground)
     }
 
     Text(
@@ -52,40 +53,42 @@ fun ChordStatusBadge(
     )
 }
 
-fun MarginGrade.toStatusColor(): Color = when (this) {
-    MarginGrade.SAFE -> StatusSafe
-    MarginGrade.MID -> StatusMid
-    MarginGrade.WARNING -> StatusWarning
-    MarginGrade.DANGER -> StatusDanger
+fun MarginGrade.toStatusColor(): Color = when (code) {
+    "SAFE" -> StatusSafe
+    "MID" -> StatusMid
+    "WARNING" -> StatusWarning
+    "DANGER" -> StatusDanger
+    else -> StatusMid
 }
 
-fun MarginGrade.toStatusBackgroundColor(): Color = when (this) {
-    MarginGrade.SAFE -> StatusSafeBackground
-    MarginGrade.MID -> StatusMidBackground
-    MarginGrade.WARNING -> StatusWarningBackground
-    MarginGrade.DANGER -> StatusDangerBackground
+fun MarginGrade.toStatusBackgroundColor(): Color = when (code) {
+    "SAFE" -> StatusSafeBackground
+    "MID" -> StatusMidBackground
+    "WARNING" -> StatusWarningBackground
+    "DANGER" -> StatusDangerBackground
+    else -> StatusMidBackground
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun ChordStatusBadgeSafePreview() {
-    ChordStatusBadge(grade = MarginGrade.SAFE)
+    ChordStatusBadge(grade = MarginGrade(code = "SAFE", name = "안정", message = ""))
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun ChordStatusBadgeMidPreview() {
-    ChordStatusBadge(grade = MarginGrade.MID)
+    ChordStatusBadge(grade = MarginGrade(code = "MID", name = "보통", message = ""))
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun ChordStatusBadgeWarningPreview() {
-    ChordStatusBadge(grade = MarginGrade.WARNING)
+    ChordStatusBadge(grade = MarginGrade(code = "WARNING", name = "주의", message = ""))
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun ChordStatusBadgeDangerPreview() {
-    ChordStatusBadge(grade = MarginGrade.DANGER)
+    ChordStatusBadge(grade = MarginGrade(code = "DANGER", name = "위험", message = ""))
 }

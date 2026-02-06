@@ -46,8 +46,13 @@ class LoginViewModel
                 _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
                 when (val result = authRepository.signIn(currentState.username, currentState.password)) {
-                    is AuthResult.Success -> {
+                    is AuthResult.LoginSuccess -> {
                         _uiState.update { it.copy(isLoading = false, isLoginSuccess = true) }
+                    }
+
+                    is AuthResult.SignUpSuccess -> {
+                        // Not expected during login flow
+                        _uiState.update { it.copy(isLoading = false) }
                     }
 
                     is AuthResult.InvalidCredentials -> {

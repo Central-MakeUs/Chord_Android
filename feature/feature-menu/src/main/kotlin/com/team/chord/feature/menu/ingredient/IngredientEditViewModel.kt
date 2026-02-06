@@ -5,11 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.model.menu.MenuIngredient
-import com.team.chord.core.domain.model.onSuccess
-import com.team.chord.core.domain.usecase.menu.AddIngredientUseCase
+import com.team.chord.core.domain.usecase.menu.AddNewRecipeUseCase
+import com.team.chord.core.domain.usecase.menu.DeleteRecipesUseCase
 import com.team.chord.core.domain.usecase.menu.GetMenuDetailUseCase
-import com.team.chord.core.domain.usecase.menu.RemoveIngredientsUseCase
-import com.team.chord.core.domain.usecase.menu.UpdateIngredientUseCase
+import com.team.chord.core.domain.usecase.menu.GetMenuRecipesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,17 +21,15 @@ import javax.inject.Inject
 class IngredientEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getMenuDetailUseCase: GetMenuDetailUseCase,
-    private val addIngredientUseCase: AddIngredientUseCase,
-    private val updateIngredientUseCase: UpdateIngredientUseCase,
-    private val removeIngredientsUseCase: RemoveIngredientsUseCase,
+    private val getMenuRecipesUseCase: GetMenuRecipesUseCase,
+    private val addNewRecipeUseCase: AddNewRecipeUseCase,
+    private val deleteRecipesUseCase: DeleteRecipesUseCase,
 ) : ViewModel() {
 
     private val menuId: Long = savedStateHandle.get<Long>("menuId") ?: 0L
 
     private val _uiState = MutableStateFlow(IngredientEditUiState())
     val uiState: StateFlow<IngredientEditUiState> = _uiState.asStateFlow()
-
-    private var nextIngredientId = 100L
 
     init {
         loadData()
@@ -62,14 +59,14 @@ class IngredientEditViewModel @Inject constructor(
         viewModelScope.launch {
             val selectedIds = _uiState.value.selectedIngredientIds.toList()
             if (selectedIds.isNotEmpty()) {
-                removeIngredientsUseCase(menuId, selectedIds).onSuccess { menu ->
-                    _uiState.update {
-                        it.copy(
-                            ingredients = menu.ingredients,
-                            selectedIngredientIds = emptySet(),
-                            isDeleteMode = false,
-                        )
-                    }
+                deleteRecipesUseCase(menuId, selectedIds)
+                // Reload recipes after deletion
+                loadRecipes()
+                _uiState.update {
+                    it.copy(
+                        selectedIngredientIds = emptySet(),
+                        isDeleteMode = false,
+                    )
                 }
             }
         }
@@ -108,27 +105,7 @@ class IngredientEditViewModel @Inject constructor(
         quantity: Double,
         unit: IngredientUnit,
     ) {
-        viewModelScope.launch {
-            val totalPrice = (unitPrice * quantity).toInt()
-            val updatedIngredient = MenuIngredient(
-                id = ingredientId,
-                name = name,
-                quantity = quantity,
-                unit = unit,
-                unitPrice = unitPrice,
-                totalPrice = totalPrice,
-            )
-
-            updateIngredientUseCase(menuId, updatedIngredient).onSuccess { menu ->
-                _uiState.update {
-                    it.copy(
-                        ingredients = menu.ingredients,
-                        showEditBottomSheet = false,
-                        editingIngredient = null,
-                    )
-                }
-            }
-        }
+        // TODO: Implement recipe update via API when endpoint is available
     }
 
     fun addIngredient(
@@ -138,24 +115,16 @@ class IngredientEditViewModel @Inject constructor(
         unit: IngredientUnit,
     ) {
         viewModelScope.launch {
-            val totalPrice = (unitPrice * quantity).toInt()
-            val newIngredient = MenuIngredient(
-                id = nextIngredientId++,
-                name = name,
-                quantity = quantity,
-                unit = unit,
-                unitPrice = unitPrice,
-                totalPrice = totalPrice,
+            addNewRecipeUseCase(
+                menuId = menuId,
+                amount = quantity.toInt(),
+                price = unitPrice,
+                unitCode = unit.name,
+                ingredientCategoryCode = "FOOD_MATERIAL",
+                ingredientName = name,
             )
-
-            addIngredientUseCase(menuId, newIngredient).onSuccess { menu ->
-                _uiState.update {
-                    it.copy(
-                        ingredients = menu.ingredients,
-                        showAddBottomSheet = false,
-                    )
-                }
-            }
+            loadRecipes()
+            _uiState.update { it.copy(showAddBottomSheet = false) }
         }
     }
 
@@ -182,5 +151,24 @@ class IngredientEditViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    private suspend fun loadRecipes() {
+        val recipes = getMenuRecipesUseCase(menuId)
+        val menuIngredients = recipes.map { recipe ->
+            MenuIngredient(
+                id = recipe.recipeId,
+                name = recipe.ingredientName,
+                quantity = recipe.amount.toDouble(),
+                unit = try {
+                    IngredientUnit.valueOf(recipe.unitCode.uppercase())
+                } catch (_: Exception) {
+                    IngredientUnit.G
+                },
+                unitPrice = recipe.price,
+                totalPrice = recipe.price * recipe.amount,
+            )
+        }
+        _uiState.update { it.copy(ingredients = menuIngredients) }
     }
 }

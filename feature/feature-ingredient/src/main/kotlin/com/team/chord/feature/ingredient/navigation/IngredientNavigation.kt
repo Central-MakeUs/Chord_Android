@@ -53,10 +53,12 @@ fun NavGraphBuilder.ingredientDetailScreen(
 
 fun NavGraphBuilder.ingredientSearchScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (Long) -> Unit,
 ) {
     composable(route = INGREDIENT_SEARCH_ROUTE) {
         IngredientSearchScreen(
             onNavigateBack = onNavigateBack,
+            onNavigateToDetail = onNavigateToDetail,
         )
     }
 }

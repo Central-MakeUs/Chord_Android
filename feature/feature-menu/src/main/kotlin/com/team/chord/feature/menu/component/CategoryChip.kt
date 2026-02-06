@@ -24,8 +24,8 @@ import com.team.chord.core.ui.theme.PrimaryBlue500
 @Composable
 fun CategoryChipRow(
     categories: List<Category>,
-    selectedCategoryId: Long?,
-    onCategorySelected: (Long?) -> Unit,
+    selectedCategoryCode: String?,
+    onCategorySelected: (String?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -35,7 +35,7 @@ fun CategoryChipRow(
         // "전체" 칩
         CategoryChip(
             text = "전체",
-            isSelected = selectedCategoryId == null,
+            isSelected = selectedCategoryCode == null,
             onClick = { onCategorySelected(null) },
         )
 
@@ -43,8 +43,8 @@ fun CategoryChipRow(
         categories.forEach { category ->
             CategoryChip(
                 text = category.name,
-                isSelected = category.id == selectedCategoryId,
-                onClick = { onCategorySelected(category.id) },
+                isSelected = category.code == selectedCategoryCode,
+                onClick = { onCategorySelected(category.code) },
             )
         }
     }

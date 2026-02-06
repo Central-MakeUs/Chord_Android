@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordLargeButton
@@ -344,7 +343,7 @@ private fun SearchResultsList(
     ) {
         items(
             items = results,
-            key = { it.id },
+            key = { it.templateId },
         ) { template ->
             SearchResultItem(
                 template = template,
@@ -372,7 +371,7 @@ private fun SearchResultItem(
         // Menu name with highlighted search query
         Text(
             text = buildAnnotatedString {
-                val name = template.name
+                val name = template.menuName
                 val startIndex = name.indexOf(searchQuery, ignoreCase = true)
 
                 if (startIndex >= 0) {
@@ -535,12 +534,11 @@ private fun MenuSearchScreenEmptyPreview() {
 @Preview(showBackground = true)
 @Composable
 private fun MenuSearchScreenWithResultsPreview() {
-    val sampleCategory = Category(id = 1L, name = "음료", order = 1)
     val sampleResults = listOf(
-        MenuTemplate(1L, "흑임자라떼", 5500, sampleCategory, 120, emptyList()),
-        MenuTemplate(2L, "흑임자스콘", 4000, sampleCategory, 30, emptyList()),
-        MenuTemplate(3L, "흑임자케익", 6500, sampleCategory, 30, emptyList()),
-        MenuTemplate(4L, "흑임자우유", 4500, sampleCategory, 60, emptyList()),
+        MenuTemplate(templateId = 1L, menuName = "흑임자라떼", defaultSellingPrice = 5500, categoryCode = "BEVERAGE", workTime = 120),
+        MenuTemplate(templateId = 2L, menuName = "흑임자스콘", defaultSellingPrice = 4000, categoryCode = "FOOD", workTime = 30),
+        MenuTemplate(templateId = 3L, menuName = "흑임자케익", defaultSellingPrice = 6500, categoryCode = "FOOD", workTime = 30),
+        MenuTemplate(templateId = 4L, menuName = "흑임자우유", defaultSellingPrice = 4500, categoryCode = "BEVERAGE", workTime = 60),
     )
 
     MenuSearchScreenContent(

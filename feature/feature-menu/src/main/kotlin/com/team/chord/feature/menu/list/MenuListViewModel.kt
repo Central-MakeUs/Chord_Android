@@ -22,14 +22,14 @@ class MenuListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MenuListUiState())
     val uiState: StateFlow<MenuListUiState> = _uiState.asStateFlow()
 
-    private val selectedCategoryId = MutableStateFlow<Long?>(null)
+    private val selectedCategoryCode = MutableStateFlow<String?>(null)
 
     init {
         loadData()
     }
 
-    fun onCategorySelected(categoryId: Long?) {
-        selectedCategoryId.value = categoryId
+    fun onCategorySelected(categoryCode: String?) {
+        selectedCategoryCode.value = categoryCode
     }
 
     private fun loadData() {
@@ -39,18 +39,18 @@ class MenuListViewModel @Inject constructor(
             combine(
                 getCategoriesUseCase(),
                 getMenuListUseCase(),
-                selectedCategoryId,
-            ) { categories, menus, selectedId ->
-                val filteredMenus = if (selectedId == null) {
+                selectedCategoryCode,
+            ) { categories, menus, selectedCode ->
+                val filteredMenus = if (selectedCode == null) {
                     menus
                 } else {
-                    menus.filter { it.category.id == selectedId }
+                    menus.filter { it.categoryCode == selectedCode }
                 }
 
                 MenuListUiState(
                     isLoading = false,
                     categories = categories,
-                    selectedCategoryId = selectedId,
+                    selectedCategoryCode = selectedCode,
                     menuItems = filteredMenus.map { menu ->
                         MenuItemUi(
                             id = menu.id,
