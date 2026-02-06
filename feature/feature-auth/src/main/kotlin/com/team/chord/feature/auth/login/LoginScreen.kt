@@ -2,10 +2,8 @@ package com.team.chord.feature.auth.login
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,8 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale500
-import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue600
@@ -70,6 +68,8 @@ internal fun LoginScreenContent(
     onNavigateToSignUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val isInputValid = uiState.username.isNotBlank() && uiState.password.isNotBlank()
+
     Box(
         modifier =
             modifier
@@ -90,28 +90,56 @@ internal fun LoginScreenContent(
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
-                color = Grayscale900,
+                color = PrimaryBlue600,
             )
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            AuthTextField(
-                value = uiState.username,
-                onValueChange = onUsernameChanged,
-                placeholder = "아이디",
-                imeAction = ImeAction.Next,
-            )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "아이디",
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Grayscale900,
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-            AuthTextField(
-                value = uiState.password,
-                onValueChange = onPasswordChanged,
-                placeholder = "비밀번호",
-                isPassword = true,
-                imeAction = ImeAction.Done,
-                onImeAction = onLoginClicked,
-            )
+                AuthTextField(
+                    value = uiState.username,
+                    onValueChange = onUsernameChanged,
+                    placeholder = "아이디를 입력해주세요.",
+                    imeAction = ImeAction.Next,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "비밀번호",
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = Grayscale900,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                AuthTextField(
+                    value = uiState.password,
+                    onValueChange = onPasswordChanged,
+                    placeholder = "비밀번호를 입력해주세요.",
+                    isPassword = true,
+                    imeAction = ImeAction.Done,
+                    onImeAction = onLoginClicked,
+                )
+            }
 
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -133,15 +161,15 @@ internal fun LoginScreenContent(
                     Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(28.dp),
                 colors =
                     ButtonDefaults.buttonColors(
-                        containerColor = Grayscale800,
+                        containerColor = PrimaryBlue600,
                         contentColor = Grayscale100,
-                        disabledContainerColor = Grayscale500,
-                        disabledContentColor = Grayscale100,
+                        disabledContainerColor = Grayscale200,
+                        disabledContentColor = Grayscale500,
                     ),
-                enabled = !uiState.isLoading,
+                enabled = isInputValid && !uiState.isLoading,
             ) {
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
@@ -161,30 +189,17 @@ internal fun LoginScreenContent(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Row(
+            Text(
+                text = "회원가입",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = Grayscale500,
                 modifier =
                     Modifier
-                        .fillMaxWidth()
+                        .clickable(onClick = onNavigateToSignUp)
                         .padding(bottom = 48.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "코치코치 앱이 처음이신가요?",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = Grayscale500,
-                )
-                Text(
-                    text = " 회원가입",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = Grayscale800,
-                    modifier = Modifier.clickable(onClick = onNavigateToSignUp),
-                )
-            }
+            )
         }
     }
 }

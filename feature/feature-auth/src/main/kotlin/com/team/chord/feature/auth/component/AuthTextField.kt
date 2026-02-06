@@ -1,17 +1,17 @@
 package com.team.chord.feature.auth.component
 
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -56,80 +56,86 @@ fun AuthTextField(
             else -> VisualTransformation.None
         }
 
-    Box(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .border(
-                    width = 1.dp,
-                    color = Grayscale300,
-                    shape = RoundedCornerShape(12.dp),
-                ).padding(horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart,
+    Column(
+        modifier = modifier.fillMaxWidth(),
     ) {
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            textStyle =
-                TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                    color = Grayscale900,
-                ),
-            singleLine = true,
-            visualTransformation = visualTransformation,
-            keyboardOptions =
-                KeyboardOptions(
-                    keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
-                    imeAction = imeAction,
-                ),
-            keyboardActions =
-                KeyboardActions(
-                    onDone = { onImeAction() },
-                    onNext = { onImeAction() },
-                ),
-            cursorBrush = SolidColor(Grayscale800),
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    if (value.isEmpty()) {
-                        Text(
-                            text = placeholder,
-                            style =
-                                TextStyle(
-                                    fontFamily = PretendardFontFamily,
-                                    fontWeight = FontWeight.Normal,
-                                    fontSize = 16.sp,
-                                    color = Grayscale500,
-                                ),
-                        )
-                    }
-                    innerTextField()
-
-                    if (isPassword) {
-                        IconButton(
-                            onClick = { passwordVisible = !passwordVisible },
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                        ) {
-                            Icon(
-                                imageVector =
-                                    if (passwordVisible) {
-                                        Icons.Default.VisibilityOff
-                                    } else {
-                                        Icons.Default.Visibility
-                                    },
-                                contentDescription = if (passwordVisible) "비밀번호 숨기기" else "비밀번호 보기",
-                                tint = Grayscale500,
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .padding(horizontal = 4.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle =
+                    TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                        color = Grayscale900,
+                    ),
+                singleLine = true,
+                visualTransformation = visualTransformation,
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType = if (isPassword) KeyboardType.Password else keyboardType,
+                        imeAction = imeAction,
+                    ),
+                keyboardActions =
+                    KeyboardActions(
+                        onDone = { onImeAction() },
+                        onNext = { onImeAction() },
+                    ),
+                cursorBrush = SolidColor(Grayscale800),
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterStart,
+                    ) {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                style =
+                                    TextStyle(
+                                        fontFamily = PretendardFontFamily,
+                                        fontWeight = FontWeight.Normal,
+                                        fontSize = 16.sp,
+                                        color = Grayscale500,
+                                    ),
                             )
                         }
+                        innerTextField()
+
+                        if (isPassword) {
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible },
+                                modifier = Modifier.align(Alignment.CenterEnd),
+                            ) {
+                                Icon(
+                                    imageVector =
+                                        if (passwordVisible) {
+                                            Icons.Default.VisibilityOff
+                                        } else {
+                                            Icons.Default.Visibility
+                                        },
+                                    contentDescription = if (passwordVisible) "비밀번호 숨기기" else "비밀번호 보기",
+                                    tint = Grayscale500,
+                                )
+                            }
+                        }
                     }
-                }
-            },
+                },
+            )
+        }
+
+        HorizontalDivider(
+            modifier = Modifier.fillMaxWidth(),
+            thickness = 1.dp,
+            color = Grayscale300,
         )
     }
 }

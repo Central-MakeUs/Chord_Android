@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale800
@@ -140,7 +141,7 @@ internal fun SignUpScreenContent(
                 AuthTextField(
                     value = uiState.username,
                     onValueChange = onUsernameChanged,
-                    placeholder = "아이디를 입력해주세요",
+                    placeholder = "아이디 입력",
                     imeAction = ImeAction.Next,
                 )
 
@@ -163,7 +164,7 @@ internal fun SignUpScreenContent(
                 AuthTextField(
                     value = uiState.password,
                     onValueChange = onPasswordChanged,
-                    placeholder = "비밀번호를 입력해주세요",
+                    placeholder = "비밀번호 입력",
                     isPassword = true,
                     imeAction = ImeAction.Next,
                 )
@@ -187,7 +188,7 @@ internal fun SignUpScreenContent(
                 AuthTextField(
                     value = uiState.passwordConfirm,
                     onValueChange = onPasswordConfirmChanged,
-                    placeholder = "비밀번호를 다시 입력해주세요",
+                    placeholder = "비밀번호 재입력",
                     isPassword = true,
                     imeAction = ImeAction.Done,
                     onImeAction = onSignUpClicked,
@@ -248,13 +249,13 @@ internal fun SignUpScreenContent(
                         Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(28.dp),
                     colors =
                         ButtonDefaults.buttonColors(
-                            containerColor = Grayscale800,
+                            containerColor = PrimaryBlue600,
                             contentColor = Grayscale100,
-                            disabledContainerColor = Grayscale400,
-                            disabledContentColor = Grayscale100,
+                            disabledContainerColor = Grayscale200,
+                            disabledContentColor = Grayscale500,
                         ),
                     enabled =
                         !uiState.isLoading &&
