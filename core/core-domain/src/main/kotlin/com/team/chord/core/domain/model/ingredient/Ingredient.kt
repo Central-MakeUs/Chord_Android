@@ -5,10 +5,13 @@ import com.team.chord.core.domain.model.menu.IngredientUnit
 data class Ingredient(
     val id: Long,
     val name: String,
-    val price: Int,
-    val unitAmount: Int,
+    val categoryCode: String,
     val unit: IngredientUnit,
-    val supplier: String,
-    val isFavorite: Boolean,
-    val category: IngredientCategory = IngredientCategory.FOOD_MATERIAL,
+    val baseQuantity: Int,
+    val currentUnitPrice: Int,
+    val supplier: String? = null,
+    val isFavorite: Boolean = false,
+    val originalAmount: Int? = null,
+    val originalPrice: Int? = null,
+    val usedMenus: List<UsedMenu> = emptyList(),
 )

@@ -1,10 +1,12 @@
 package com.team.chord.core.domain.model
 
 sealed interface AuthResult {
-    data class Success(
-        val user: User,
+    data class LoginSuccess(
         val token: AuthToken,
+        val onboardingCompleted: Boolean,
     ) : AuthResult
+
+    data object SignUpSuccess : AuthResult
 
     data class InvalidCredentials(
         val message: String = "아이디 또는 비밀번호가 올바르지 않습니다",
@@ -25,10 +27,6 @@ sealed interface AuthResult {
 
 sealed interface AuthState {
     data object Loading : AuthState
-
-    data class Authenticated(
-        val user: User,
-    ) : AuthState
-
+    data object Authenticated : AuthState
     data object Unauthenticated : AuthState
 }

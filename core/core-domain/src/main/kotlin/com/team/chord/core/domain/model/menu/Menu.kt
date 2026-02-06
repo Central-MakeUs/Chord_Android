@@ -4,7 +4,7 @@ data class Menu(
     val id: Long,
     val name: String,
     val price: Int,
-    val category: Category,
+    val categoryCode: String,
     val preparationTimeSeconds: Int,
     val ingredients: List<MenuIngredient>,
     val totalCost: Int,

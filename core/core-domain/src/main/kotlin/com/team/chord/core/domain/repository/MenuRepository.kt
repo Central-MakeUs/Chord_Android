@@ -2,36 +2,42 @@ package com.team.chord.core.domain.repository
 
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.Category
+import com.team.chord.core.domain.model.menu.CheckDupResult
 import com.team.chord.core.domain.model.menu.Menu
-import com.team.chord.core.domain.model.menu.MenuIngredient
+import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import kotlinx.coroutines.flow.Flow
 
 interface MenuRepository {
-    // 메뉴 목록
-    fun getMenuList(): Flow<List<Menu>>
-    fun getMenuListByCategory(categoryId: Long): Flow<List<Menu>>
-
-    // 메뉴 상세
+    fun getMenuList(categoryCode: String? = null): Flow<List<Menu>>
     suspend fun getMenuDetail(menuId: Long): Menu?
-
-    // 메뉴 수정
-    suspend fun updateMenuName(menuId: Long, name: String): Result<Menu>
-    suspend fun updateMenuPrice(menuId: Long, price: Int): Result<Menu>
-    suspend fun updateMenuPreparationTime(menuId: Long, seconds: Int): Result<Menu>
-    suspend fun updateMenuCategory(menuId: Long, categoryId: Long): Result<Menu>
-
-    // 메뉴 삭제
+    suspend fun createMenu(
+        categoryCode: String,
+        menuName: String,
+        sellingPrice: Int,
+        workTime: Int,
+        recipes: List<MenuRecipe>? = null,
+    ): Result<Unit>
+    suspend fun updateMenuName(menuId: Long, name: String): Result<Unit>
+    suspend fun updateMenuPrice(menuId: Long, price: Int): Result<Unit>
+    suspend fun updateMenuPreparationTime(menuId: Long, seconds: Int): Result<Unit>
+    suspend fun updateMenuCategory(menuId: Long, categoryCode: String): Result<Unit>
     suspend fun deleteMenu(menuId: Long): Result<Unit>
-
-    // 재료 관리
-    suspend fun addIngredientToMenu(menuId: Long, ingredient: MenuIngredient): Result<Menu>
-    suspend fun updateMenuIngredient(menuId: Long, ingredient: MenuIngredient): Result<Menu>
-    suspend fun removeIngredientsFromMenu(menuId: Long, ingredientIds: List<Long>): Result<Menu>
-
-    // 카테고리
+    suspend fun getMenuRecipes(menuId: Long): List<MenuRecipe>
+    suspend fun addExistingRecipe(menuId: Long, ingredientId: Long, amount: Int): Result<Unit>
+    suspend fun addNewRecipe(
+        menuId: Long,
+        amount: Int,
+        price: Int,
+        unitCode: String,
+        ingredientCategoryCode: String,
+        ingredientName: String,
+        supplier: String? = null,
+    ): Result<Unit>
+    suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int): Result<Unit>
+    suspend fun deleteRecipes(menuId: Long, recipeIds: List<Long>): Result<Unit>
     fun getCategories(): Flow<List<Category>>
-
-    // 메뉴 템플릿 검색
     fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>>
+    suspend fun getTemplateBasic(templateId: Long): MenuTemplate?
+    suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>? = null): CheckDupResult
 }

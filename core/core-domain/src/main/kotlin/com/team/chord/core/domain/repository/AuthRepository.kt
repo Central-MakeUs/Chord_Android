@@ -7,20 +7,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
     fun observeAuthState(): Flow<AuthState>
-
-    suspend fun signIn(
-        username: String,
-        password: String,
-    ): AuthResult
-
-    suspend fun signUp(
-        username: String,
-        password: String,
-    ): AuthResult
-
+    suspend fun signIn(loginId: String, password: String): AuthResult
+    suspend fun signUp(loginId: String, password: String): AuthResult
     suspend fun signOut()
-
-    suspend fun refreshToken(): Result<AuthToken>
-
-    suspend fun isUsernameAvailable(username: String): Boolean
+    suspend fun refreshToken(): AuthToken
 }
