@@ -15,5 +15,8 @@
 .cxx
 local.properties
 
+# Network security config (contains server IP)
+app/src/main/res/xml/network_security_config.xml
+
 # Screenshots (design reference)
 screenshot/
