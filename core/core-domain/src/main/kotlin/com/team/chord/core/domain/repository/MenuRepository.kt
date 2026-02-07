@@ -39,5 +39,6 @@ interface MenuRepository {
     fun getCategories(): Flow<List<Category>>
     fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>>
     suspend fun getTemplateBasic(templateId: Long): MenuTemplate?
+    suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe>
     suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>? = null): CheckDupResult
 }

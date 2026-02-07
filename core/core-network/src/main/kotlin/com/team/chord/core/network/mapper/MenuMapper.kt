@@ -79,7 +79,7 @@ fun TemplateBasicDto.toDomain(): MenuTemplate =
     MenuTemplate(
         templateId = templateId,
         menuName = menuName,
-        defaultSellingPrice = defaultSellingPrice,
+        defaultSellingPrice = defaultSellingPrice.toInt(),
         categoryCode = categoryCode,
         workTime = workTime,
     )

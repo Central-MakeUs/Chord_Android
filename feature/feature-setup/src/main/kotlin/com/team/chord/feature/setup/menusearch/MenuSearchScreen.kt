@@ -27,6 +27,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,16 +76,22 @@ fun MenuSearchScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // Navigate when full template details are fetched
+    LaunchedEffect(uiState.navigateWithTemplate) {
+        uiState.navigateWithTemplate?.let { template ->
+            onNavigateToDetailWithTemplate(template)
+            viewModel.onNavigationHandled()
+        }
+    }
+
     MenuSearchScreenContent(
         uiState = uiState,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onClearSearch = viewModel::onClearSearch,
+        onSearchSubmit = viewModel::onSearchSubmit,
         onTemplateSelected = viewModel::onTemplateSelected,
         onDismissTemplateDialog = viewModel::onDismissTemplateDialog,
-        onConfirmTemplateApply = {
-            viewModel.onConfirmTemplateApply()
-            uiState.selectedTemplate?.let { onNavigateToDetailWithTemplate(it) }
-        },
+        onConfirmTemplateApply = viewModel::onConfirmTemplateApply,
         onNavigateBack = onNavigateBack,
         onNavigateToDetailWithoutTemplate = onNavigateToDetailWithoutTemplate,
         onFavoriteClick = { /* TODO: Implement favorite functionality */ },
@@ -98,6 +105,7 @@ internal fun MenuSearchScreenContent(
     uiState: MenuSearchUiState,
     onSearchQueryChanged: (String) -> Unit,
     onClearSearch: () -> Unit,
+    onSearchSubmit: () -> Unit,
     onTemplateSelected: (MenuTemplate) -> Unit,
     onDismissTemplateDialog: () -> Unit,
     onConfirmTemplateApply: () -> Unit,
@@ -153,7 +161,10 @@ internal fun MenuSearchScreenContent(
                     query = uiState.searchQuery,
                     onQueryChanged = onSearchQueryChanged,
                     onClear = onClearSearch,
-                    onDone = { focusManager.clearFocus() },
+                    onDone = {
+                        onSearchSubmit()
+                        focusManager.clearFocus()
+                    },
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -180,21 +191,21 @@ internal fun MenuSearchScreenContent(
                         .fillMaxWidth(),
                 ) {
                     when {
-                        uiState.searchQuery.isNotEmpty() && uiState.searchResults.isEmpty() && !uiState.isLoading -> {
-                            // No results state
-                            NoResultsContent(
-                                searchQuery = uiState.searchQuery,
-                                onDirectInputClick = {
-                                    onNavigateToDetailWithoutTemplate(uiState.searchQuery)
-                                },
-                            )
-                        }
                         uiState.searchResults.isNotEmpty() -> {
                             // Search results list
                             SearchResultsList(
                                 results = uiState.searchResults,
                                 searchQuery = uiState.searchQuery,
                                 onTemplateClick = onTemplateSelected,
+                            )
+                        }
+                        uiState.searchQuery.isNotEmpty() && uiState.searchResults.isEmpty() -> {
+                            // No results state (show even while loading)
+                            NoResultsContent(
+                                searchQuery = uiState.searchQuery,
+                                onDirectInputClick = {
+                                    onNavigateToDetailWithoutTemplate(uiState.searchQuery)
+                                },
                             )
                         }
                     }
@@ -222,9 +233,7 @@ internal fun MenuSearchScreenContent(
                             }
                         },
                         modifier = Modifier.weight(1f),
-                        enabled = uiState.searchQuery.isNotEmpty(),
-                        backgroundColor = Grayscale400,
-                        textColor = Grayscale600
+                        enabled = uiState.searchQuery.isNotEmpty() && uiState.searchResults.isEmpty(),
                     )
                 }
             }
@@ -291,8 +300,8 @@ private fun MenuSearchField(
                     color = Grayscale900,
                 ),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { onDone() }),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { onDone() }),
                 cursorBrush = SolidColor(Grayscale800),
                 decorationBox = { innerTextField ->
                     Box {
@@ -522,6 +531,7 @@ private fun MenuSearchScreenEmptyPreview() {
         uiState = MenuSearchUiState(),
         onSearchQueryChanged = {},
         onClearSearch = {},
+        onSearchSubmit = {},
         onTemplateSelected = {},
         onDismissTemplateDialog = {},
         onConfirmTemplateApply = {},
@@ -548,6 +558,7 @@ private fun MenuSearchScreenWithResultsPreview() {
         ),
         onSearchQueryChanged = {},
         onClearSearch = {},
+        onSearchSubmit = {},
         onTemplateSelected = {},
         onDismissTemplateDialog = {},
         onConfirmTemplateApply = {},
@@ -567,6 +578,7 @@ private fun MenuSearchScreenNoResultsPreview() {
         ),
         onSearchQueryChanged = {},
         onClearSearch = {},
+        onSearchSubmit = {},
         onTemplateSelected = {},
         onDismissTemplateDialog = {},
         onConfirmTemplateApply = {},

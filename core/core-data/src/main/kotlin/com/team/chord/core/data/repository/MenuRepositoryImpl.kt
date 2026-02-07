@@ -90,6 +90,9 @@ class MenuRepositoryImpl @Inject constructor(
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? =
         menuDataSource.getTemplateBasic(templateId)
 
+    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> =
+        menuDataSource.getTemplateIngredients(templateId)
+
     override suspend fun checkMenuDuplicate(
         menuName: String,
         ingredientNames: List<String>?,

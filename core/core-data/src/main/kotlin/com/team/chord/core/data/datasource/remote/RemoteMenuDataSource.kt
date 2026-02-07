@@ -146,10 +146,13 @@ class RemoteMenuDataSource @Inject constructor(
         try {
             Log.d(TAG, "searchMenuTemplates: Calling API with query='$query'")
             val templates = safeApiCall { menuApi.searchMenuTemplates(query) }
-            Log.d(TAG, "searchMenuTemplates: Received ${templates.size} raw templates")
+            Log.d(TAG, "searchMenuTemplates: API success for query='$query', ${templates.size} templates")
             emit(templates.map { it.toDomain() })
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Log.d(TAG, "searchMenuTemplates: Cancelled for query='$query'")
+            throw e
         } catch (e: Exception) {
-            Log.e(TAG, "searchMenuTemplates: API call failed for query='$query'", e)
+            Log.e(TAG, "searchMenuTemplates: API error for query='$query' - ${e.javaClass.simpleName}: ${e.message}")
             throw e
         }
     }
@@ -166,9 +169,9 @@ class RemoteMenuDataSource @Inject constructor(
                 menuId = 0,
                 ingredientId = 0,
                 ingredientName = recipe.ingredientName,
-                amount = recipe.defaultUsageAmount,
+                amount = recipe.defaultUsageAmount.toInt(),
                 unitCode = recipe.unitCode,
-                price = recipe.defaultPrice,
+                price = recipe.defaultPrice.toInt(),
             )
         }
     }

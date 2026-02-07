@@ -19,7 +19,7 @@ data class SearchMenusDto(
 data class TemplateBasicDto(
     val templateId: Long,
     val menuName: String,
-    val defaultSellingPrice: Int,
+    val defaultSellingPrice: Double,
     val categoryCode: String,
     val workTime: Int,
 )
@@ -27,8 +27,8 @@ data class TemplateBasicDto(
 @Serializable
 data class RecipeTemplateDto(
     val ingredientName: String,
-    val defaultUsageAmount: Int,
-    val defaultPrice: Int,
+    val defaultUsageAmount: Double,
+    val defaultPrice: Double,
     val unitCode: String,
 )
 
