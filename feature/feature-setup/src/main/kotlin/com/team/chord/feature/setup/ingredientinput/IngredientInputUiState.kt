@@ -54,7 +54,7 @@ data class SelectedIngredient(
     val amount: Int,
     val unit: IngredientUnit,
     val price: Int,
-    val categoryCode: String = "FOOD_MATERIAL",
+    val categoryCode: String = "INGREDIENTS",
     val supplier: String = "",
     val sourceType: IngredientSourceType = IngredientSourceType.NEW,
     val baseQuantity: Int = 0,
@@ -68,7 +68,7 @@ data class SelectedIngredient(
 data class IngredientBottomSheetState(
     val id: Long? = null,
     val name: String,
-    val categoryCode: String = "FOOD_MATERIAL",
+    val categoryCode: String = "INGREDIENTS",
     val price: String = "",
     val purchaseAmount: String = "",
     val amount: String = "",

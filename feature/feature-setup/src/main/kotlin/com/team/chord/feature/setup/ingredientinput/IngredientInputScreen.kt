@@ -935,8 +935,8 @@ private fun BottomNavigationButtons(
 }
 
 private val ingredientCategoryOptions = listOf(
-    "FOOD_MATERIAL" to "식재료",
-    "OPERATIONAL" to "운영 재료",
+    "INGREDIENTS" to "식재료",
+    "MATERIALS" to "운영재료",
 )
 
 @Composable
