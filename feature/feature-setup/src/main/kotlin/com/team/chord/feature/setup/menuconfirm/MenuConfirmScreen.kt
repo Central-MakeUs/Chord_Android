@@ -1,8 +1,6 @@
 package com.team.chord.feature.setup.menuconfirm
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,33 +10,27 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.team.chord.core.ui.component.ChordLargeButton
+import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
-import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
+import com.team.chord.core.ui.theme.Typography
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -75,17 +67,16 @@ internal fun MenuConfirmScreenContent(
             .background(Grayscale100),
     ) {
         // Top Bar with only back button
-        MenuConfirmTopBar(onBackClick = onNavigateBack)
+        ChordTopAppBar(
+            title = "",
+            onBackClick = onNavigateBack,
+        )
 
         // Title
         Text(
             text = "이대로 등록을 마칠까요?",
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 22.sp,
-                color = Grayscale900,
-            ),
+            style = Typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            color = Grayscale900,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
@@ -107,37 +98,26 @@ internal fun MenuConfirmScreenContent(
         }
 
         // Bottom Buttons
-        BottomButtons(
-            onAddMore = onAddMore,
-            onComplete = onComplete,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 24.dp),
-        )
-    }
-}
-
-@Composable
-private fun MenuConfirmTopBar(
-    onBackClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .padding(horizontal = 16.dp),
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-            contentDescription = "뒤로가기",
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .size(24.dp)
-                .clickable(onClick = onBackClick),
-            tint = Grayscale900,
-        )
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            ChordLargeButton(
+                text = "추가 등록",
+                onClick = onAddMore,
+                backgroundColor = Grayscale100,
+                textColor = Grayscale500,
+                modifier = Modifier.weight(1f),
+            )
+            ChordLargeButton(
+                text = "마치기",
+                onClick = onComplete,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -163,12 +143,8 @@ private fun MenuConfirmCard(
         ) {
             Text(
                 text = "메뉴 ${menu.index}",
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = Grayscale100,
-                ),
+                style = Typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                color = Grayscale100,
             )
         }
 
@@ -177,12 +153,8 @@ private fun MenuConfirmCard(
         // Menu Name
         Text(
             text = menu.name,
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp,
-                color = Grayscale900,
-            ),
+            style = Typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            color = Grayscale900,
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -190,12 +162,8 @@ private fun MenuConfirmCard(
         // Menu Price
         Text(
             text = formatPrice(menu.price),
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Grayscale800,
-            ),
+            style = Typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+            color = Grayscale800,
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -224,82 +192,15 @@ private fun IngredientRow(
     ) {
         Text(
             text = ingredient.name,
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Grayscale800,
-            ),
+            style = Typography.bodyMedium,
+            color = Grayscale800,
         )
 
         Text(
             text = "${ingredient.amount}/${formatPriceWithoutUnit(ingredient.price)}원",
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Grayscale800,
-            ),
+            style = Typography.bodyMedium,
+            color = Grayscale800,
         )
-    }
-}
-
-@Composable
-private fun BottomButtons(
-    onAddMore: () -> Unit,
-    onComplete: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        // Add More Button (outline style)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .border(
-                    width = 1.dp,
-                    color = Grayscale300,
-                    shape = RoundedCornerShape(16.dp),
-                )
-                .background(Grayscale100)
-                .clickable(onClick = onAddMore),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "추가 등록",
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = Grayscale500,
-                ),
-            )
-        }
-
-        // Complete Button (filled style)
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(PrimaryBlue500)
-                .clickable(onClick = onComplete),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "마치기",
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = Grayscale100,
-                ),
-            )
-        }
     }
 }
 
