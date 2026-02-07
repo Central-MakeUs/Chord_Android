@@ -7,27 +7,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue500
-import com.team.chord.feature.home.HomeTodoItem
+import com.team.chord.feature.home.HomeStrategyItem
 
 @Composable
-fun HomeTodoSummaryCard(
-    title: String,
-    items: List<HomeTodoItem>,
+fun HomeStrategyGuideCard(
+    items: List<HomeStrategyItem>,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -38,49 +38,43 @@ fun HomeTodoSummaryCard(
                 .background(Grayscale100)
                 .padding(16.dp),
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = Grayscale900,
-        )
-        Spacer(modifier = Modifier.height(12.dp))
         items.forEachIndexed { index, item ->
-            HomeTodoRow(item = item)
+            HomeStrategyRow(item = item)
             if (index != items.lastIndex) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(color = Grayscale300)
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
 }
 
 @Composable
-fun HomeTodoRow(
-    item: HomeTodoItem,
+private fun HomeStrategyRow(
+    item: HomeStrategyItem,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Spacer(
-            modifier =
-                Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryBlue500),
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = item.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = Grayscale600,
         )
-        Spacer(modifier = Modifier.width(10.dp))
-        Column {
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                text = item.title,
+                text = item.menuName,
                 style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
                 color = Grayscale900,
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = item.subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = Grayscale600,
+                text = item.actionLabel,
+                style = MaterialTheme.typography.bodyLarge,
+                color = PrimaryBlue500,
             )
         }
     }

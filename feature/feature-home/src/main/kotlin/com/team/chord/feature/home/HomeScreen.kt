@@ -20,7 +20,7 @@ import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.feature.home.component.HomePrimaryCtaBar
 import com.team.chord.feature.home.component.HomeSectionHeader
 import com.team.chord.feature.home.component.HomeStatsRow
-import com.team.chord.feature.home.component.HomeTodoSummaryCard
+import com.team.chord.feature.home.component.HomeStrategyGuideCard
 import com.team.chord.feature.home.component.HomeTopBar
 
 @Composable
@@ -71,18 +71,21 @@ internal fun HomeScreenContent(
                 item {
                     HomePrimaryCtaBar(
                         title = uiState.ctaTitle,
+                        count = uiState.ctaCount,
                         onClick = {
                             // TODO: navigate to diagnosis page
                         },
                     )
                 }
                 item {
-                    HomeSectionHeader(title = uiState.todoSectionTitle)
+                    HomeSectionHeader(
+                        title = uiState.strategySectionTitle,
+                        actionText = "자세히",
+                    )
                 }
                 item {
-                    HomeTodoSummaryCard(
-                        title = uiState.todoCardTitle,
-                        items = uiState.todoItems,
+                    HomeStrategyGuideCard(
+                        items = uiState.strategyItems,
                     )
                 }
                 item {

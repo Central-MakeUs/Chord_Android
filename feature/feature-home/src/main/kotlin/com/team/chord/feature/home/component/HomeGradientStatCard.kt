@@ -14,12 +14,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
+import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue200
+import com.team.chord.core.ui.theme.PrimaryBlue700
 import com.team.chord.feature.home.HomeStatItem
 
 @Composable
@@ -29,10 +33,18 @@ fun HomeGradientStatCard(
     description: String,
     modifier: Modifier = Modifier,
 ) {
+    val cardShape = RoundedCornerShape(16.dp)
+
     Column(
         modifier =
             modifier
-                .clip(RoundedCornerShape(16.dp))
+                .shadow(
+                    elevation = 4.dp,
+                    shape = cardShape,
+                    ambientColor = Color.Black.copy(alpha = 0.10f),
+                    spotColor = Color.Black.copy(alpha = 0.10f),
+                )
+                .clip(cardShape)
                 .background(
                     Brush.linearGradient(
                         colors = listOf(Grayscale100, PrimaryBlue200),
@@ -43,7 +55,12 @@ fun HomeGradientStatCard(
         Text(
             text = title,
             style = MaterialTheme.typography.labelSmall,
-            color = Grayscale700,
+            color = PrimaryBlue700,
+            modifier =
+                Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(PrimaryBlue100)
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(

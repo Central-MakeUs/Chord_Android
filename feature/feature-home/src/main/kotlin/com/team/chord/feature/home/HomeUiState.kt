@@ -5,9 +5,9 @@ sealed interface HomeUiState {
 
     data class Success(
         val ctaTitle: String,
-        val todoSectionTitle: String,
-        val todoCardTitle: String,
-        val todoItems: List<HomeTodoItem>,
+        val ctaCount: Int,
+        val strategySectionTitle: String,
+        val strategyItems: List<HomeStrategyItem>,
         val statsSectionTitle: String,
         val stats: List<HomeStatItem>,
     ) : HomeUiState
@@ -17,9 +17,10 @@ sealed interface HomeUiState {
     ) : HomeUiState
 }
 
-data class HomeTodoItem(
-    val title: String,
-    val subtitle: String,
+data class HomeStrategyItem(
+    val description: String,
+    val menuName: String,
+    val actionLabel: String,
 )
 
 data class HomeStatItem(

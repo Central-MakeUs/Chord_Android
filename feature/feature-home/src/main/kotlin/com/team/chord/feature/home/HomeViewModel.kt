@@ -14,20 +14,32 @@ class HomeViewModel
         private val _uiState =
             MutableStateFlow<HomeUiState>(
                 HomeUiState.Success(
-                    ctaTitle = "AI 진단 시작하기",
-                    todoSectionTitle = "오늘의 할 일",
-                    todoCardTitle = "진단 전 체크리스트",
-                    todoItems =
+                    ctaTitle = "진단이 필요한 메뉴",
+                    ctaCount = 3,
+                    strategySectionTitle = "전략 가이드",
+                    strategyItems =
                         listOf(
-                            HomeTodoItem("메뉴 원가 입력", "마지막 업데이트 3일 전"),
-                            HomeTodoItem("재료 단가 확인", "오늘 14:00까지"),
-                            HomeTodoItem("판매 데이터 업로드", "어제 기준"),
+                            HomeStrategyItem(
+                                description = "원가율 35% 유지 가능해요",
+                                menuName = "바닐라 라떼",
+                                actionLabel = "판매가 조정",
+                            ),
+                            HomeStrategyItem(
+                                description = "공헌이익률이 낮아요",
+                                menuName = "아메리카노",
+                                actionLabel = "원가 분석",
+                            ),
+                            HomeStrategyItem(
+                                description = "판매량 대비 수익이 적어요",
+                                menuName = "카페 모카",
+                                actionLabel = "가격 전략",
+                            ),
                         ),
-                    statsSectionTitle = "이번 주 요약",
+                    statsSectionTitle = "수익 진단",
                     stats =
                         listOf(
-                            HomeStatItem("원가율", "26%", "목표 30%"),
-                            HomeStatItem("진단 점수", "82점", "지난주 +6"),
+                            HomeStatItem("평균 원가율", "28.5%", "안정적"),
+                            HomeStatItem("평균 공헌이익률", "+12%", "지난주 대비 상승"),
                         ),
                 ),
             )

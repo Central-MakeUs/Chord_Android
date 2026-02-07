@@ -17,7 +17,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.theme.Grayscale700
-import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.home.R as HomeR
 
@@ -32,20 +31,11 @@ fun HomeTopBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painter = painterResource(id = HomeR.drawable.ic_home_logo),
-                contentDescription = "Chord 로고",
-                tint = PrimaryBlue500,
-                modifier = Modifier.size(28.dp),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "CHORD",
-                style = MaterialTheme.typography.titleLarge,
-                color = Grayscale900,
-            )
-        }
+        Text(
+            text = "코치코치",
+            style = MaterialTheme.typography.titleLarge,
+            color = PrimaryBlue500,
+        )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
