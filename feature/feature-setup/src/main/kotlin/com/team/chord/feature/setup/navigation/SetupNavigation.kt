@@ -202,6 +202,7 @@ fun NavGraphBuilder.setupGraph(
                         isTemplateApplied = true,
                         templatePrice = template.defaultSellingPrice,
                         templateId = template.templateId,
+                        categoryCode = template.categoryCode,
                     )
                     navController.navigateToMenuDetail(
                         menuName = template.menuName,
@@ -315,13 +316,10 @@ fun NavGraphBuilder.setupGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onAddMore = {
-                    // Go back to menu search to add another menu
-                    navController.navigateToMenuSearch()
-                },
                 onComplete = {
                     navController.navigateToSetupComplete()
                 },
+                onRegisterMenus = { onboardingViewModel.registerMenus() },
             )
         }
 
@@ -379,6 +377,7 @@ fun NavGraphBuilder.addMenuGraph(
                         isTemplateApplied = true,
                         templatePrice = template.defaultSellingPrice,
                         templateId = template.templateId,
+                        categoryCode = template.categoryCode,
                     )
                     val route = buildString {
                         append("$ADD_MENU_DETAIL_ROUTE/")
@@ -483,10 +482,8 @@ fun NavGraphBuilder.addMenuGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onAddMore = {
-                    navController.navigate(ADD_MENU_SEARCH_ROUTE)
-                },
                 onComplete = onComplete,
+                onRegisterMenus = { onboardingViewModel.registerMenus() },
             )
         }
     }

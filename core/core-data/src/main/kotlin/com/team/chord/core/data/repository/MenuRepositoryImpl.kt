@@ -1,12 +1,14 @@
 package com.team.chord.core.data.repository
 
 import com.team.chord.core.data.datasource.MenuDataSource
+import com.team.chord.core.data.datasource.NewRecipeInput
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.domain.model.menu.CheckDupResult
 import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
+import com.team.chord.core.domain.model.menu.NewRecipeInfo
 import com.team.chord.core.domain.repository.MenuRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -29,9 +31,20 @@ class MenuRepositoryImpl @Inject constructor(
         sellingPrice: Int,
         workTime: Int,
         recipes: List<MenuRecipe>?,
+        newRecipes: List<NewRecipeInfo>?,
     ): Result<Unit> = runCatching {
         val recipesList = recipes?.map { (it.ingredientId as Long?) to it.amount }
-        menuDataSource.createMenu(categoryCode, menuName, sellingPrice, workTime, recipesList, null)
+        val newRecipesList = newRecipes?.map {
+            NewRecipeInput(
+                amount = it.amount,
+                price = it.price,
+                unitCode = it.unitCode,
+                ingredientCategoryCode = it.ingredientCategoryCode,
+                ingredientName = it.ingredientName,
+                supplier = it.supplier,
+            )
+        }
+        menuDataSource.createMenu(categoryCode, menuName, sellingPrice, workTime, recipesList, newRecipesList)
     }
 
     override suspend fun updateMenuName(menuId: Long, name: String): Result<Unit> = runCatching {

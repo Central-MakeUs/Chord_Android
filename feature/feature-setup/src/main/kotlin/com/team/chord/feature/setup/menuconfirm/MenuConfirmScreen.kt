@@ -1,6 +1,8 @@
 package com.team.chord.feature.setup.menuconfirm
 
+import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,9 +17,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,12 +36,13 @@ import androidx.compose.ui.unit.dp
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale500
-import com.team.chord.core.ui.theme.Grayscale800
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.core.ui.theme.Typography
+import com.team.chord.core.domain.model.Result
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -38,15 +50,34 @@ import java.util.Locale
 fun MenuConfirmScreen(
     registeredMenus: List<RegisteredMenuSummary>,
     onNavigateBack: () -> Unit,
-    onAddMore: () -> Unit,
     onComplete: () -> Unit,
+    onRegisterMenus: suspend () -> Result<Unit>,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isRegistering by remember { mutableStateOf(false) }
+
     MenuConfirmScreenContent(
-        uiState = MenuConfirmUiState(registeredMenus = registeredMenus),
+        uiState = MenuConfirmUiState(
+            registeredMenus = registeredMenus,
+            isRegistering = isRegistering,
+        ),
         onNavigateBack = onNavigateBack,
-        onAddMore = onAddMore,
-        onComplete = onComplete,
+        onComplete = {
+            coroutineScope.launch {
+                isRegistering = true
+                val result = onRegisterMenus()
+                isRegistering = false
+                when (result) {
+                    is Result.Success -> onComplete()
+                    is Result.Error -> {
+                        Toast.makeText(context, "메뉴 등록에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                    }
+                    is Result.Loading -> { /* no-op */ }
+                }
+            }
+        },
         modifier = modifier,
     )
 }
@@ -55,7 +86,6 @@ fun MenuConfirmScreen(
 internal fun MenuConfirmScreenContent(
     uiState: MenuConfirmUiState,
     onNavigateBack: () -> Unit,
-    onAddMore: () -> Unit,
     onComplete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -97,27 +127,16 @@ internal fun MenuConfirmScreenContent(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Bottom Buttons
-        Row(
+        // Bottom Button
+        ChordLargeButton(
+            text = "마치기",
+            onClick = onComplete,
+            enabled = !uiState.isRegistering,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            ChordLargeButton(
-                text = "추가 등록",
-                onClick = onAddMore,
-                backgroundColor = Grayscale100,
-                textColor = Grayscale500,
-                modifier = Modifier.weight(1f),
-            )
-            ChordLargeButton(
-                text = "마치기",
-                onClick = onComplete,
-                modifier = Modifier.weight(1f),
-            )
-        }
+        )
     }
 }
 
@@ -129,8 +148,12 @@ private fun MenuConfirmCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(PrimaryBlue100)
+            .shadow(10.dp, RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(24.dp))
+            .border(1.5.dp, PrimaryBlue100, RoundedCornerShape(24.dp))
+            .background(
+                Brush.verticalGradient(listOf(Color(0xFFE8F0FF), Color.White))
+            )
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -163,7 +186,7 @@ private fun MenuConfirmCard(
         Text(
             text = formatPrice(menu.price),
             style = Typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-            color = Grayscale800,
+            color = Grayscale700,
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -193,13 +216,13 @@ private fun IngredientRow(
         Text(
             text = ingredient.name,
             style = Typography.bodyMedium,
-            color = Grayscale800,
+            color = Grayscale700,
         )
 
         Text(
             text = "${ingredient.amount}/${formatPriceWithoutUnit(ingredient.price)}원",
             style = Typography.bodyMedium,
-            color = Grayscale800,
+            color = Grayscale700,
         )
     }
 }
@@ -235,7 +258,6 @@ private fun MenuConfirmScreenContentPreview() {
             ),
         ),
         onNavigateBack = {},
-        onAddMore = {},
         onComplete = {},
     )
 }
@@ -270,7 +292,6 @@ private fun MenuConfirmScreenContentMultipleMenusPreview() {
             ),
         ),
         onNavigateBack = {},
-        onAddMore = {},
         onComplete = {},
     )
 }

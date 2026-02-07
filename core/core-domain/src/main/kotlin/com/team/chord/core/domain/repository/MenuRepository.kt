@@ -6,6 +6,7 @@ import com.team.chord.core.domain.model.menu.CheckDupResult
 import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
+import com.team.chord.core.domain.model.menu.NewRecipeInfo
 import kotlinx.coroutines.flow.Flow
 
 interface MenuRepository {
@@ -17,6 +18,7 @@ interface MenuRepository {
         sellingPrice: Int,
         workTime: Int,
         recipes: List<MenuRecipe>? = null,
+        newRecipes: List<NewRecipeInfo>? = null,
     ): Result<Unit>
     suspend fun updateMenuName(menuId: Long, name: String): Result<Unit>
     suspend fun updateMenuPrice(menuId: Long, price: Int): Result<Unit>

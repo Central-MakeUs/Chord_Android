@@ -209,9 +209,7 @@ internal fun MenuSearchScreenContent(
                     ChordLargeButton(
                         text = "이전",
                         onClick = onNavigateBack,
-                        modifier = Modifier.weight(1f),
-                        backgroundColor = Grayscale400,
-                        textColor = Grayscale600
+                        modifier = Modifier.weight(1f)
                     )
                     ChordLargeButton(
                         text = "다음",

@@ -1,6 +1,10 @@
 package com.team.chord.feature.setup
 
 import androidx.lifecycle.ViewModel
+import com.team.chord.core.domain.model.Result
+import com.team.chord.core.domain.model.menu.MenuRecipe
+import com.team.chord.core.domain.model.menu.NewRecipeInfo
+import com.team.chord.core.domain.repository.MenuRepository
 import com.team.chord.feature.setup.ingredientinput.SelectedIngredient
 import com.team.chord.feature.setup.menuconfirm.IngredientSummary
 import com.team.chord.feature.setup.menuconfirm.RegisteredMenuSummary
@@ -18,7 +22,9 @@ import javax.inject.Inject
  * in the menu registration flow (MenuSearch -> MenuDetail -> IngredientInput -> MenuConfirm).
  */
 @HiltViewModel
-class OnboardingMenuViewModel @Inject constructor() : ViewModel() {
+class OnboardingMenuViewModel @Inject constructor(
+    private val menuRepository: MenuRepository,
+) : ViewModel() {
 
     private val _registeredMenus = MutableStateFlow<List<RegisteredMenu>>(emptyList())
     val registeredMenus: StateFlow<List<RegisteredMenu>> = _registeredMenus.asStateFlow()
@@ -39,6 +45,7 @@ class OnboardingMenuViewModel @Inject constructor() : ViewModel() {
         isTemplateApplied: Boolean,
         templatePrice: Int? = null,
         templateId: Long? = null,
+        categoryCode: String? = null,
     ) {
         _currentMenuDraft.update {
             MenuDraft(
@@ -46,6 +53,7 @@ class OnboardingMenuViewModel @Inject constructor() : ViewModel() {
                 price = templatePrice ?: 0,
                 isTemplateApplied = isTemplateApplied,
                 templateId = templateId,
+                categoryCode = categoryCode,
             )
         }
     }
@@ -97,6 +105,7 @@ class OnboardingMenuViewModel @Inject constructor() : ViewModel() {
             category = draft.category,
             preparationTimeSeconds = draft.preparationTimeSeconds,
             ingredients = draft.ingredients,
+            categoryCode = draft.categoryCode,
         )
 
         _registeredMenus.update { current ->
@@ -130,6 +139,56 @@ class OnboardingMenuViewModel @Inject constructor() : ViewModel() {
     }
 
     /**
+     * Register all menus via API.
+     * Maps each RegisteredMenu to a createMenu() call on the repository.
+     * Splits ingredients into existing (id > 0) and new (id == 0) recipes.
+     *
+     * @return Result.Success if all menus registered, Result.Error on first failure
+     */
+    suspend fun registerMenus(): Result<Unit> {
+        val menus = _registeredMenus.value
+        for (menu in menus) {
+            val existingRecipes = menu.ingredients
+                .filter { it.id > 0 }
+                .map { ingredient ->
+                    MenuRecipe(
+                        recipeId = 0L,
+                        menuId = 0L,
+                        ingredientId = ingredient.id,
+                        ingredientName = ingredient.name,
+                        amount = ingredient.amount,
+                        unitCode = ingredient.unit.name,
+                        price = ingredient.price,
+                    )
+                }
+            val newRecipes = menu.ingredients
+                .filter { it.id == 0L }
+                .map { ingredient ->
+                    NewRecipeInfo(
+                        amount = ingredient.amount,
+                        price = ingredient.price,
+                        unitCode = ingredient.unit.name,
+                        ingredientCategoryCode = ingredient.categoryCode,
+                        ingredientName = ingredient.name,
+                        supplier = ingredient.supplier.ifEmpty { null },
+                    )
+                }
+            val result = menuRepository.createMenu(
+                categoryCode = menu.categoryCode ?: menu.category.name,
+                menuName = menu.name,
+                sellingPrice = menu.price,
+                workTime = menu.preparationTimeSeconds,
+                recipes = existingRecipes.ifEmpty { null },
+                newRecipes = newRecipes.ifEmpty { null },
+            )
+            if (result is Result.Error) {
+                return result
+            }
+        }
+        return Result.Success(Unit)
+    }
+
+    /**
      * Clear all registered menus and current draft.
      * Used when starting fresh or when setup is complete.
      */
@@ -151,6 +210,7 @@ data class MenuDraft(
     val ingredients: List<SelectedIngredient> = emptyList(),
     val isTemplateApplied: Boolean = false,
     val templateId: Long? = null,
+    val categoryCode: String? = null,
 )
 
 /**
@@ -163,4 +223,5 @@ data class RegisteredMenu(
     val category: MenuCategory,
     val preparationTimeSeconds: Int,
     val ingredients: List<SelectedIngredient>,
+    val categoryCode: String? = null,
 )

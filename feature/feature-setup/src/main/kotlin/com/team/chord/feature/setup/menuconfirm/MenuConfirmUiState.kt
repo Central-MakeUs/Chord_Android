@@ -5,6 +5,7 @@ package com.team.chord.feature.setup.menuconfirm
  */
 data class MenuConfirmUiState(
     val registeredMenus: List<RegisteredMenuSummary> = emptyList(),
+    val isRegistering: Boolean = false,
 )
 
 /**
