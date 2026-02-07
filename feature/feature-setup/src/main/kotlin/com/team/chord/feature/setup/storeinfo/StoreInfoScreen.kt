@@ -1,7 +1,7 @@
 package com.team.chord.feature.setup.storeinfo
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,8 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
@@ -45,11 +43,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordCheckboxItem
 import com.team.chord.core.ui.component.ChordLargeButton
-import com.team.chord.core.ui.component.ChordTextField
+import com.team.chord.core.ui.component.ChordTooltipBubble
+import com.team.chord.core.ui.component.ChordTooltipIcon
 import com.team.chord.core.ui.component.ChordTopAppBar
+import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale300
-import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale700
@@ -211,34 +210,25 @@ private fun PostStoreNameContent(
     onIncludeWeeklyAllowanceChanged: (Boolean) -> Unit,
     onNextClicked: () -> Unit,
 ) {
+    var showWageTooltip by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        Text(
-            text = "직원수",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp,
-            color = Grayscale900,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        ChordTextField(
-            value = employeeCountInput,
-            onValueChange = { newValue ->
-                if (!ownerSolo) {
-                    onEmployeeCountChanged(newValue)
-                }
-            },
+        // 직원수 field
+        UnderlineTextField(
+            label = "직원수",
+            value = if (ownerSolo) "0" else employeeCountInput,
+            onValueChange = { if (!ownerSolo) onEmployeeCountChanged(it) },
             placeholder = "사장님을 제외한 직원수 입력",
+            unitText = "명",
             keyboardType = KeyboardType.Number,
-            modifier = Modifier.alpha(if (ownerSolo) 0.5f else 1f),
+            enabled = !ownerSolo,
         )
 
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 16.dp),
-            color = Grayscale300,
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // 사장님 혼자 checkbox
         ChordCheckboxItem(
             checked = ownerSolo,
             onCheckedChange = onIsOwnerSoloChanged,
@@ -252,31 +242,55 @@ private fun PostStoreNameContent(
             )
         }
 
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 16.dp),
-            color = Grayscale300,
-        )
+        if (ownerSolo && hourlyWageInput.isEmpty()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            ChordTooltipBubble(
+                text = "현재 근무중인 직원의 평균 시급을 입력해주세요",
+                direction = TooltipDirection.UpLeft,
+            )
+        }
 
-        Text(
-            text = "인건비",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp,
-            color = Grayscale900,
-        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // 인건비 label with tooltip icon
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                text = "인건비",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Grayscale900,
+            )
+            ChordTooltipIcon(onClick = { showWageTooltip = !showWageTooltip })
+        }
+        if (showWageTooltip) {
+            ChordTooltipBubble(
+                text = "현재 근무중인 직원의 평균 시급",
+                direction = TooltipDirection.UpLeft,
+            )
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
-        ChordTextField(
-            value = hourlyWageInput,
-            onValueChange = onHourlyWageChanged,
+
+        // Hourly wage field (no label since we rendered it above)
+        UnderlineTextField(
+            label = "",
+            value = formatWithComma(hourlyWageInput),
+            onValueChange = { newValue ->
+                val digitsOnly = newValue.filter { it.isDigit() }
+                onHourlyWageChanged(digitsOnly)
+            },
             placeholder = "시급 기준으로 입력",
+            unitText = "원",
             keyboardType = KeyboardType.Number,
         )
 
-        HorizontalDivider(
-            modifier = Modifier.padding(vertical = 16.dp),
-            color = Grayscale300,
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
+        // 주휴수당 포함 checkbox
         ChordCheckboxItem(
             checked = includeWeeklyAllowance,
             onCheckedChange = onIncludeWeeklyAllowanceChanged,
@@ -290,15 +304,50 @@ private fun PostStoreNameContent(
             )
         }
 
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Reference info card
+        ReferenceInfoCard()
+
         Spacer(modifier = Modifier.weight(1f))
 
+        // Next button (use built-in disabled styling)
         ChordLargeButton(
             text = "다음",
             onClick = onNextClicked,
             enabled = isNextEnabled,
-            backgroundColor = if (isNextEnabled) PrimaryBlue500 else Grayscale400,
-            textColor = if (isNextEnabled) Grayscale100 else Grayscale600,
             modifier = Modifier.padding(bottom = 32.dp),
+        )
+    }
+}
+
+@Composable
+private fun ReferenceInfoCard(
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = PrimaryBlue100,
+                shape = RoundedCornerShape(16.dp),
+            )
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "참고해보세요",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            color = PrimaryBlue500,
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "2026년기준 최저시급은 10,320원 이예요",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Grayscale700,
         )
     }
 }
@@ -396,20 +445,24 @@ private fun UnderlineTextField(
     placeholder: String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    unitText: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Unspecified,
     onImeAction: () -> Unit = {},
 ) {
     var isFocused by remember { mutableStateOf(false) }
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            color = if (isFocused) PrimaryBlue500 else Grayscale900,
-        )
+        if (label.isNotEmpty()) {
+            Text(
+                text = label,
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 14.sp,
+                color = if (isFocused) PrimaryBlue500 else Grayscale900,
+            )
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         BasicTextField(
             value = value,
@@ -425,21 +478,37 @@ private fun UnderlineTextField(
                 color = Grayscale900,
             ),
             singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = keyboardType,
+                imeAction = ImeAction.Done,
+            ),
             keyboardActions = KeyboardActions(onDone = { onImeAction() }),
             cursorBrush = SolidColor(Grayscale800),
             decorationBox = { innerTextField ->
-                Box {
-                    if (value.isEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(modifier = Modifier.weight(1f, fill = false)) {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 18.sp,
+                                color = Grayscale500,
+                            )
+                        }
+                        innerTextField()
+                    }
+                    if (value.isNotEmpty() && unitText != null) {
                         Text(
-                            text = placeholder,
+                            text = unitText,
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
-                            color = Grayscale500,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 20.sp,
+                            color = Grayscale900,
                         )
                     }
-                    innerTextField()
                 }
             },
         )
@@ -453,79 +522,3 @@ private fun UnderlineTextField(
     }
 }
 
-@Composable
-private fun UnderlineSearchField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    onSearch: () -> Unit = {},
-) {
-    var isFocused by remember { mutableStateOf(false) }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            color = if (isFocused) PrimaryBlue500 else Grayscale900,
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier
-                    .weight(1f)
-                    .onFocusChanged { isFocused = it.isFocused },
-                textStyle = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 20.sp,
-                    color = Grayscale900,
-                ),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { onSearch() }),
-                cursorBrush = SolidColor(Grayscale800),
-                decorationBox = { innerTextField ->
-                    Box {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                fontFamily = PretendardFontFamily,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp,
-                                color = Grayscale500,
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-            )
-
-            Icon(
-                painter = painterResource(R.drawable.ic_search),
-                contentDescription = "검색",
-                modifier = Modifier
-                    .size(24.dp)
-                    .clickable { onSearch() },
-                tint = Grayscale700,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        HorizontalDivider(
-            color = Grayscale300,
-            thickness = 1.dp,
-        )
-    }
-}

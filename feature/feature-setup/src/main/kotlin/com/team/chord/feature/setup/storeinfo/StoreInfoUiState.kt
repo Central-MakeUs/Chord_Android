@@ -24,6 +24,12 @@ data class StoreInfoUiState(
 
     val isPostStoreNameNextEnabled: Boolean
         get() = isPostStoreNameNextEnabled(employeeCountInput, ownerSolo, hourlyWageInput)
+
+    val formattedEmployeeCount: String
+        get() = if (ownerSolo) "0" else employeeCountInput
+
+    val formattedHourlyWage: String
+        get() = formatWithComma(hourlyWageInput)
 }
 
 sealed interface StoreInfoScreenState {

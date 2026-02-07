@@ -43,6 +43,13 @@ internal fun isPostStoreNameNextEnabled(
         parseHourlyWage(hourlyWageInput) != null
 }
 
+internal fun formatWithComma(value: String): String {
+    val digits = value.filter { it.isDigit() }
+    if (digits.isEmpty()) return ""
+    val number = digits.toLongOrNull() ?: return digits
+    return java.text.NumberFormat.getNumberInstance(java.util.Locale.KOREA).format(number)
+}
+
 private fun normalizeDigitsOnly(input: String): String? {
     if (input.isEmpty()) {
         return null
