@@ -18,8 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -29,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.theme.Grayscale200
@@ -48,80 +51,94 @@ fun MenuListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LifecycleResumeEffect(Unit) {
+        viewModel.refresh()
+        onPauseOrDispose { }
+    }
+
     MenuListScreenContent(
         uiState = uiState,
         onCategorySelected = viewModel::onCategorySelected,
         onNavigateToDetail = onNavigateToDetail,
         onAddMenuClick = onAddMenuClick,
+        onRefresh = viewModel::refresh,
         modifier = modifier,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MenuListScreenContent(
     uiState: MenuListUiState,
     onCategorySelected: (String?) -> Unit,
     onNavigateToDetail: (Long) -> Unit,
     onAddMenuClick: () -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    PullToRefreshBox(
+        isRefreshing = uiState.isRefreshing,
+        onRefresh = onRefresh,
         modifier = modifier
             .fillMaxSize()
             .background(Grayscale200),
     ) {
-        MenuListHeader(
-            menuCount = uiState.menuItems.size,
-            onAddClick = onAddMenuClick,
-        )
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    color = Grayscale200,
-                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                )
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-
-            CategoryTabRow(
-                categories = uiState.categories,
-                selectedCategoryCode = uiState.selectedCategoryCode,
-                onCategorySelected = onCategorySelected,
+            MenuListHeader(
+                menuCount = uiState.menuItems.size,
+                onAddClick = onAddMenuClick,
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = Grayscale200,
+                        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    )
+                    .padding(horizontal = 20.dp),
+            ) {
+                Spacer(modifier = Modifier.height(20.dp))
 
-            MenuListLegend()
+                CategoryTabRow(
+                    categories = uiState.categories,
+                    selectedCategoryCode = uiState.selectedCategoryCode,
+                    onCategorySelected = onCategorySelected,
+                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
-            if (uiState.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = PrimaryBlue500)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    items(
-                        items = uiState.menuItems,
-                        key = { it.id },
-                    ) { menuItem ->
-                        MenuListItem(
-                            name = menuItem.name,
-                            price = menuItem.sellingPrice,
-                            costRatio = menuItem.costRatio,
-                            marginRatio = menuItem.marginRatio,
-                            marginGrade = menuItem.marginGrade,
-                            onClick = { onNavigateToDetail(menuItem.id) },
-                        )
+                MenuListLegend()
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (uiState.isLoading) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = PrimaryBlue500)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        items(
+                            items = uiState.menuItems,
+                            key = { it.id },
+                        ) { menuItem ->
+                            MenuListItem(
+                                name = menuItem.name,
+                                price = menuItem.sellingPrice,
+                                costRatio = menuItem.costRatio,
+                                marginRatio = menuItem.marginRatio,
+                                marginGrade = menuItem.marginGrade,
+                                onClick = { onNavigateToDetail(menuItem.id) },
+                            )
+                        }
                     }
                 }
             }

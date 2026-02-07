@@ -5,6 +5,7 @@ import com.team.chord.core.domain.model.menu.MarginGrade
 
 data class MenuListUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val categories: List<Category> = emptyList(),
     val selectedCategoryCode: String? = null,
     val menuItems: List<MenuItemUi> = emptyList(),

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.usecase.menu.GetCategoriesUseCase
 import com.team.chord.core.domain.usecase.menu.GetMenuListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,6 +24,7 @@ class MenuListViewModel @Inject constructor(
     val uiState: StateFlow<MenuListUiState> = _uiState.asStateFlow()
 
     private val selectedCategoryCode = MutableStateFlow<String?>(null)
+    private var loadJob: Job? = null
 
     init {
         loadData()
@@ -32,9 +34,17 @@ class MenuListViewModel @Inject constructor(
         selectedCategoryCode.value = categoryCode
     }
 
-    private fun loadData() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+    fun refresh() {
+        loadData(isRefresh = true)
+    }
+
+    private fun loadData(isRefresh: Boolean = false) {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            _uiState.update {
+                if (isRefresh) it.copy(isRefreshing = true)
+                else it.copy(isLoading = true)
+            }
 
             combine(
                 getCategoriesUseCase(),
@@ -49,6 +59,7 @@ class MenuListViewModel @Inject constructor(
 
                 MenuListUiState(
                     isLoading = false,
+                    isRefreshing = false,
                     categories = categories,
                     selectedCategoryCode = selectedCode,
                     menuItems = filteredMenus.map { menu ->
