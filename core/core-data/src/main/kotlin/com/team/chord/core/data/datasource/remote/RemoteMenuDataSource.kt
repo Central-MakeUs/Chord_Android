@@ -1,5 +1,6 @@
 package com.team.chord.core.data.datasource.remote
 
+import android.util.Log
 import com.team.chord.core.data.datasource.MenuDataSource
 import com.team.chord.core.data.datasource.NewRecipeInput
 import com.team.chord.core.domain.model.menu.Category
@@ -29,6 +30,10 @@ import javax.inject.Singleton
 class RemoteMenuDataSource @Inject constructor(
     private val menuApi: MenuApi,
 ) : MenuDataSource {
+
+    companion object {
+        private const val TAG = "MenuSearch"
+    }
 
     override fun getMenuList(categoryCode: String?): Flow<List<Menu>> = flow {
         val menus = safeApiCall { menuApi.getMenuList(categoryCode) }
@@ -138,8 +143,15 @@ class RemoteMenuDataSource @Inject constructor(
     }
 
     override fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>> = flow {
-        val templates = safeApiCall { menuApi.searchMenuTemplates(query) }
-        emit(templates.map { it.toDomain() })
+        try {
+            Log.d(TAG, "searchMenuTemplates: Calling API with query='$query'")
+            val templates = safeApiCall { menuApi.searchMenuTemplates(query) }
+            Log.d(TAG, "searchMenuTemplates: Received ${templates.size} raw templates")
+            emit(templates.map { it.toDomain() })
+        } catch (e: Exception) {
+            Log.e(TAG, "searchMenuTemplates: API call failed for query='$query'", e)
+            throw e
+        }
     }
 
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate {

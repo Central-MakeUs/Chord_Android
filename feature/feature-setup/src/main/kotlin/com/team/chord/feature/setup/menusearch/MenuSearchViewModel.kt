@@ -1,5 +1,6 @@
 package com.team.chord.feature.setup.menusearch
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.menu.MenuTemplate
@@ -48,15 +49,22 @@ class MenuSearchViewModel @Inject constructor(
             return
         }
 
+        Log.d(TAG, "performSearch: Starting search for query='$query'")
         _uiState.update { it.copy(isLoading = true) }
 
-        menuRepository.searchMenuTemplates(query).collectLatest { results ->
-            _uiState.update {
-                it.copy(
-                    searchResults = results,
-                    isLoading = false,
-                )
+        try {
+            menuRepository.searchMenuTemplates(query).collectLatest { results ->
+                Log.d(TAG, "performSearch: Received ${results.size} results for query='$query'")
+                _uiState.update {
+                    it.copy(
+                        searchResults = results,
+                        isLoading = false,
+                    )
+                }
             }
+        } catch (e: Exception) {
+            Log.e(TAG, "performSearch: Search failed for query='$query'", e)
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
@@ -64,6 +72,7 @@ class MenuSearchViewModel @Inject constructor(
      * Called when user types in the search field.
      */
     fun onSearchQueryChanged(query: String) {
+        Log.d(TAG, "onSearchQueryChanged: query='$query'")
         _uiState.update { it.copy(searchQuery = query) }
         searchQueryFlow.value = query
     }
@@ -117,6 +126,7 @@ class MenuSearchViewModel @Inject constructor(
     }
 
     companion object {
+        private const val TAG = "MenuSearch"
         private const val SEARCH_DEBOUNCE_MS = 300L
     }
 }
