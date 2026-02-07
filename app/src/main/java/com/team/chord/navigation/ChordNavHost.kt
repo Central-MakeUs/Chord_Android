@@ -116,6 +116,7 @@ fun ChordNavHost(
         setupGraph(
             navController = navController,
             onSetupComplete = {
+                viewModel.markSetupCompleted()
                 navController.navigateToHome(
                     navOptions =
                         navOptions {

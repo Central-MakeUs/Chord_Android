@@ -9,6 +9,7 @@ data class StoreInfoUiState(
     val hourlyWageInput: String = "",
     val includeWeeklyAllowance: Boolean = false,
     val isEmployeeCountBottomSheetVisible: Boolean = false,
+    val isSubmitting: Boolean = false,
 ) {
     val normalizedEmployeeCountInput: String?
         get() = normalizeEmployeeCountInput(employeeCountInput, ownerSolo)

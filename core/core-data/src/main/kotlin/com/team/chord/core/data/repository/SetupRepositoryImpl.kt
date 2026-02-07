@@ -5,6 +5,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import com.team.chord.core.domain.repository.SetupRepository
+import com.team.chord.core.network.api.UserApi
+import com.team.chord.core.network.dto.user.OnboardingRequestDto
+import com.team.chord.core.network.util.safeApiCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -13,6 +16,7 @@ class SetupRepositoryImpl
     @Inject
     constructor(
         private val dataStore: DataStore<Preferences>,
+        private val userApi: UserApi,
     ) : SetupRepository {
         override fun isSetupCompleted(): Flow<Boolean> =
             dataStore.data.map { preferences ->
@@ -22,6 +26,24 @@ class SetupRepositoryImpl
         override suspend fun setSetupCompleted() {
             dataStore.edit { preferences ->
                 preferences[KEY_SETUP_COMPLETED] = true
+            }
+        }
+
+        override suspend fun completeOnboarding(
+            name: String,
+            employees: Int,
+            laborCost: Int,
+            includeWeeklyHolidayPay: Boolean,
+        ) {
+            safeApiCall {
+                userApi.completeOnboarding(
+                    OnboardingRequestDto(
+                        name = name,
+                        employees = employees,
+                        laborCost = laborCost,
+                        includeWeeklyHolidayPay = includeWeeklyHolidayPay,
+                    ),
+                )
             }
         }
 

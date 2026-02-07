@@ -1,17 +1,22 @@
 package com.team.chord.feature.setup.storeinfo
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.repository.SetupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class StoreInfoViewModel
     @Inject
-    constructor() : ViewModel() {
+    constructor(
+        private val setupRepository: SetupRepository,
+    ) : ViewModel() {
         private val _uiState = MutableStateFlow(StoreInfoUiState())
         val uiState: StateFlow<StoreInfoUiState> = _uiState.asStateFlow()
 
@@ -68,15 +73,31 @@ class StoreInfoViewModel
         }
 
         fun onPostStoreNameNextClicked() {
-            _uiState.update {
-                if (it.isPostStoreNameNextEnabled) {
-                    val employeeCountValue = it.employeeCountValue ?: it.employeeCount
-                    it.copy(
-                        employeeCount = employeeCountValue,
-                        screenState = StoreInfoScreenState.Completed,
+            val state = _uiState.value
+            if (!state.isPostStoreNameNextEnabled) return
+
+            val employeeCountValue = state.employeeCountValue ?: state.employeeCount
+            val laborCost = state.hourlyWageValue ?: return
+
+            _uiState.update { it.copy(isSubmitting = true) }
+
+            viewModelScope.launch {
+                try {
+                    setupRepository.completeOnboarding(
+                        name = state.storeName,
+                        employees = employeeCountValue,
+                        laborCost = laborCost,
+                        includeWeeklyHolidayPay = state.includeWeeklyAllowance,
                     )
-                } else {
-                    it
+                    _uiState.update {
+                        it.copy(
+                            employeeCount = employeeCountValue,
+                            screenState = StoreInfoScreenState.Completed,
+                            isSubmitting = false,
+                        )
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isSubmitting = false) }
                 }
             }
         }

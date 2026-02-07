@@ -10,15 +10,22 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ChordNavHostViewModel
     @Inject
     constructor(
-        setupRepository: SetupRepository,
+        private val setupRepository: SetupRepository,
         authRepository: AuthRepository,
     ) : ViewModel() {
+
+        fun markSetupCompleted() {
+            viewModelScope.launch {
+                setupRepository.setSetupCompleted()
+            }
+        }
         val navigationState: StateFlow<NavigationState> =
             combine(
                 setupRepository.isSetupCompleted(),
