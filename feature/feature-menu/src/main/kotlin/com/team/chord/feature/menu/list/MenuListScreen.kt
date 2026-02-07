@@ -1,5 +1,6 @@
 package com.team.chord.feature.menu.list
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,7 +36,7 @@ import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
-import com.team.chord.feature.menu.component.CategoryChipRow
+import com.team.chord.feature.menu.component.CategoryTabRow
 import com.team.chord.feature.menu.component.MenuListItem
 
 @Composable
@@ -84,13 +86,17 @@ internal fun MenuListScreenContent(
         ) {
             Spacer(modifier = Modifier.height(20.dp))
 
-            CategoryChipRow(
+            CategoryTabRow(
                 categories = uiState.categories,
                 selectedCategoryCode = uiState.selectedCategoryCode,
                 onCategorySelected = onCategorySelected,
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            MenuListLegend()
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (uiState.isLoading) {
                 Box(
@@ -154,25 +160,49 @@ private fun MenuListHeader(
             )
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.clickable(onClick = onAddClick),
-        ) {
-            Text(
-                text = "추가",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Grayscale600,
-            )
-            Icon(
-                painter = painterResource(id = R.drawable.ic_add),
-                contentDescription = "메뉴 추가",
-                tint = Grayscale600,
-                modifier = Modifier.size(12.dp),
-            )
+        Icon(
+            painter = painterResource(id = R.drawable.ic_add),
+            contentDescription = "메뉴 추가",
+            tint = Grayscale600,
+            modifier = Modifier
+                .size(24.dp)
+                .clickable(onClick = onAddClick),
+        )
+    }
+}
+
+@Composable
+private fun MenuListLegend(
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Canvas(modifier = Modifier.size(6.dp)) {
+            drawCircle(color = Grayscale900)
         }
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "원가율",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Grayscale600,
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Canvas(modifier = Modifier.size(6.dp)) {
+            drawCircle(color = PrimaryBlue500)
+        }
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = "마진율",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Grayscale600,
+        )
     }
 }
 

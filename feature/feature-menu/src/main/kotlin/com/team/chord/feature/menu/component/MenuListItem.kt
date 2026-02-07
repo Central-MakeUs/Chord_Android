@@ -5,8 +5,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +24,7 @@ import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.core.ui.component.toStatusColor
+import com.team.chord.core.ui.theme.PrimaryBlue500
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -37,8 +39,6 @@ fun MenuListItem(
     modifier: Modifier = Modifier,
 ) {
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
-
-    val marginColor = marginGrade.toStatusColor()
 
     Row(
         modifier = modifier
@@ -61,22 +61,13 @@ fun MenuListItem(
                 fontSize = 16.sp,
                 color = Grayscale900,
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "${numberFormat.format(price)}원",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    color = Grayscale900,
-                )
-                Text(
-                    text = " 원가율 ${costRatio.toInt()}%",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = Grayscale500,
-                )
-            }
+            Text(
+                text = "${numberFormat.format(price)}원",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = Grayscale900,
+            )
         }
 
         Column(
@@ -84,13 +75,28 @@ fun MenuListItem(
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             ChordStatusBadge(grade = marginGrade)
-            Text(
-                text = "${marginRatio.toInt()}.${((marginRatio * 10) % 10).toInt()}%",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = marginColor,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = formatRatio(costRatio),
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    color = Grayscale500,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = formatRatio(marginRatio),
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = PrimaryBlue500,
+                )
+            }
         }
     }
+}
+
+private fun formatRatio(ratio: Float): String {
+    val formatted = String.format("%.2f", ratio)
+    return "${formatted}%"
 }
