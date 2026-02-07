@@ -38,12 +38,14 @@ class OnboardingMenuViewModel @Inject constructor() : ViewModel() {
         name: String,
         isTemplateApplied: Boolean,
         templatePrice: Int? = null,
+        templateId: Long? = null,
     ) {
         _currentMenuDraft.update {
             MenuDraft(
                 name = name,
                 price = templatePrice ?: 0,
                 isTemplateApplied = isTemplateApplied,
+                templateId = templateId,
             )
         }
     }
@@ -148,6 +150,7 @@ data class MenuDraft(
     val preparationTimeSeconds: Int = 90,
     val ingredients: List<SelectedIngredient> = emptyList(),
     val isTemplateApplied: Boolean = false,
+    val templateId: Long? = null,
 )
 
 /**

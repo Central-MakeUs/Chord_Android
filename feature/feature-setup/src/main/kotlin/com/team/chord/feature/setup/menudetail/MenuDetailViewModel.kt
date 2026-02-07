@@ -73,4 +73,12 @@ class MenuDetailViewModel @Inject constructor(
 
     private fun MenuDetailUiState.updateNextEnabled(): MenuDetailUiState =
         copy(isNextEnabled = price.isNotBlank())
+
+    fun onShowTimePicker() {
+        _uiState.update { it.copy(showTimePicker = true) }
+    }
+
+    fun onDismissTimePicker() {
+        _uiState.update { it.copy(showTimePicker = false) }
+    }
 }

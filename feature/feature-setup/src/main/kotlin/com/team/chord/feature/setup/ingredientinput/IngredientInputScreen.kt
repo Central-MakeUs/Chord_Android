@@ -17,9 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,16 +27,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordLargeButton
+import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.component.ChordTooltipBubble
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
@@ -65,9 +68,11 @@ import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
+import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.PrimaryBlue200
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.setup.component.StepIndicator
 import java.text.NumberFormat
@@ -88,14 +93,17 @@ fun IngredientInputScreen(
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onSuggestionClicked = viewModel::onSuggestionClicked,
         onAddNewIngredient = viewModel::onAddNewIngredient,
+        onEditIngredient = viewModel::onEditIngredient,
         onRemoveIngredient = viewModel::onRemoveIngredient,
         onBottomSheetDismissed = viewModel::onBottomSheetDismissed,
         onBottomSheetCategoryChanged = viewModel::onBottomSheetCategoryChanged,
         onBottomSheetPriceChanged = viewModel::onBottomSheetPriceChanged,
+        onBottomSheetPurchaseAmountChanged = viewModel::onBottomSheetPurchaseAmountChanged,
         onBottomSheetAmountChanged = viewModel::onBottomSheetAmountChanged,
         onBottomSheetUnitChanged = viewModel::onBottomSheetUnitChanged,
         onBottomSheetSupplierChanged = viewModel::onBottomSheetSupplierChanged,
-        onAddIngredient = viewModel::onAddIngredient,
+        onConfirmIngredient = viewModel::onConfirmIngredient,
+        onToastDismissed = viewModel::onToastDismissed,
         onPreviousClick = onNavigateBack,
         onNextClick = { onNavigateToConfirm(viewModel.getSelectedIngredients()) },
         modifier = modifier,
@@ -110,152 +118,179 @@ internal fun IngredientInputScreenContent(
     onSearchQueryChanged: (String) -> Unit,
     onSuggestionClicked: (IngredientSuggestion) -> Unit,
     onAddNewIngredient: () -> Unit,
+    onEditIngredient: (SelectedIngredient) -> Unit,
     onRemoveIngredient: (Long) -> Unit,
     onBottomSheetDismissed: () -> Unit,
     onBottomSheetCategoryChanged: (String) -> Unit,
     onBottomSheetPriceChanged: (String) -> Unit,
+    onBottomSheetPurchaseAmountChanged: (String) -> Unit,
     onBottomSheetAmountChanged: (String) -> Unit,
     onBottomSheetUnitChanged: (IngredientUnit) -> Unit,
     onBottomSheetSupplierChanged: (String) -> Unit,
-    onAddIngredient: () -> Unit,
+    onConfirmIngredient: () -> Unit,
+    onToastDismissed: () -> Unit,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Grayscale100),
-    ) {
-        // Top Bar
-        IngredientInputTopBar(
-            onBackClick = onNavigateBack,
-            onFavoriteClick = { /* TODO: Toggle favorite */ },
-        )
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(scrollState),
-        ) {
-            // Step Indicator
-            StepIndicator(
-                currentStep = 2,
-                totalSteps = 2,
-                modifier = Modifier.padding(start = 24.dp, top = 16.dp),
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Search Section
-            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                FieldLabel(text = "재료명")
-                Spacer(modifier = Modifier.height(8.dp))
-                IngredientSearchField(
-                    value = uiState.searchQuery,
-                    onValueChange = onSearchQueryChanged,
-                    placeholder = "추가할 재료명을 입력해주세요",
-                )
-
-                // Tooltip
-                if (uiState.searchQuery.isEmpty() && uiState.selectedIngredients.isEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.CenterEnd,
-                    ) {
-                        ChordTooltipBubble(
-                            text = "필요한 재료가 더 있으신가요? 직접 입력해서 추가해보세요",
-                            direction = TooltipDirection.UpRight,
-                        )
-                    }
-                }
-
-                // Search Results
-                if (uiState.searchQuery.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    SearchResultsList(
-                        suggestions = uiState.searchResults,
-                        query = uiState.searchQuery,
-                        onSuggestionClicked = onSuggestionClicked,
-                        onAddNewIngredient = onAddNewIngredient,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Ingredient List Section
-            if (uiState.selectedIngredients.isNotEmpty()) {
-                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        FieldLabel(text = "재료 리스트")
-                        Text(
-                            text = "선택",
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp,
-                            color = Grayscale500,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Grayscale300, RoundedCornerShape(8.dp))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                                .clickable { /* TODO: Multi-select mode */ },
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    uiState.selectedIngredients.forEach { ingredient ->
-                        IngredientListItem(
-                            ingredient = ingredient,
-                            onRemoveClick = { onRemoveIngredient(ingredient.id) },
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
+    // Show completion toast
+    LaunchedEffect(uiState.showCompletionToast) {
+        if (uiState.showCompletionToast) {
+            snackbarHostState.showSnackbar(uiState.completionToastMessage)
+            onToastDismissed()
         }
-
-        // Bottom Buttons
-        BottomNavigationButtons(
-            isNextEnabled = uiState.isNextEnabled,
-            onPreviousClick = onPreviousClick,
-            onNextClick = onNextClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 24.dp),
-        )
     }
 
-    // Bottom Sheet
-    if (uiState.showAddBottomSheet && uiState.bottomSheetIngredient != null) {
-        AddIngredientBottomSheet(
-            state = uiState.bottomSheetIngredient,
-            onDismiss = onBottomSheetDismissed,
-            onCategoryChanged = onBottomSheetCategoryChanged,
-            onPriceChanged = onBottomSheetPriceChanged,
-            onAmountChanged = onBottomSheetAmountChanged,
-            onUnitChanged = onBottomSheetUnitChanged,
-            onSupplierChanged = onBottomSheetSupplierChanged,
-            onConfirm = onAddIngredient,
-        )
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Grayscale100,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) {
+                ChordToast(
+                    text = it.visuals.message,
+                    leadingIcon = R.drawable.ic_check,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                )
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
+            // Top Bar
+            IngredientInputTopBar(onBackClick = onNavigateBack)
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(scrollState),
+            ) {
+                // Step Indicator
+                StepIndicator(
+                    currentStep = 2,
+                    totalSteps = 2,
+                    modifier = Modifier.padding(start = 24.dp, top = 16.dp),
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Search Section
+                Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                    FieldLabel(text = "재료명")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    IngredientSearchField(
+                        value = uiState.searchQuery,
+                        onValueChange = onSearchQueryChanged,
+                        onAddClick = onAddNewIngredient,
+                        placeholder = "추가할 재료명을 입력해주세요",
+                    )
+
+                    // Tooltip
+                    if (uiState.searchQuery.isEmpty() && uiState.selectedIngredients.isEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterEnd,
+                        ) {
+                            ChordTooltipBubble(
+                                text = "필요한 재료가 더 있으신가요?\n직접 입력에서 추가해보세요",
+                                direction = TooltipDirection.UpRight,
+                            )
+                        }
+                    }
+
+                    // Search Results
+                    if (uiState.searchQuery.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        SearchResultsList(
+                            suggestions = uiState.searchResults,
+                            query = uiState.searchQuery,
+                            onSuggestionClicked = onSuggestionClicked,
+                            onAddNewIngredient = onAddNewIngredient,
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Ingredient List Section
+                if (uiState.selectedIngredients.isNotEmpty()) {
+                    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            FieldLabel(text = "재료 리스트")
+                            Text(
+                                text = "선택",
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = Grayscale500,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .border(1.dp, Grayscale300, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                                    .clickable { /* TODO: Multi-select mode */ },
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        uiState.selectedIngredients.forEach { ingredient ->
+                            IngredientListItem(
+                                ingredient = ingredient,
+                                onClick = { onEditIngredient(ingredient) },
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+            }
+
+            // Bottom Buttons
+            BottomNavigationButtons(
+                isNextEnabled = uiState.isNextEnabled,
+                showPreviousButton = !uiState.isTemplateApplied,
+                onPreviousClick = onPreviousClick,
+                onNextClick = onNextClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp),
+            )
+        }
+
+        // Bottom Sheet
+        if (uiState.showBottomSheet && uiState.bottomSheetIngredient != null) {
+            IngredientBottomSheet(
+                state = uiState.bottomSheetIngredient,
+                onDismiss = onBottomSheetDismissed,
+                onCategoryChanged = onBottomSheetCategoryChanged,
+                onPriceChanged = onBottomSheetPriceChanged,
+                onPurchaseAmountChanged = onBottomSheetPurchaseAmountChanged,
+                onAmountChanged = onBottomSheetAmountChanged,
+                onUnitChanged = onBottomSheetUnitChanged,
+                onSupplierChanged = onBottomSheetSupplierChanged,
+                onConfirm = onConfirmIngredient,
+            )
+        }
     }
 }
 
 @Composable
 private fun IngredientInputTopBar(
     onBackClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -273,16 +308,6 @@ private fun IngredientInputTopBar(
                 .clickable(onClick = onBackClick),
             tint = Grayscale900,
         )
-
-        Icon(
-            imageVector = Icons.Outlined.StarBorder,
-            contentDescription = "즐겨찾기",
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .size(24.dp)
-                .clickable(onClick = onFavoriteClick),
-            tint = Grayscale900,
-        )
     }
 }
 
@@ -290,6 +315,7 @@ private fun IngredientInputTopBar(
 private fun IngredientSearchField(
     value: String,
     onValueChange: (String) -> Unit,
+    onAddClick: () -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
 ) {
@@ -327,22 +353,25 @@ private fun IngredientSearchField(
                     }
                 },
             )
-            if (value.isNotEmpty()) {
+            // "+" icon button
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(PrimaryBlue200)
+                    .clickable(onClick = onAddClick),
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(
-                    painter = painterResource(R.drawable.ic_close_circle),
-                    contentDescription = "지우기",
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clickable { onValueChange("") },
-                    tint = Grayscale500,
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "재료 추가",
+                    modifier = Modifier.size(14.dp),
+                    tint = PrimaryBlue500,
                 )
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(
-            color = if (value.isEmpty()) PrimaryBlue500 else Grayscale300,
-            thickness = 1.dp,
-        )
+        HorizontalDivider(color = Grayscale300, thickness = 1.dp)
     }
 }
 
@@ -363,7 +392,7 @@ private fun SearchResultsList(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        // Add new ingredient option when no results or always show
+        // Add new ingredient option
         if (suggestions.isEmpty() || suggestions.none { it.name.equals(query, ignoreCase = true) }) {
             Row(
                 modifier = Modifier
@@ -409,25 +438,33 @@ private fun SearchResultItem(
             Text(
                 text = suggestion.name,
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
+                fontWeight = if (suggestion.sourceType == IngredientSourceType.SAVED) FontWeight.Bold else FontWeight.Medium,
                 fontSize = 16.sp,
                 color = Grayscale900,
             )
-            if (suggestion.isTemplate) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "자동완성",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 12.sp,
-                    color = PrimaryBlue500,
-                    modifier = Modifier
-                        .background(
-                            color = PrimaryBlue500.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(4.dp),
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp),
-                )
+            when (suggestion.sourceType) {
+                IngredientSourceType.SAVED -> {
+                    // No badge - bold name is enough indicator
+                }
+                IngredientSourceType.TEMPLATE -> {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "자동완성",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = PrimaryBlue500,
+                        modifier = Modifier
+                            .background(
+                                color = PrimaryBlue500.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(4.dp),
+                            )
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    )
+                }
+                IngredientSourceType.NEW -> {
+                    // No badge
+                }
             }
         }
         Icon(
@@ -442,13 +479,15 @@ private fun SearchResultItem(
 @Composable
 private fun IngredientListItem(
     ingredient: SelectedIngredient,
-    onRemoveClick: () -> Unit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -471,11 +510,12 @@ private fun IngredientListItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddIngredientBottomSheet(
+private fun IngredientBottomSheet(
     state: IngredientBottomSheetState,
     onDismiss: () -> Unit,
     onCategoryChanged: (String) -> Unit,
     onPriceChanged: (String) -> Unit,
+    onPurchaseAmountChanged: (String) -> Unit,
     onAmountChanged: (String) -> Unit,
     onUnitChanged: (IngredientUnit) -> Unit,
     onSupplierChanged: (String) -> Unit,
@@ -536,7 +576,12 @@ private fun AddIngredientBottomSheet(
                     CategoryChip(
                         text = displayName,
                         isSelected = state.categoryCode == code,
-                        onClick = { onCategoryChanged(code) },
+                        onClick = {
+                            if (state.isCategoryEditable) {
+                                onCategoryChanged(code)
+                            }
+                        },
+                        enabled = state.isCategoryEditable,
                     )
                 }
             }
@@ -544,26 +589,77 @@ private fun AddIngredientBottomSheet(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Price Field
-            FieldLabel(text = if (state.isTemplate) "단가" else "가격")
+            FieldLabel(text = "가격")
             Spacer(modifier = Modifier.height(8.dp))
-            BottomSheetTextField(
-                value = if (state.price.isNotEmpty()) {
-                    numberFormat.format(state.price.toLongOrNull() ?: 0)
-                } else {
-                    ""
-                },
-                onValueChange = onPriceChanged,
-                placeholder = state.suggestedPrice?.let {
-                    "${numberFormat.format(it)}원"
-                } ?: "가격을 입력해주세요",
-                suffix = "원",
-                keyboardType = KeyboardType.Number,
-            )
+            if (state.isPriceEditable) {
+                BottomSheetTextField(
+                    value = if (state.price.isNotEmpty()) {
+                        numberFormat.format(state.price.toLongOrNull() ?: 0)
+                    } else {
+                        ""
+                    },
+                    onValueChange = onPriceChanged,
+                    placeholder = state.suggestedPrice?.let {
+                        "${numberFormat.format(it)}원"
+                    } ?: "가격을 입력해주세요",
+                    suffix = "원",
+                    keyboardType = KeyboardType.Number,
+                )
+            } else {
+                ReadOnlyField(
+                    value = if (state.price.isNotEmpty()) {
+                        "${numberFormat.format(state.price.toLongOrNull() ?: 0)}원"
+                    } else {
+                        "-"
+                    },
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Amount Field with Unit Dropdown
-            FieldLabel(text = "사용량")
+            // Purchase Amount Field with Unit Dropdown
+            FieldLabel(text = "구매 용량")
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    if (state.isPurchaseAmountEditable) {
+                        BottomSheetTextField(
+                            value = state.purchaseAmount,
+                            onValueChange = onPurchaseAmountChanged,
+                            placeholder = state.suggestedPurchaseAmount?.toString() ?: "구매 용량을 입력해주세요",
+                            keyboardType = KeyboardType.Number,
+                        )
+                    } else {
+                        ReadOnlyField(
+                            value = state.purchaseAmount.ifEmpty { "-" },
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                if (state.isUnitEditable) {
+                    UnitDropdown(
+                        selectedUnit = state.unit,
+                        onUnitSelected = onUnitChanged,
+                    )
+                } else {
+                    Text(
+                        text = state.unit.displayName,
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                        color = Grayscale900,
+                        modifier = Modifier.padding(8.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Usage Amount Field with Unit Display
+            FieldLabel(text = "재료 사용량")
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -578,10 +674,21 @@ private fun AddIngredientBottomSheet(
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
-                UnitDropdown(
-                    selectedUnit = state.unit,
-                    onUnitSelected = onUnitChanged,
-                )
+                if (state.isUnitEditable) {
+                    UnitDropdown(
+                        selectedUnit = state.unit,
+                        onUnitSelected = onUnitChanged,
+                    )
+                } else {
+                    Text(
+                        text = state.unit.displayName,
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 16.sp,
+                        color = Grayscale900,
+                        modifier = Modifier.padding(8.dp),
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -589,17 +696,23 @@ private fun AddIngredientBottomSheet(
             // Supplier Field
             FieldLabel(text = "공급업체")
             Spacer(modifier = Modifier.height(8.dp))
-            BottomSheetTextField(
-                value = state.supplier,
-                onValueChange = onSupplierChanged,
-                placeholder = "공급업체명을 알려주세요",
-            )
+            if (state.isSupplierEditable) {
+                BottomSheetTextField(
+                    value = state.supplier,
+                    onValueChange = onSupplierChanged,
+                    placeholder = "공급업체명을 알려주세요",
+                )
+            } else {
+                ReadOnlyField(
+                    value = state.supplier.ifEmpty { "-" },
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             // Confirm Button
             ChordLargeButton(
-                text = "추가하기",
+                text = state.confirmButtonText,
                 onClick = onConfirm,
                 enabled = state.isAddEnabled,
             )
@@ -608,10 +721,49 @@ private fun AddIngredientBottomSheet(
 }
 
 @Composable
+private fun ReadOnlyField(
+    value: String,
+    modifier: Modifier = Modifier,
+    suffix: String? = null,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = value,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 16.sp,
+                    color = Grayscale800,
+                ),
+            )
+            if (suffix != null) {
+                Text(
+                    text = suffix,
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                        color = Grayscale500,
+                    ),
+                    modifier = Modifier.padding(start = 4.dp),
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        HorizontalDivider(color = Grayscale300, thickness = 1.dp)
+    }
+}
+
+@Composable
 private fun CategoryChip(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -622,7 +774,7 @@ private fun CategoryChip(
                 color = if (isSelected) Grayscale900 else Grayscale300,
                 shape = RoundedCornerShape(8.dp),
             )
-            .clickable(onClick = onClick)
+            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 12.dp, vertical = 8.dp),
     ) {
         Text(
@@ -754,6 +906,7 @@ private fun UnitDropdown(
 @Composable
 private fun BottomNavigationButtons(
     isNextEnabled: Boolean,
+    showPreviousButton: Boolean,
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -762,47 +915,22 @@ private fun BottomNavigationButtons(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Previous Button
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(52.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(PrimaryBlue500)
-                .clickable(onClick = onPreviousClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
+        if (showPreviousButton) {
+            ChordLargeButton(
                 text = "이전",
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = Grayscale100,
-                ),
+                onClick = onPreviousClick,
+                modifier = Modifier.weight(1f),
+                backgroundColor = PrimaryBlue500,
+                textColor = Grayscale100,
             )
         }
 
-        // Next Button
-        Box(
-            modifier = Modifier
-                .weight(2f)
-                .height(52.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(if (isNextEnabled) Grayscale200 else Grayscale200)
-                .clickable(enabled = isNextEnabled, onClick = onNextClick),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "다음",
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = if (isNextEnabled) Grayscale900 else Grayscale500,
-                ),
-            )
-        }
+        ChordLargeButton(
+            text = "재료 추가 완료",
+            onClick = onNextClick,
+            modifier = Modifier.weight(if (showPreviousButton) 2f else 1f),
+            enabled = isNextEnabled,
+        )
     }
 }
 
@@ -838,6 +966,7 @@ private fun IngredientInputScreenContentPreview() {
                     amount = 30,
                     unit = IngredientUnit.G,
                     price = 800,
+                    sourceType = IngredientSourceType.TEMPLATE,
                 ),
                 SelectedIngredient(
                     id = 2,
@@ -845,53 +974,27 @@ private fun IngredientInputScreenContentPreview() {
                     amount = 250,
                     unit = IngredientUnit.ML,
                     price = 150,
+                    sourceType = IngredientSourceType.TEMPLATE,
                 ),
             ),
             isNextEnabled = true,
+            isTemplateApplied = true,
         ),
         onNavigateBack = {},
         onSearchQueryChanged = {},
         onSuggestionClicked = {},
         onAddNewIngredient = {},
+        onEditIngredient = {},
         onRemoveIngredient = {},
         onBottomSheetDismissed = {},
         onBottomSheetCategoryChanged = {},
         onBottomSheetPriceChanged = {},
+        onBottomSheetPurchaseAmountChanged = {},
         onBottomSheetAmountChanged = {},
         onBottomSheetUnitChanged = {},
         onBottomSheetSupplierChanged = {},
-        onAddIngredient = {},
-        onPreviousClick = {},
-        onNextClick = {},
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun IngredientInputScreenContentSearchPreview() {
-    IngredientInputScreenContent(
-        uiState = IngredientInputUiState(
-            searchQuery = "흑임자",
-            searchResults = listOf(
-                IngredientSuggestion(
-                    ingredientId = 1,
-                    name = "흑임자 토핑",
-                    isTemplate = true,
-                ),
-            ),
-        ),
-        onNavigateBack = {},
-        onSearchQueryChanged = {},
-        onSuggestionClicked = {},
-        onAddNewIngredient = {},
-        onRemoveIngredient = {},
-        onBottomSheetDismissed = {},
-        onBottomSheetCategoryChanged = {},
-        onBottomSheetPriceChanged = {},
-        onBottomSheetAmountChanged = {},
-        onBottomSheetUnitChanged = {},
-        onBottomSheetSupplierChanged = {},
-        onAddIngredient = {},
+        onConfirmIngredient = {},
+        onToastDismissed = {},
         onPreviousClick = {},
         onNextClick = {},
     )

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -21,17 +24,21 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -84,7 +91,13 @@ fun MenuDetailScreen(
         onMenuNameChanged = viewModel::onMenuNameChanged,
         onPriceChanged = viewModel::onPriceChanged,
         onCategorySelected = viewModel::onCategorySelected,
-        onPreparationTimeClick = { /* TODO: Open time picker bottom sheet */ },
+        onPreparationTimeClick = { viewModel.onShowTimePicker() },
+        showTimePicker = uiState.showTimePicker,
+        onTimePickerDismiss = { viewModel.onDismissTimePicker() },
+        onTimePickerConfirm = { minutes, seconds ->
+            viewModel.onPreparationTimeChanged(minutes, seconds)
+            viewModel.onDismissTimePicker()
+        },
         onPreviousClick = onNavigateBack,
         onNextClick = {
             onNavigateToIngredientInput(viewModel.createMenuDetailData())
@@ -101,6 +114,9 @@ internal fun MenuDetailScreenContent(
     onPriceChanged: (String) -> Unit,
     onCategorySelected: (MenuCategory) -> Unit,
     onPreparationTimeClick: () -> Unit,
+    showTimePicker: Boolean = false,
+    onTimePickerDismiss: () -> Unit = {},
+    onTimePickerConfirm: (Int, Int) -> Unit = { _, _ -> },
     onPreviousClick: () -> Unit,
     onNextClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -231,6 +247,187 @@ internal fun MenuDetailScreenContent(
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
             )
+        }
+    }
+
+    // Time Picker Bottom Sheet
+    if (showTimePicker) {
+        TimePickerBottomSheet(
+            initialMinutes = uiState.preparationMinutes,
+            initialSeconds = uiState.preparationSeconds,
+            onDismiss = onTimePickerDismiss,
+            onConfirm = onTimePickerConfirm,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TimePickerBottomSheet(
+    initialMinutes: Int,
+    initialSeconds: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var selectedMinutes by remember { mutableIntStateOf(initialMinutes) }
+    var selectedSeconds by remember { mutableIntStateOf(initialSeconds) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        modifier = modifier,
+        containerColor = Grayscale100,
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        dragHandle = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(4.dp)
+                        .background(
+                            color = Grayscale300,
+                            shape = RoundedCornerShape(2.dp),
+                        ),
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        },
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 32.dp),
+        ) {
+            Text(
+                text = "제조 시간",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Grayscale900,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Time picker row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // Minutes picker
+                WheelPicker(
+                    items = (0..59).toList(),
+                    selectedItem = selectedMinutes,
+                    onItemSelected = { selectedMinutes = it },
+                    modifier = Modifier.weight(1f),
+                )
+
+                Text(
+                    text = "분",
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp,
+                    color = Grayscale900,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+
+                // Seconds picker
+                WheelPicker(
+                    items = (0..59).toList(),
+                    selectedItem = selectedSeconds,
+                    onItemSelected = { selectedSeconds = it },
+                    modifier = Modifier.weight(1f),
+                )
+
+                Text(
+                    text = "초",
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 18.sp,
+                    color = Grayscale900,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            ChordLargeButton(
+                text = "완료",
+                onClick = { onConfirm(selectedMinutes, selectedSeconds) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun WheelPicker(
+    items: List<Int>,
+    selectedItem: Int,
+    onItemSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val listState = rememberLazyListState(
+        initialFirstVisibleItemIndex = (selectedItem - 2).coerceAtLeast(0),
+    )
+
+    // Sync selection when scrolling stops
+    LaunchedEffect(listState.isScrollInProgress) {
+        if (!listState.isScrollInProgress) {
+            val centerIndex = listState.firstVisibleItemIndex + 2
+            if (centerIndex in items.indices && items[centerIndex] != selectedItem) {
+                onItemSelected(items[centerIndex])
+            }
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .height(200.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Grayscale200),
+        contentAlignment = Alignment.Center,
+    ) {
+        // Center highlight
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(40.dp)
+                .background(PrimaryBlue100),
+        )
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            contentPadding = PaddingValues(vertical = 80.dp),
+        ) {
+            items(items.size) { index ->
+                val isSelected = items[index] == selectedItem
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .clickable {
+                            onItemSelected(items[index])
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = items[index].toString(),
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        fontSize = if (isSelected) 20.sp else 16.sp,
+                        color = if (isSelected) Grayscale900 else Grayscale500,
+                    )
+                }
+            }
         }
     }
 }

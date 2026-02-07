@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
+import com.team.chord.core.domain.usecase.menu.GetTemplateIngredientsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class IngredientInputViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val searchIngredientUseCase: SearchIngredientUseCase,
+    private val getTemplateIngredientsUseCase: GetTemplateIngredientsUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IngredientInputUiState())
@@ -32,17 +34,37 @@ class IngredientInputViewModel @Inject constructor(
 
     private val menuName: String = savedStateHandle.get<String>("menuName") ?: ""
     private val isTemplateApplied: Boolean = savedStateHandle.get<Boolean>("isTemplateApplied") ?: false
+    private val templateId: Long = savedStateHandle.get<Long>("templateId") ?: 0L
 
     init {
-        // If template is applied, we can load pre-filled ingredients
-        if (isTemplateApplied) {
+        _uiState.update { it.copy(isTemplateApplied = isTemplateApplied) }
+        if (isTemplateApplied && templateId > 0L) {
             loadTemplateIngredients()
         }
     }
 
     private fun loadTemplateIngredients() {
-        // TODO: Load template ingredients based on menu name
-        // For now, this is a placeholder for template-based ingredient loading
+        viewModelScope.launch {
+            try {
+                val recipes = getTemplateIngredientsUseCase(templateId)
+                val selectedIngredients = recipes.map { recipe ->
+                    SelectedIngredient(
+                        id = recipe.ingredientId,
+                        name = recipe.ingredientName,
+                        amount = recipe.amount,
+                        unit = recipe.unitCode.toIngredientUnit(),
+                        price = recipe.price,
+                        sourceType = IngredientSourceType.TEMPLATE,
+                        templateRecipeId = recipe.recipeId,
+                        baseQuantity = recipe.amount,
+                        unitPrice = recipe.price,
+                    )
+                }
+                _uiState.update { it.copy(selectedIngredients = selectedIngredients) }
+            } catch (_: Exception) {
+                // Failed to load template ingredients - continue with empty list
+            }
+        }
     }
 
     fun onSearchQueryChanged(query: String) {
@@ -72,7 +94,11 @@ class IngredientInputViewModel @Inject constructor(
                         ingredientId = result.ingredientId,
                         templateId = result.templateId,
                         name = result.ingredientName,
-                        isTemplate = result.isTemplate,
+                        sourceType = when {
+                            result.ingredientId != null && !result.isTemplate -> IngredientSourceType.SAVED
+                            result.isTemplate -> IngredientSourceType.TEMPLATE
+                            else -> IngredientSourceType.NEW
+                        },
                     )
                 }
                 _uiState.update {
@@ -89,32 +115,74 @@ class IngredientInputViewModel @Inject constructor(
     }
 
     fun onSuggestionClicked(suggestion: IngredientSuggestion) {
-        // Open bottom sheet with suggestion data
-        val bottomSheetState = IngredientBottomSheetState(
-            id = suggestion.ingredientId,
-            name = suggestion.name,
-            isTemplate = suggestion.isTemplate,
-        )
+        val bottomSheetState = when (suggestion.sourceType) {
+            IngredientSourceType.SAVED -> IngredientBottomSheetState(
+                id = suggestion.ingredientId,
+                name = suggestion.name,
+                sourceType = IngredientSourceType.SAVED,
+                categoryCode = suggestion.categoryCode ?: "FOOD_MATERIAL",
+                price = suggestion.unitPrice?.toString() ?: "",
+                purchaseAmount = suggestion.baseQuantity?.toString() ?: "",
+                unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
+                supplier = suggestion.supplier ?: "-",
+            )
+            IngredientSourceType.TEMPLATE -> IngredientBottomSheetState(
+                id = suggestion.ingredientId,
+                name = suggestion.name,
+                sourceType = IngredientSourceType.TEMPLATE,
+                categoryCode = suggestion.categoryCode ?: "FOOD_MATERIAL",
+                price = suggestion.unitPrice?.toString() ?: "",
+                purchaseAmount = suggestion.baseQuantity?.toString() ?: "",
+                unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
+            )
+            IngredientSourceType.NEW -> IngredientBottomSheetState(
+                id = suggestion.ingredientId,
+                name = suggestion.name,
+                sourceType = IngredientSourceType.NEW,
+            )
+        }
 
         _uiState.update {
             it.copy(
-                showAddBottomSheet = true,
+                showBottomSheet = true,
                 bottomSheetIngredient = bottomSheetState,
             )
         }
     }
 
     fun onAddNewIngredient() {
-        // Open bottom sheet for new ingredient with current search query as name
         val bottomSheetState = IngredientBottomSheetState(
             id = null,
             name = _uiState.value.searchQuery,
-            isTemplate = false,
+            sourceType = IngredientSourceType.NEW,
         )
 
         _uiState.update {
             it.copy(
-                showAddBottomSheet = true,
+                showBottomSheet = true,
+                bottomSheetIngredient = bottomSheetState,
+            )
+        }
+    }
+
+    fun onEditIngredient(ingredient: SelectedIngredient) {
+        val bottomSheetState = IngredientBottomSheetState(
+            id = ingredient.id,
+            name = ingredient.name,
+            sourceType = ingredient.sourceType,
+            categoryCode = ingredient.categoryCode,
+            price = ingredient.price.toString(),
+            purchaseAmount = ingredient.baseQuantity.toString(),
+            amount = ingredient.amount.toString(),
+            unit = ingredient.unit,
+            supplier = ingredient.supplier,
+            isEditMode = true,
+            editingIngredientId = ingredient.id,
+        )
+
+        _uiState.update {
+            it.copy(
+                showBottomSheet = true,
                 bottomSheetIngredient = bottomSheetState,
             )
         }
@@ -123,7 +191,7 @@ class IngredientInputViewModel @Inject constructor(
     fun onBottomSheetDismissed() {
         _uiState.update {
             it.copy(
-                showAddBottomSheet = false,
+                showBottomSheet = false,
                 bottomSheetIngredient = null,
             )
         }
@@ -142,6 +210,14 @@ class IngredientInputViewModel @Inject constructor(
         _uiState.update { state ->
             state.copy(
                 bottomSheetIngredient = state.bottomSheetIngredient?.copy(price = filteredPrice),
+            )
+        }
+    }
+
+    fun onBottomSheetPurchaseAmountChanged(purchaseAmount: String) {
+        _uiState.update { state ->
+            state.copy(
+                bottomSheetIngredient = state.bottomSheetIngredient?.copy(purchaseAmount = purchaseAmount),
             )
         }
     }
@@ -170,39 +246,71 @@ class IngredientInputViewModel @Inject constructor(
         }
     }
 
-    fun onAddIngredient() {
+    fun onConfirmIngredient() {
         val bottomSheetState = _uiState.value.bottomSheetIngredient ?: return
-
         if (!bottomSheetState.isAddEnabled) return
 
-        val newIngredient = SelectedIngredient(
-            id = bottomSheetState.id ?: System.currentTimeMillis(),
-            name = bottomSheetState.name,
-            amount = bottomSheetState.amount.toIntOrNull() ?: 0,
-            unit = bottomSheetState.unit,
-            price = bottomSheetState.price.toIntOrNull() ?: 0,
-            categoryCode = bottomSheetState.categoryCode,
-            supplier = bottomSheetState.supplier,
-        )
-
-        _uiState.update { state ->
-            val updatedIngredients = state.selectedIngredients + newIngredient
-            state.copy(
-                selectedIngredients = updatedIngredients,
-                showAddBottomSheet = false,
-                bottomSheetIngredient = null,
-                searchQuery = "",
-                searchResults = emptyList(),
+        if (bottomSheetState.isEditMode) {
+            // Update existing ingredient
+            _uiState.update { state ->
+                val updatedIngredients = state.selectedIngredients.map { ingredient ->
+                    if (ingredient.id == bottomSheetState.editingIngredientId) {
+                        ingredient.copy(
+                            amount = bottomSheetState.amount.toIntOrNull() ?: ingredient.amount,
+                            supplier = bottomSheetState.supplier,
+                            categoryCode = bottomSheetState.categoryCode,
+                            price = bottomSheetState.price.toIntOrNull() ?: ingredient.price,
+                        )
+                    } else {
+                        ingredient
+                    }
+                }
+                state.copy(
+                    selectedIngredients = updatedIngredients,
+                    showBottomSheet = false,
+                    bottomSheetIngredient = null,
+                    showCompletionToast = true,
+                    completionToastMessage = "재료 수정이 완료되었어요!",
+                )
+            }
+        } else {
+            // Add new ingredient
+            val newIngredient = SelectedIngredient(
+                id = bottomSheetState.id ?: System.currentTimeMillis(),
+                name = bottomSheetState.name,
+                amount = bottomSheetState.amount.toIntOrNull() ?: 0,
+                unit = bottomSheetState.unit,
+                price = bottomSheetState.price.toIntOrNull() ?: 0,
+                categoryCode = bottomSheetState.categoryCode,
+                supplier = bottomSheetState.supplier,
+                sourceType = bottomSheetState.sourceType,
+                baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
+                unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
             )
+
+            _uiState.update { state ->
+                val updatedIngredients = state.selectedIngredients + newIngredient
+                state.copy(
+                    selectedIngredients = updatedIngredients,
+                    showBottomSheet = false,
+                    bottomSheetIngredient = null,
+                    searchQuery = "",
+                    searchResults = emptyList(),
+                    showCompletionToast = true,
+                    completionToastMessage = "재료 추가가 완료되었어요!",
+                )
+            }
         }
+    }
+
+    fun onToastDismissed() {
+        _uiState.update { it.copy(showCompletionToast = false) }
     }
 
     fun onRemoveIngredient(ingredientId: Long) {
         _uiState.update { state ->
             val updatedIngredients = state.selectedIngredients.filter { it.id != ingredientId }
-            state.copy(
-                selectedIngredients = updatedIngredients,
-            )
+            state.copy(selectedIngredients = updatedIngredients)
         }
     }
 
@@ -211,4 +319,12 @@ class IngredientInputViewModel @Inject constructor(
     companion object {
         private const val SEARCH_DEBOUNCE_MS = 300L
     }
+}
+
+private fun String.toIngredientUnit(): IngredientUnit = when (this.uppercase()) {
+    "ML" -> IngredientUnit.ML
+    "G" -> IngredientUnit.G
+    "KG" -> IngredientUnit.KG
+    "EA" -> IngredientUnit.EA
+    else -> IngredientUnit.G
 }

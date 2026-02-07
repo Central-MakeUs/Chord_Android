@@ -31,10 +31,13 @@ const val SETUP_COMPLETE_ROUTE = "setup_complete"
 private const val ARG_MENU_NAME = "menuName"
 private const val ARG_IS_TEMPLATE_APPLIED = "isTemplateApplied"
 private const val ARG_TEMPLATE_PRICE = "templatePrice"
+private const val ARG_TEMPLATE_ID = "templateId"
 
 // Full route patterns with arguments
 private const val MENU_DETAIL_ROUTE_PATTERN =
     "$MENU_DETAIL_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_PRICE={$ARG_TEMPLATE_PRICE}"
+private const val INGREDIENT_INPUT_ROUTE_PATTERN =
+    "$INGREDIENT_INPUT_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_ID={$ARG_TEMPLATE_ID}"
 
 /**
  * Navigate to the setup graph (onboarding flow).
@@ -94,8 +97,21 @@ fun NavController.navigateToMenuDetail(
 /**
  * Navigate to the ingredient input screen.
  */
-fun NavController.navigateToIngredientInput(navOptions: NavOptions? = null) {
-    navigate(INGREDIENT_INPUT_ROUTE, navOptions)
+fun NavController.navigateToIngredientInput(
+    menuName: String,
+    isTemplateApplied: Boolean,
+    templateId: Long? = null,
+    navOptions: NavOptions? = null,
+) {
+    val route = buildString {
+        append("$INGREDIENT_INPUT_ROUTE/")
+        append(menuName.encodeForNavigation())
+        append("/$isTemplateApplied")
+        if (templateId != null) {
+            append("?$ARG_TEMPLATE_ID=$templateId")
+        }
+    }
+    navigate(route, navOptions)
 }
 
 /**
@@ -173,6 +189,7 @@ fun NavGraphBuilder.setupGraph(
                         name = template.menuName,
                         isTemplateApplied = true,
                         templatePrice = template.defaultSellingPrice,
+                        templateId = template.templateId,
                     )
                     navController.navigateToMenuDetail(
                         menuName = template.menuName,
@@ -227,13 +244,31 @@ fun NavGraphBuilder.setupGraph(
                         category = menuDetailData.category,
                         preparationSeconds = menuDetailData.preparationMinutes * 60 + menuDetailData.preparationSeconds,
                     )
-                    navController.navigateToIngredientInput()
+                    navController.navigateToIngredientInput(
+                        menuName = menuDetailData.menuName,
+                        isTemplateApplied = menuDetailData.isTemplateApplied,
+                        templateId = onboardingViewModel.currentMenuDraft.value?.templateId,
+                    )
                 },
             )
         }
 
         // Ingredient Input Screen (add ingredients to menu)
-        composable(route = INGREDIENT_INPUT_ROUTE) { backStackEntry ->
+        composable(
+            route = INGREDIENT_INPUT_ROUTE_PATTERN,
+            arguments = listOf(
+                navArgument(ARG_MENU_NAME) {
+                    type = NavType.StringType
+                },
+                navArgument(ARG_IS_TEMPLATE_APPLIED) {
+                    type = NavType.BoolType
+                },
+                navArgument(ARG_TEMPLATE_ID) {
+                    type = NavType.LongType
+                    defaultValue = 0L
+                },
+            ),
+        ) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
             val parentEntry = navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
@@ -258,6 +293,7 @@ fun NavGraphBuilder.setupGraph(
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuConfirmScreen(
+                registeredMenus = onboardingViewModel.getRegisteredMenuSummaries(),
                 onNavigateBack = {
                     navController.popBackStack()
                 },

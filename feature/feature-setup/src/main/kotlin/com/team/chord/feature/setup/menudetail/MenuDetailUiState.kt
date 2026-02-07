@@ -8,6 +8,7 @@ data class MenuDetailUiState(
     val preparationSeconds: Int = 30,
     val isTemplateApplied: Boolean = false,
     val isNextEnabled: Boolean = false,
+    val showTimePicker: Boolean = false,
 )
 
 enum class MenuCategory(val displayName: String) {
