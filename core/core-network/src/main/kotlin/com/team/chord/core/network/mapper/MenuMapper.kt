@@ -25,7 +25,7 @@ fun MenuDto.toDomain(): Menu =
     Menu(
         id = menuId,
         name = menuName,
-        price = sellingPrice,
+        price = sellingPrice.toInt(),
         categoryCode = "",
         preparationTimeSeconds = 0,
         ingredients = emptyList(),
@@ -42,16 +42,16 @@ fun MenuDetailDto.toDomain(): Menu =
     Menu(
         id = menuId,
         name = menuName,
-        price = sellingPrice,
+        price = sellingPrice.toInt(),
         categoryCode = "",
         preparationTimeSeconds = workTime,
         ingredients = emptyList(),
-        totalCost = totalCost,
+        totalCost = totalCost.toInt(),
         costRatio = costRate,
         marginRatio = marginRate,
-        contributionProfit = contributionMargin,
+        contributionProfit = contributionMargin.toInt(),
         marginGrade = MarginGrade(code = marginGradeCode, name = marginGradeName, message = marginGradeMessage),
-        recommendedPrice = recommendedPrice,
+        recommendedPrice = recommendedPrice?.toInt(),
         recommendedPriceMessage = null,
     )
 
@@ -61,9 +61,9 @@ fun RecipeDto.toDomain(): MenuRecipe =
         menuId = menuId,
         ingredientId = ingredientId,
         ingredientName = ingredientName,
-        amount = amount,
+        amount = amount.toInt(),
         unitCode = unitCode,
-        price = price,
+        price = price.toInt(),
     )
 
 fun SearchMenusDto.toDomain(): MenuTemplate =

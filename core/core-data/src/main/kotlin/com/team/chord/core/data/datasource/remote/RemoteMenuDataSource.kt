@@ -46,7 +46,7 @@ class RemoteMenuDataSource @Inject constructor(
 
     override suspend fun getMenuRecipes(menuId: Long): Pair<List<MenuRecipe>, Int> {
         val result = safeApiCall { menuApi.getMenuRecipes(menuId) }
-        return result.recipes.map { it.toDomain() } to result.totalCost
+        return result.recipes.map { it.toDomain() } to result.totalCost.toInt()
     }
 
     override suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>?): CheckDupResult {
