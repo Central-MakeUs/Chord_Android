@@ -94,7 +94,6 @@ fun MenuSearchScreen(
         onConfirmTemplateApply = viewModel::onConfirmTemplateApply,
         onNavigateBack = onNavigateBack,
         onNavigateToDetailWithoutTemplate = onNavigateToDetailWithoutTemplate,
-        onFavoriteClick = { /* TODO: Implement favorite functionality */ },
         modifier = modifier,
     )
 }
@@ -111,7 +110,6 @@ internal fun MenuSearchScreenContent(
     onConfirmTemplateApply: () -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToDetailWithoutTemplate: (menuName: String) -> Unit,
-    onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -129,16 +127,6 @@ internal fun MenuSearchScreenContent(
             ChordTopAppBar(
                 title = "",
                 onBackClick = onNavigateBack,
-                actionContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_favorite),
-                        contentDescription = "즐겨찾기",
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clickable { onFavoriteClick() },
-                        tint = Grayscale500,
-                    )
-                },
             )
 
             Column(
@@ -537,7 +525,6 @@ private fun MenuSearchScreenEmptyPreview() {
         onConfirmTemplateApply = {},
         onNavigateBack = {},
         onNavigateToDetailWithoutTemplate = {},
-        onFavoriteClick = {},
     )
 }
 
@@ -564,7 +551,6 @@ private fun MenuSearchScreenWithResultsPreview() {
         onConfirmTemplateApply = {},
         onNavigateBack = {},
         onNavigateToDetailWithoutTemplate = {},
-        onFavoriteClick = {},
     )
 }
 
@@ -584,7 +570,6 @@ private fun MenuSearchScreenNoResultsPreview() {
         onConfirmTemplateApply = {},
         onNavigateBack = {},
         onNavigateToDetailWithoutTemplate = {},
-        onFavoriteClick = {},
     )
 }
 
