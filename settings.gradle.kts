@@ -32,7 +32,7 @@ include(":core:core-common")
 include(":core:core-ui")
 include(":core:core-network")
 include(":feature:feature-home")
-include(":feature:feature-onboarding")
+
 include(":feature:feature-auth")
 include(":feature:feature-setup")
 include(":feature:feature-menu")

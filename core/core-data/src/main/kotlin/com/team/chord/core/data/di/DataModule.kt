@@ -8,9 +8,9 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import com.team.chord.core.data.datasource.AuthDataSource
 import com.team.chord.core.data.datasource.remote.RemoteAuthDataSource
 import com.team.chord.core.data.repository.AuthRepositoryImpl
-import com.team.chord.core.data.repository.OnboardingRepositoryImpl
+import com.team.chord.core.data.repository.SetupRepositoryImpl
 import com.team.chord.core.domain.repository.AuthRepository
-import com.team.chord.core.domain.repository.OnboardingRepository
+import com.team.chord.core.domain.repository.SetupRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -24,7 +24,7 @@ import javax.inject.Singleton
 abstract class DataModule {
     @Binds
     @Singleton
-    abstract fun bindOnboardingRepository(impl: OnboardingRepositoryImpl): OnboardingRepository
+    abstract fun bindSetupRepository(impl: SetupRepositoryImpl): SetupRepository
 
     @Binds
     @Singleton

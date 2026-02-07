@@ -4,12 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.AuthState
 import com.team.chord.core.domain.repository.AuthRepository
-import com.team.chord.core.domain.repository.OnboardingRepository
+import com.team.chord.core.domain.repository.SetupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -17,31 +16,28 @@ import javax.inject.Inject
 class ChordNavHostViewModel
     @Inject
     constructor(
-        private val onboardingRepository: OnboardingRepository,
+        setupRepository: SetupRepository,
         authRepository: AuthRepository,
     ) : ViewModel() {
-        suspend fun isOnboardingCompleted(): Boolean =
-            onboardingRepository.isOnboardingCompleted().first()
-
         val navigationState: StateFlow<NavigationState> =
             combine(
-                onboardingRepository.isOnboardingCompleted(),
+                setupRepository.isSetupCompleted(),
                 authRepository.observeAuthState(),
-            ) { isOnboardingCompleted, authState ->
+            ) { isSetupCompleted, authState ->
                 when {
                     authState is AuthState.Loading -> {
                         NavigationState.Loading
                     }
 
-                    authState is AuthState.Authenticated -> {
+                    authState is AuthState.Authenticated && isSetupCompleted -> {
                         NavigationState.Ready(
                             startDestination = StartDestination.HOME,
                         )
                     }
 
-                    !isOnboardingCompleted -> {
+                    authState is AuthState.Authenticated && !isSetupCompleted -> {
                         NavigationState.Ready(
-                            startDestination = StartDestination.ONBOARDING,
+                            startDestination = StartDestination.SETUP,
                         )
                     }
 
@@ -67,7 +63,7 @@ sealed interface NavigationState {
 }
 
 enum class StartDestination {
-    ONBOARDING,
     LOGIN,
+    SETUP,
     HOME,
 }

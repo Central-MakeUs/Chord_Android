@@ -35,7 +35,7 @@ import com.team.chord.feature.auth.component.AuthTextField
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (Boolean) -> Unit,
     onNavigateToSignUp: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = hiltViewModel(),
@@ -45,7 +45,7 @@ fun LoginScreen(
     LaunchedEffect(uiState.isLoginSuccess) {
         if (uiState.isLoginSuccess) {
             viewModel.consumeLoginSuccess()
-            onLoginSuccess()
+            onLoginSuccess(uiState.isSetupCompleted)
         }
     }
 

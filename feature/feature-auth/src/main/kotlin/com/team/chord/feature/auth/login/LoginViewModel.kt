@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.AuthResult
 import com.team.chord.core.domain.repository.AuthRepository
+import com.team.chord.core.domain.repository.SetupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +18,7 @@ class LoginViewModel
     @Inject
     constructor(
         private val authRepository: AuthRepository,
+        private val setupRepository: SetupRepository,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(LoginUiState())
         val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
@@ -47,7 +49,10 @@ class LoginViewModel
 
                 when (val result = authRepository.signIn(currentState.username, currentState.password)) {
                     is AuthResult.LoginSuccess -> {
-                        _uiState.update { it.copy(isLoading = false, isLoginSuccess = true) }
+                        if (result.onboardingCompleted) {
+                            setupRepository.setSetupCompleted()
+                        }
+                        _uiState.update { it.copy(isLoading = false, isLoginSuccess = true, isSetupCompleted = result.onboardingCompleted) }
                     }
 
                     is AuthResult.SignUpSuccess -> {

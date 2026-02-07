@@ -25,7 +25,7 @@ fun NavController.navigateToSignUpComplete(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.loginScreen(
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (Boolean) -> Unit,
     onNavigateToSignUp: () -> Unit,
 ) {
     composable(route = LOGIN_ROUTE) {
