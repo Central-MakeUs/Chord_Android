@@ -120,7 +120,7 @@ fun ChordNavHost(
                 navController.navigateToHome(
                     navOptions =
                         navOptions {
-                            popUpTo(0) { inclusive = true }
+                            popUpTo(SETUP_GRAPH_ROUTE) { inclusive = true }
                         },
                 )
             },

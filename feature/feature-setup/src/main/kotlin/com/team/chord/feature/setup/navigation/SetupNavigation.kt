@@ -1,5 +1,6 @@
 package com.team.chord.feature.setup.navigation
 
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -163,7 +164,9 @@ fun NavGraphBuilder.setupGraph(
         // Menu Suggestion Screen (explains menu registration benefits)
         composable(route = MENU_SUGGESTION_ROUTE) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
-            val parentEntry = navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            }
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuSuggestionScreen(
@@ -176,7 +179,9 @@ fun NavGraphBuilder.setupGraph(
         // Menu Search Screen (search for templates or enter new menu name)
         composable(route = MENU_SEARCH_ROUTE) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
-            val parentEntry = navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            }
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuSearchScreen(
@@ -230,7 +235,9 @@ fun NavGraphBuilder.setupGraph(
             ),
         ) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
-            val parentEntry = navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            }
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuDetailScreen(
@@ -270,7 +277,9 @@ fun NavGraphBuilder.setupGraph(
             ),
         ) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
-            val parentEntry = navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            }
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             IngredientInputScreen(
@@ -289,7 +298,9 @@ fun NavGraphBuilder.setupGraph(
         // Menu Confirm Screen (review registered menus)
         composable(route = MENU_CONFIRM_ROUTE) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
-            val parentEntry = navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(SETUP_GRAPH_ROUTE)
+            }
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuConfirmScreen(

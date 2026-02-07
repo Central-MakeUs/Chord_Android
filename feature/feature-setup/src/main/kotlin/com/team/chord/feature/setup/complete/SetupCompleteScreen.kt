@@ -1,5 +1,6 @@
 package com.team.chord.feature.setup.complete
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +19,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.theme.Grayscale100
@@ -29,8 +29,11 @@ import com.team.chord.core.ui.theme.PretendardFontFamily
 fun SetupCompleteScreen(
     onNavigateToHome: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SetupCompleteViewModel = hiltViewModel(),
 ) {
+    BackHandler(enabled = true) {
+        // 뒤로가기 비활성화 - 아무 동작 없음
+    }
+
     SetupCompleteScreenContent(
         onStartAnalysisClicked = onNavigateToHome,
         modifier = modifier,
