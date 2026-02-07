@@ -41,9 +41,6 @@ class AuthInterceptor @Inject constructor(
             "/auth/sign-up",
             "/auth/login",
             "/auth/refresh",
-            "/catalog/menu-categories",
-            "/catalog/menus/search",
-            "/catalog/menus/templates/",
         )
     }
 }
