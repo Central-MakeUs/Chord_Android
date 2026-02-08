@@ -32,6 +32,7 @@ include(":core:core-common")
 include(":core:core-ui")
 include(":core:core-network")
 include(":feature:feature-home")
+include(":feature:feature-setting")
 
 include(":feature:feature-auth")
 include(":feature:feature-setup")
