@@ -6,6 +6,7 @@ import com.team.chord.core.domain.model.AuthState
 import com.team.chord.core.domain.model.AuthToken
 import com.team.chord.core.domain.repository.AuthRepository
 import com.team.chord.core.network.auth.TokenManager
+import com.team.chord.core.network.model.ApiException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -33,6 +34,12 @@ class AuthRepositoryImpl @Inject constructor(
                 ),
                 onboardingCompleted = result.onboardingCompleted,
             )
+        } catch (e: ApiException) {
+            val errors = e.errors
+            when {
+                errors != null -> AuthResult.ValidationError(errors)
+                else -> AuthResult.InvalidCredentials(message = e.message)
+            }
         } catch (e: Exception) {
             AuthResult.NetworkError(e)
         }
@@ -42,6 +49,13 @@ class AuthRepositoryImpl @Inject constructor(
         return try {
             authDataSource.signUp(loginId, password)
             AuthResult.SignUpSuccess
+        } catch (e: ApiException) {
+            val errors = e.errors
+            when {
+                errors != null -> AuthResult.ValidationError(errors)
+                e.code == "USER_001" -> AuthResult.UsernameAlreadyExists(message = e.message)
+                else -> AuthResult.InvalidCredentials(message = e.message)
+            }
         } catch (e: Exception) {
             AuthResult.NetworkError(e)
         }
