@@ -1,6 +1,7 @@
 package com.team.chord.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -68,6 +69,25 @@ fun ChordNavHost(
             StartDestination.SETUP -> SETUP_GRAPH_ROUTE
             StartDestination.HOME -> HOME_ROUTE
         }
+
+    // Handle session expiry: navigate to login when auth state changes to Unauthenticated
+    LaunchedEffect(navigationState) {
+        val state = navigationState
+        if (state is NavigationState.Ready && state.startDestination == StartDestination.LOGIN) {
+            val currentRoute = navController.currentDestination?.route
+            if (currentRoute != null &&
+                currentRoute != LOGIN_ROUTE &&
+                currentRoute != SIGNUP_ROUTE &&
+                currentRoute != SIGNUP_COMPLETE_ROUTE
+            ) {
+                navController.navigateToLogin(
+                    navOptions = navOptions {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    },
+                )
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
