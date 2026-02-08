@@ -14,32 +14,20 @@ class HomeViewModel
         private val _uiState =
             MutableStateFlow<HomeUiState>(
                 HomeUiState.Success(
+                    storeName = "코치카페",
+                    heroTitle = "코치카페의 수익 상황을\n확인하세요",
                     ctaTitle = "진단이 필요한 메뉴",
                     ctaCount = 3,
-                    strategySectionTitle = "전략 가이드",
-                    strategyItems =
-                        listOf(
-                            HomeStrategyItem(
-                                description = "원가율 35% 유지 가능해요",
-                                menuName = "바닐라 라떼",
-                                actionLabel = "판매가 조정",
-                            ),
-                            HomeStrategyItem(
-                                description = "공헌이익률이 낮아요",
-                                menuName = "아메리카노",
-                                actionLabel = "원가 분석",
-                            ),
-                            HomeStrategyItem(
-                                description = "판매량 대비 수익이 적어요",
-                                menuName = "카페 모카",
-                                actionLabel = "가격 전략",
-                            ),
-                        ),
-                    statsSectionTitle = "수익 진단",
                     stats =
                         listOf(
-                            HomeStatItem("평균 원가율", "28.5%", "안정적"),
-                            HomeStatItem("평균 공헌이익률", "+12%", "지난주 대비 상승"),
+                            HomeStatItem("평균 원가율", "안정", "27.23%"),
+                            HomeStatItem("평균마진율", "안정", "27.23%"),
+                        ),
+                    strategyItems =
+                        listOf(
+                            HomeStrategyItem(menuName = "바닐라 라떼", subtitle = "전략 상세"),
+                            HomeStrategyItem(menuName = "바닐라 라떼", subtitle = "전략 상세"),
+                            HomeStrategyItem(menuName = "바닐라 라떼", subtitle = "전략 상세"),
                         ),
                 ),
             )

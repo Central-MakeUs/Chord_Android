@@ -9,28 +9,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale700
+import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
-import com.team.chord.core.ui.theme.PrimaryBlue100
-import com.team.chord.core.ui.theme.PrimaryBlue200
-import com.team.chord.core.ui.theme.PrimaryBlue700
+import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.feature.home.HomeStatItem
 
+private val StatusBadgeBackground = Color(0xFFD9FFED)
+private val StatusBadgeText = Color(0xFF1A9A66)
+
 @Composable
-fun HomeGradientStatCard(
+fun HomeStatCard(
     title: String,
+    statusLabel: String,
     value: String,
-    description: String,
     modifier: Modifier = Modifier,
 ) {
     val cardShape = RoundedCornerShape(16.dp)
@@ -38,41 +40,48 @@ fun HomeGradientStatCard(
     Column(
         modifier =
             modifier
-                .shadow(
-                    elevation = 4.dp,
-                    shape = cardShape,
-                    ambientColor = Color.Black.copy(alpha = 0.10f),
-                    spotColor = Color.Black.copy(alpha = 0.10f),
-                )
                 .clip(cardShape)
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(Grayscale100, PrimaryBlue200),
-                    ),
-                )
+                .background(Grayscale100)
                 .padding(16.dp),
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelSmall,
-            color = PrimaryBlue700,
-            modifier =
-                Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(PrimaryBlue100)
-                    .padding(horizontal = 6.dp, vertical = 4.dp),
-        )
-        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                ),
+                color = Grayscale600,
+            )
+            Text(
+                text = statusLabel,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 12.sp,
+                ),
+                color = StatusBadgeText,
+                modifier =
+                    Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(StatusBadgeBackground)
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineLarge,
+            style = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp,
+            ),
             color = Grayscale900,
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Grayscale700,
         )
     }
 }
@@ -87,10 +96,10 @@ fun HomeStatsRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         stats.take(2).forEach { item ->
-            HomeGradientStatCard(
+            HomeStatCard(
                 title = item.title,
+                statusLabel = item.statusLabel,
                 value = item.value,
-                description = item.description,
                 modifier = Modifier.weight(1f),
             )
         }

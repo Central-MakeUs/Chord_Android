@@ -12,8 +12,12 @@ fun NavController.navigateToHome(navOptions: NavOptions? = null) {
     navigate(HOME_ROUTE, navOptions)
 }
 
-fun NavGraphBuilder.homeScreen() {
+fun NavGraphBuilder.homeScreen(
+    onNavigateToSetting: () -> Unit,
+) {
     composable(route = HOME_ROUTE) {
-        HomeScreen()
+        HomeScreen(
+            onNavigateToSetting = onNavigateToSetting,
+        )
     }
 }

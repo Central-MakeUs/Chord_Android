@@ -4,12 +4,12 @@ sealed interface HomeUiState {
     data object Loading : HomeUiState
 
     data class Success(
+        val storeName: String,
+        val heroTitle: String,
         val ctaTitle: String,
         val ctaCount: Int,
-        val strategySectionTitle: String,
-        val strategyItems: List<HomeStrategyItem>,
-        val statsSectionTitle: String,
         val stats: List<HomeStatItem>,
+        val strategyItems: List<HomeStrategyItem>,
     ) : HomeUiState
 
     data class Error(
@@ -18,13 +18,12 @@ sealed interface HomeUiState {
 }
 
 data class HomeStrategyItem(
-    val description: String,
     val menuName: String,
-    val actionLabel: String,
+    val subtitle: String,
 )
 
 data class HomeStatItem(
     val title: String,
+    val statusLabel: String,
     val value: String,
-    val description: String,
 )

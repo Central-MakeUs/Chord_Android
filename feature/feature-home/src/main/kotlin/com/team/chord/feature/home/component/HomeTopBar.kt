@@ -49,8 +49,8 @@ fun HomeTopBar(
             )
             Spacer(modifier = Modifier.width(12.dp))
             Icon(
-                painter = painterResource(id = R.drawable.ic_menu),
-                contentDescription = "메뉴",
+                painter = painterResource(id = R.drawable.ic_settings),
+                contentDescription = "설정",
                 tint = Grayscale700,
                 modifier =
                     Modifier
