@@ -19,9 +19,6 @@ suspend fun <T> safeApiCall(
         return body.data ?: (Unit as T)
     } else {
         val errorBody = response.errorBody()?.string()
-        if (response.code() == 401) {
-            throw UnauthorizedException()
-        }
         if (errorBody != null) {
             try {
                 val apiError = json.decodeFromString<ApiError>(errorBody)
@@ -33,11 +30,11 @@ suspend fun <T> safeApiCall(
             } catch (e: ApiException) {
                 throw e
             } catch (_: Exception) {
-                throw ApiException(
-                    code = "UNKNOWN",
-                    message = "Server error: ${response.code()}",
-                )
+                // Failed to parse error body, fall through
             }
+        }
+        if (response.code() == 401) {
+            throw UnauthorizedException()
         }
         throw ApiException(
             code = "UNKNOWN",
