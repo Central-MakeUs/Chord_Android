@@ -41,6 +41,13 @@ import com.team.chord.feature.setup.navigation.navigateToAddMenuGraph
 import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
 import com.team.chord.feature.aicoach.navigation.aiCoachScreen
+import com.team.chord.feature.setting.navigation.SETTING_ROUTE
+import com.team.chord.feature.setting.navigation.navigateToSetting
+import com.team.chord.feature.setting.navigation.navigateToSettingWebView
+import com.team.chord.feature.setting.navigation.navigateToWithdraw
+import com.team.chord.feature.setting.navigation.settingScreen
+import com.team.chord.feature.setting.navigation.settingWebViewScreen
+import com.team.chord.feature.setting.navigation.withdrawScreen
 
 @Composable
 fun ChordNavHost(
@@ -128,7 +135,57 @@ fun ChordNavHost(
             },
         )
 
-        homeScreen()
+        homeScreen(
+            onNavigateToSetting = {
+                navController.navigateToSetting()
+            },
+        )
+
+        settingScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onNavigateToStoreEdit = {
+                // TODO: navigate to store info edit screen
+            },
+            onNavigateToSubscription = {
+                // TODO: navigate to subscription screen
+            },
+            onNavigateToFaq = {
+                navController.navigateToSettingWebView(
+                    title = "FAQ",
+                    url = "https://www.notion.so/FAQ-30064018c6f68052a4bae8d09d20cd43",
+                )
+            },
+            onNavigateToTerms = {
+                navController.navigateToSettingWebView(
+                    title = "이용약관",
+                    url = "https://www.notion.so/30064018c6f6805aaa09c3a1c71a3376",
+                )
+            },
+            onNavigateToWithdraw = {
+                navController.navigateToWithdraw()
+            },
+            onLogout = {
+                navController.navigateToLogin(
+                    navOptions = navOptions {
+                        popUpTo(SETTING_ROUTE) { inclusive = true }
+                    },
+                )
+            },
+        )
+
+        withdrawScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
+
+        settingWebViewScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
 
         menuListScreen(
             onNavigateToDetail = { menuId ->

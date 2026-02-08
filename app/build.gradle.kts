@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.core.coreUi)
     implementation(projects.core.coreNetwork)
     implementation(projects.feature.featureHome)
+    implementation(projects.feature.featureSetting)
 
     implementation(projects.feature.featureAuth)
     implementation(projects.feature.featureSetup)
