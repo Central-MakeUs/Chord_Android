@@ -6,6 +6,7 @@ data class IngredientListUiState(
     val isLoading: Boolean = false,
     val ingredients: List<IngredientListItemUi> = emptyList(),
     val activeFilters: Set<IngredientFilter> = emptySet(),
+    val errorMessage: String? = null,
 )
 
 data class IngredientListItemUi(

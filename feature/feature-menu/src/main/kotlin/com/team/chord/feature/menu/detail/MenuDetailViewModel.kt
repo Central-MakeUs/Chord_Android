@@ -36,34 +36,40 @@ class MenuDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = MenuDetailUiState.Loading
 
-            val menu = getMenuDetailUseCase(menuId)
-            _uiState.value = if (menu != null) {
-                MenuDetailUiState.Success(
-                    MenuDetailUi(
-                        id = menu.id,
-                        name = menu.name,
-                        sellingPrice = menu.price,
-                        preparationTimeSeconds = menu.preparationTimeSeconds,
-                        totalCost = menu.totalCost,
-                        costRatio = menu.costRatio,
-                        marginRatio = menu.marginRatio,
-                        contributionProfit = menu.contributionProfit,
-                        marginGrade = menu.marginGrade,
-                        recommendedPrice = menu.recommendedPrice,
-                        recommendedPriceMessage = menu.recommendedPriceMessage,
-                        ingredients = menu.ingredients.map { ingredient ->
-                            IngredientUi(
-                                id = ingredient.id,
-                                name = ingredient.name,
-                                quantity = ingredient.quantity,
-                                unit = ingredient.unit,
-                                price = ingredient.totalPrice,
-                            )
-                        },
-                    ),
-                )
-            } else {
-                MenuDetailUiState.Error("메뉴를 찾을 수 없습니다")
+            try {
+                val menu = getMenuDetailUseCase(menuId)
+                _uiState.value = if (menu != null) {
+                    MenuDetailUiState.Success(
+                        MenuDetailUi(
+                            id = menu.id,
+                            name = menu.name,
+                            sellingPrice = menu.price,
+                            preparationTimeSeconds = menu.preparationTimeSeconds,
+                            totalCost = menu.totalCost,
+                            costRatio = menu.costRatio,
+                            marginRatio = menu.marginRatio,
+                            contributionProfit = menu.contributionProfit,
+                            marginGrade = menu.marginGrade,
+                            recommendedPrice = menu.recommendedPrice,
+                            recommendedPriceMessage = menu.recommendedPriceMessage,
+                            ingredients = menu.ingredients.map { ingredient ->
+                                IngredientUi(
+                                    id = ingredient.id,
+                                    name = ingredient.name,
+                                    quantity = ingredient.quantity,
+                                    unit = ingredient.unit,
+                                    price = ingredient.totalPrice,
+                                )
+                            },
+                        ),
+                    )
+                } else {
+                    MenuDetailUiState.Error("메뉴를 찾을 수 없습니다")
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.value = MenuDetailUiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다")
             }
         }
     }

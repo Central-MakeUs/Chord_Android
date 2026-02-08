@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,35 +47,41 @@ class MenuListViewModel @Inject constructor(
                 else it.copy(isLoading = true)
             }
 
-            combine(
-                getCategoriesUseCase(),
-                getMenuListUseCase(),
-                selectedCategoryCode,
-            ) { categories, menus, selectedCode ->
-                val filteredMenus = if (selectedCode == null) {
-                    menus
-                } else {
-                    menus.filter { it.categoryCode == selectedCode }
-                }
+            try {
+                combine(
+                    getCategoriesUseCase(),
+                    getMenuListUseCase(),
+                    selectedCategoryCode,
+                ) { categories, menus, selectedCode ->
+                    val filteredMenus = if (selectedCode == null) {
+                        menus
+                    } else {
+                        menus.filter { it.categoryCode == selectedCode }
+                    }
 
-                MenuListUiState(
-                    isLoading = false,
-                    isRefreshing = false,
-                    categories = categories,
-                    selectedCategoryCode = selectedCode,
-                    menuItems = filteredMenus.map { menu ->
-                        MenuItemUi(
-                            id = menu.id,
-                            name = menu.name,
-                            sellingPrice = menu.price,
-                            costRatio = menu.costRatio,
-                            marginRatio = menu.marginRatio,
-                            marginGrade = menu.marginGrade,
-                        )
-                    },
-                )
-            }.collect { state ->
-                _uiState.value = state
+                    MenuListUiState(
+                        isLoading = false,
+                        isRefreshing = false,
+                        categories = categories,
+                        selectedCategoryCode = selectedCode,
+                        menuItems = filteredMenus.map { menu ->
+                            MenuItemUi(
+                                id = menu.id,
+                                name = menu.name,
+                                sellingPrice = menu.price,
+                                costRatio = menu.costRatio,
+                                marginRatio = menu.marginRatio,
+                                marginGrade = menu.marginGrade,
+                            )
+                        },
+                    )
+                }.collect { state ->
+                    _uiState.value = state
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = e.message) }
             }
         }
     }

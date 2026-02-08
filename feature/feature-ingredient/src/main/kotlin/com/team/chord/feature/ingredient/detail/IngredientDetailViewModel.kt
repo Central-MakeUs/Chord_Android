@@ -145,30 +145,36 @@ class IngredientDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = IngredientDetailUiState.Loading
 
-            val ingredient = getIngredientDetailUseCase(ingredientId)
-            if (ingredient != null) {
-                _uiState.value = IngredientDetailUiState.Success(
-                    IngredientDetailUi(
-                        id = ingredient.id,
-                        category = ingredient.categoryCode.toIngredientFilter(),
-                        name = ingredient.name,
-                        price = ingredient.currentUnitPrice,
-                        unitAmount = ingredient.baseQuantity,
-                        unit = ingredient.unit,
-                        supplier = ingredient.supplier ?: "",
-                        isFavorite = ingredient.isFavorite,
-                        usedMenus = ingredient.usedMenus.map { usedMenu ->
-                            UsedMenuUi(
-                                id = usedMenu.id,
-                                name = usedMenu.name,
-                                usageAmount = usedMenu.usageAmount,
-                            )
-                        },
-                        priceHistory = emptyList(),
-                    ),
-                )
-            } else {
-                _uiState.value = IngredientDetailUiState.Error("재료를 찾을 수 없습니다")
+            try {
+                val ingredient = getIngredientDetailUseCase(ingredientId)
+                if (ingredient != null) {
+                    _uiState.value = IngredientDetailUiState.Success(
+                        IngredientDetailUi(
+                            id = ingredient.id,
+                            category = ingredient.categoryCode.toIngredientFilter(),
+                            name = ingredient.name,
+                            price = ingredient.currentUnitPrice,
+                            unitAmount = ingredient.baseQuantity,
+                            unit = ingredient.unit,
+                            supplier = ingredient.supplier ?: "",
+                            isFavorite = ingredient.isFavorite,
+                            usedMenus = ingredient.usedMenus.map { usedMenu ->
+                                UsedMenuUi(
+                                    id = usedMenu.id,
+                                    name = usedMenu.name,
+                                    usageAmount = usedMenu.usageAmount,
+                                )
+                            },
+                            priceHistory = emptyList(),
+                        ),
+                    )
+                } else {
+                    _uiState.value = IngredientDetailUiState.Error("재료를 찾을 수 없습니다")
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.value = IngredientDetailUiState.Error(e.message ?: "알 수 없는 오류가 발생했습니다")
             }
         }
     }

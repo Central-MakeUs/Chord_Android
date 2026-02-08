@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -42,38 +43,44 @@ class IngredientListViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            combine(
-                getIngredientListUseCase(),
-                activeFilters,
-            ) { ingredients, filters ->
-                val filteredIngredients = if (filters.isEmpty()) {
-                    ingredients
-                } else {
-                    ingredients.filter { ingredient ->
-                        filters.all { filter ->
-                            when (filter) {
-                                IngredientFilter.FAVORITE -> ingredient.isFavorite
-                                IngredientFilter.FOOD_INGREDIENT -> ingredient.categoryCode == "FOOD_MATERIAL"
-                                IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.categoryCode == "OPERATIONAL"
+            try {
+                combine(
+                    getIngredientListUseCase(),
+                    activeFilters,
+                ) { ingredients, filters ->
+                    val filteredIngredients = if (filters.isEmpty()) {
+                        ingredients
+                    } else {
+                        ingredients.filter { ingredient ->
+                            filters.all { filter ->
+                                when (filter) {
+                                    IngredientFilter.FAVORITE -> ingredient.isFavorite
+                                    IngredientFilter.FOOD_INGREDIENT -> ingredient.categoryCode == "FOOD_MATERIAL"
+                                    IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.categoryCode == "OPERATIONAL"
+                                }
                             }
                         }
                     }
-                }
 
-                IngredientListUiState(
-                    isLoading = false,
-                    ingredients = filteredIngredients.map { ingredient ->
-                        IngredientListItemUi(
-                            id = ingredient.id,
-                            name = ingredient.name,
-                            price = ingredient.currentUnitPrice,
-                            usage = "사용량 ${ingredient.baseQuantity}${ingredient.unit.displayName}",
-                        )
-                    },
-                    activeFilters = filters,
-                )
-            }.collect { state ->
-                _uiState.value = state
+                    IngredientListUiState(
+                        isLoading = false,
+                        ingredients = filteredIngredients.map { ingredient ->
+                            IngredientListItemUi(
+                                id = ingredient.id,
+                                name = ingredient.name,
+                                price = ingredient.currentUnitPrice,
+                                usage = "사용량 ${ingredient.baseQuantity}${ingredient.unit.displayName}",
+                            )
+                        },
+                        activeFilters = filters,
+                    )
+                }.collect { state ->
+                    _uiState.value = state
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.value = IngredientListUiState(isLoading = false, errorMessage = e.message)
             }
         }
     }

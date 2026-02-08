@@ -132,43 +132,57 @@ class IngredientEditViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val menu = getMenuDetailUseCase(menuId)
-            if (menu != null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        menuId = menu.id,
-                        menuName = menu.name,
-                        ingredients = menu.ingredients,
-                    )
+            try {
+                val menu = getMenuDetailUseCase(menuId)
+                if (menu != null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            menuId = menu.id,
+                            menuName = menu.name,
+                            ingredients = menu.ingredients,
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "메뉴를 찾을 수 없습니다",
+                        )
+                    }
                 }
-            } else {
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "메뉴를 찾을 수 없습니다",
-                    )
+                    it.copy(isLoading = false, errorMessage = e.message ?: "알 수 없는 오류가 발생했습니다")
                 }
             }
         }
     }
 
     private suspend fun loadRecipes() {
-        val recipes = getMenuRecipesUseCase(menuId)
-        val menuIngredients = recipes.map { recipe ->
-            MenuIngredient(
-                id = recipe.recipeId,
-                name = recipe.ingredientName,
-                quantity = recipe.amount.toDouble(),
-                unit = try {
-                    IngredientUnit.valueOf(recipe.unitCode.uppercase())
-                } catch (_: Exception) {
-                    IngredientUnit.G
-                },
-                unitPrice = recipe.price,
-                totalPrice = recipe.price * recipe.amount,
-            )
+        try {
+            val recipes = getMenuRecipesUseCase(menuId)
+            val menuIngredients = recipes.map { recipe ->
+                MenuIngredient(
+                    id = recipe.recipeId,
+                    name = recipe.ingredientName,
+                    quantity = recipe.amount.toDouble(),
+                    unit = try {
+                        IngredientUnit.valueOf(recipe.unitCode.uppercase())
+                    } catch (_: Exception) {
+                        IngredientUnit.G
+                    },
+                    unitPrice = recipe.price,
+                    totalPrice = recipe.price * recipe.amount,
+                )
+            }
+            _uiState.update { it.copy(ingredients = menuIngredients) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _uiState.update { it.copy(errorMessage = e.message ?: "레시피를 불러올 수 없습니다") }
         }
-        _uiState.update { it.copy(ingredients = menuIngredients) }
     }
 }

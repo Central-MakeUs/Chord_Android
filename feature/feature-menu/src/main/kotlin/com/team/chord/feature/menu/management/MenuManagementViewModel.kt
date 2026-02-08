@@ -142,27 +142,35 @@ class MenuManagementViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            val menu = getMenuDetailUseCase(menuId)
-            val categories = getCategoriesUseCase().first()
+            try {
+                val menu = getMenuDetailUseCase(menuId)
+                val categories = getCategoriesUseCase().first()
 
-            if (menu != null) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        menuId = menu.id,
-                        menuName = menu.name,
-                        price = menu.price,
-                        preparationTimeSeconds = menu.preparationTimeSeconds,
-                        categories = categories,
-                        selectedCategoryCode = menu.categoryCode,
-                    )
+                if (menu != null) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            menuId = menu.id,
+                            menuName = menu.name,
+                            price = menu.price,
+                            preparationTimeSeconds = menu.preparationTimeSeconds,
+                            categories = categories,
+                            selectedCategoryCode = menu.categoryCode,
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "메뉴를 찾을 수 없습니다",
+                        )
+                    }
                 }
-            } else {
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "메뉴를 찾을 수 없습니다",
-                    )
+                    it.copy(isLoading = false, errorMessage = e.message ?: "알 수 없는 오류가 발생했습니다")
                 }
             }
         }
