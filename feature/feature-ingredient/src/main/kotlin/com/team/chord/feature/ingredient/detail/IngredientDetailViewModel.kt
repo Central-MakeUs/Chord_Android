@@ -8,6 +8,7 @@ import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.usecase.ingredient.DeleteIngredientUseCase
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientDetailUseCase
+import com.team.chord.core.domain.usecase.ingredient.GetIngredientPriceHistoryUseCase
 import com.team.chord.core.domain.usecase.ingredient.UpdateIngredientUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class IngredientDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getIngredientDetailUseCase: GetIngredientDetailUseCase,
+    private val getIngredientPriceHistoryUseCase: GetIngredientPriceHistoryUseCase,
     private val updateIngredientUseCase: UpdateIngredientUseCase,
     private val deleteIngredientUseCase: DeleteIngredientUseCase,
 ) : ViewModel() {
@@ -148,6 +150,7 @@ class IngredientDetailViewModel @Inject constructor(
             try {
                 val ingredient = getIngredientDetailUseCase(ingredientId)
                 if (ingredient != null) {
+                    val priceHistory = getIngredientPriceHistoryUseCase(ingredientId)
                     _uiState.value = IngredientDetailUiState.Success(
                         IngredientDetailUi(
                             id = ingredient.id,
@@ -165,7 +168,15 @@ class IngredientDetailViewModel @Inject constructor(
                                     usageAmount = usedMenu.usageAmount,
                                 )
                             },
-                            priceHistory = emptyList(),
+                            priceHistory = priceHistory.map { history ->
+                                PriceHistoryUi(
+                                    id = history.id,
+                                    date = history.date.toDisplayDate(),
+                                    price = history.price,
+                                    unitAmount = history.unitAmount,
+                                    unitDisplayName = history.unit.displayName,
+                                )
+                            },
                         ),
                     )
                 } else {
@@ -189,5 +200,13 @@ class IngredientDetailViewModel @Inject constructor(
         IngredientFilter.FOOD_INGREDIENT -> "FOOD_MATERIAL"
         IngredientFilter.OPERATIONAL_SUPPLY -> "OPERATIONAL"
         IngredientFilter.FAVORITE -> "FOOD_MATERIAL"
+    }
+
+    private fun String.toDisplayDate(): String {
+        if (length < 10 || !contains('-')) return this
+        val year = substring(2, 4)
+        val month = substring(5, 7)
+        val day = substring(8, 10)
+        return "$year.$month.$day"
     }
 }
