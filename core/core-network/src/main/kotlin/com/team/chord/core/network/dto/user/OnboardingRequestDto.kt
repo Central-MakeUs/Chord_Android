@@ -10,5 +10,6 @@ data class OnboardingRequestDto(
     val name: String,
     val employees: Int,
     val laborCost: Int,
+    val rentCost: Int? = null,
     @EncodeDefault val includeWeeklyHolidayPay: Boolean = false,
 )

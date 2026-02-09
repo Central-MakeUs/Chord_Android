@@ -11,6 +11,7 @@ interface SetupRepository {
         name: String,
         employees: Int,
         laborCost: Int,
+        rentCost: Int? = null,
         includeWeeklyHolidayPay: Boolean,
     )
 }

@@ -33,6 +33,7 @@ class SetupRepositoryImpl
             name: String,
             employees: Int,
             laborCost: Int,
+            rentCost: Int?,
             includeWeeklyHolidayPay: Boolean,
         ) {
             safeApiCall {
@@ -41,6 +42,7 @@ class SetupRepositoryImpl
                         name = name,
                         employees = employees,
                         laborCost = laborCost,
+                        rentCost = rentCost,
                         includeWeeklyHolidayPay = includeWeeklyHolidayPay,
                     ),
                 )
