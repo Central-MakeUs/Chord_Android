@@ -22,7 +22,8 @@ class RemoteIngredientDataSource @Inject constructor(
 ) : IngredientDataSource {
 
     override fun getIngredientList(categoryCode: String?): Flow<List<Ingredient>> = flow {
-        val ingredients = safeApiCall { ingredientApi.getIngredientList(categoryCode) }
+        val categories = categoryCode?.let(::listOf)
+        val ingredients = safeApiCall { ingredientApi.getIngredientList(categories) }
         emit(ingredients.map { it.toDomain() })
     }
 

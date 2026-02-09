@@ -25,7 +25,7 @@ interface IngredientApi {
 
     @GET("catalog/ingredients")
     suspend fun getIngredientList(
-        @Query("category") categoryCode: String? = null,
+        @Query("category") categoryCodes: List<String>? = null,
     ): Response<ApiResponse<List<IngredientDto>>>
 
     @GET("catalog/ingredients/{ingredientId}")
@@ -56,7 +56,7 @@ interface IngredientApi {
     @POST("catalog/ingredients")
     suspend fun createIngredient(
         @Body request: IngredientCreateRequestDto,
-    ): Response<ApiResponse<Unit>>
+    ): Response<ApiResponse<IngredientDto>>
 
     @PATCH("catalog/ingredients/{ingredientId}/favorite")
     suspend fun toggleFavorite(

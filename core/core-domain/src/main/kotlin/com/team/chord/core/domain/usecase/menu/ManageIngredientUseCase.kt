@@ -41,3 +41,10 @@ class DeleteRecipesUseCase @Inject constructor(
     suspend operator fun invoke(menuId: Long, recipeIds: List<Long>): Result<Unit> =
         menuRepository.deleteRecipes(menuId, recipeIds)
 }
+
+class UpdateRecipeAmountUseCase @Inject constructor(
+    private val menuRepository: MenuRepository,
+) {
+    suspend operator fun invoke(menuId: Long, recipeId: Long, amount: Int): Result<Unit> =
+        menuRepository.updateRecipeAmount(menuId, recipeId, amount)
+}
