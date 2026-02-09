@@ -199,6 +199,13 @@ fun ChordNavHost(
             onNavigateBack = {
                 navController.popBackStack()
             },
+            onWithdrawSuccess = {
+                navController.navigateToLogin(
+                    navOptions = navOptions {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    },
+                )
+            },
         )
 
         settingWebViewScreen(
