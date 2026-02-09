@@ -54,10 +54,12 @@ fun NavGraphBuilder.settingScreen(
 
 fun NavGraphBuilder.withdrawScreen(
     onNavigateBack: () -> Unit,
+    onWithdrawSuccess: () -> Unit,
 ) {
     composable(route = WITHDRAW_ROUTE) {
         WithdrawScreen(
             onNavigateBack = onNavigateBack,
+            onWithdrawSuccess = onWithdrawSuccess,
         )
     }
 }
