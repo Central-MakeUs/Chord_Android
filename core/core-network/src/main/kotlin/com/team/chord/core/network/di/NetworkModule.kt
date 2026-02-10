@@ -5,6 +5,7 @@ import com.team.chord.core.network.BuildConfig
 import com.team.chord.core.network.api.AuthApi
 import com.team.chord.core.network.api.IngredientApi
 import com.team.chord.core.network.api.MenuApi
+import com.team.chord.core.network.api.StrategyApi
 import com.team.chord.core.network.api.UserApi
 import com.team.chord.core.network.auth.AuthInterceptor
 import com.team.chord.core.network.auth.TokenAuthenticator
@@ -85,6 +86,11 @@ object NetworkModule {
     @Singleton
     fun provideIngredientApi(retrofit: Retrofit): IngredientApi =
         retrofit.create(IngredientApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideStrategyApi(retrofit: Retrofit): StrategyApi =
+        retrofit.create(StrategyApi::class.java)
 
     @Provides
     @Singleton
