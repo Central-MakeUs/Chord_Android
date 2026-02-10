@@ -170,7 +170,8 @@ fun NavGraphBuilder.setupGraph(
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuSuggestionScreen(
-                onStartMenuRegistration = {
+                onStartMenuRegistration = { category ->
+                    onboardingViewModel.setDefaultCategory(category)
                     navController.navigateToMenuSearch()
                 },
             )
@@ -258,6 +259,7 @@ fun NavGraphBuilder.setupGraph(
                         templateId = onboardingViewModel.currentMenuDraft.value?.templateId,
                     )
                 },
+                defaultCategory = onboardingViewModel.defaultCategory,
             )
         }
 

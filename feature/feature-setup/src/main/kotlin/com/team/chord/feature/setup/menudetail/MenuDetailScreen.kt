@@ -56,6 +56,9 @@ import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordToast
+import com.team.chord.core.ui.component.ChordTooltipBubble
+import com.team.chord.core.ui.component.TooltipDirection
+import kotlinx.coroutines.delay
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
@@ -75,9 +78,15 @@ fun MenuDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToIngredientInput: (MenuDetailData) -> Unit,
     modifier: Modifier = Modifier,
+    defaultCategory: MenuCategory = MenuCategory.BEVERAGE,
     viewModel: MenuDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Set default category on first composition
+    LaunchedEffect(Unit) {
+        viewModel.onCategorySelected(defaultCategory)
+    }
 
     MenuDetailScreenContent(
         uiState = uiState,
@@ -119,6 +128,12 @@ internal fun MenuDetailScreenContent(
 ) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showPrepTimeTooltip by remember { mutableStateOf(true) }
+
+    LaunchedEffect(Unit) {
+        delay(1000L)
+        showPrepTimeTooltip = false
+    }
 
     // Show snackbar when template is applied
     LaunchedEffect(uiState.isTemplateApplied) {
@@ -193,85 +208,97 @@ internal fun MenuDetailScreenContent(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Show category and preparation time cards when price is entered
-                if (uiState.price.isNotBlank()) {
-                    Row(
+                // Category and preparation time cards
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Grayscale200)
+                            .clickable(onClick = onCategoryPickerClick)
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                    ) {
+                        Column {
+                            Text(
+                                text = "카테고리",
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                                color = Grayscale700,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = uiState.selectedCategory.displayName,
+                                    fontFamily = PretendardFontFamily,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 16.sp,
+                                    color = Grayscale900,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_chevron_right),
+                                    contentDescription = "카테고리 선택",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Grayscale500,
+                                )
+                            }
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Grayscale200)
+                            .clickable(onClick = onPreparationTimeClick)
+                            .padding(horizontal = 16.dp, vertical = 16.dp),
+                    ) {
+                        Column {
+                            Text(
+                                text = "제조시간",
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp,
+                                color = Grayscale700,
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "${uiState.preparationMinutes}분 ${uiState.preparationSeconds}초",
+                                    fontFamily = PretendardFontFamily,
+                                    fontWeight = FontWeight.Medium,
+                                    fontSize = 16.sp,
+                                    color = Grayscale900,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_chevron_right),
+                                    contentDescription = "시간 선택",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = Grayscale500,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (showPrepTimeTooltip) {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 24.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            .padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.CenterEnd,
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Grayscale200)
-                                .clickable(onClick = onCategoryPickerClick)
-                                .padding(horizontal = 16.dp, vertical = 16.dp),
-                        ) {
-                            Column {
-                                Text(
-                                    text = "카테고리",
-                                    fontFamily = PretendardFontFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
-                                    color = Grayscale700,
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = uiState.selectedCategory.displayName,
-                                        fontFamily = PretendardFontFamily,
-                                        fontWeight = FontWeight.Medium,
-                                        fontSize = 16.sp,
-                                        color = Grayscale900,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_chevron_right),
-                                        contentDescription = "카테고리 선택",
-                                        modifier = Modifier.size(16.dp),
-                                        tint = Grayscale500,
-                                    )
-                                }
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Grayscale200)
-                                .clickable(onClick = onPreparationTimeClick)
-                                .padding(horizontal = 16.dp, vertical = 16.dp),
-                        ) {
-                            Column {
-                                Text(
-                                    text = "제조시간",
-                                    fontFamily = PretendardFontFamily,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
-                                    color = Grayscale700,
-                                )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "${uiState.preparationMinutes}분 ${uiState.preparationSeconds}초",
-                                        fontFamily = PretendardFontFamily,
-                                        fontWeight = FontWeight.Medium,
-                                        fontSize = 16.sp,
-                                        color = Grayscale900,
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_chevron_right),
-                                        contentDescription = "시간 선택",
-                                        modifier = Modifier.size(16.dp),
-                                        tint = Grayscale500,
-                                    )
-                                }
-                            }
-                        }
+                        ChordTooltipBubble(
+                            text = "평균적인 음료의 제조시간이예요",
+                            direction = TooltipDirection.UpRight,
+                        )
                     }
                 }
 
@@ -599,7 +626,7 @@ private fun PriceTextField(
                                 fontFamily = PretendardFontFamily,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 20.sp,
-                                color = PrimaryBlue500,
+                                color = Grayscale500,
                             ),
                         )
                     }
@@ -609,7 +636,7 @@ private fun PriceTextField(
         )
         Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider(
-            color = if (value.isEmpty()) PrimaryBlue500 else Grayscale300,
+            color = Grayscale300,
             thickness = 1.dp,
         )
     }

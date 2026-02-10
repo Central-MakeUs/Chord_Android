@@ -26,6 +26,14 @@ class OnboardingMenuViewModel @Inject constructor(
     private val menuRepository: MenuRepository,
 ) : ViewModel() {
 
+    private var _defaultCategory: MenuCategory = MenuCategory.BEVERAGE
+
+    val defaultCategory: MenuCategory get() = _defaultCategory
+
+    fun setDefaultCategory(category: MenuCategory) {
+        _defaultCategory = category
+    }
+
     private val _registeredMenus = MutableStateFlow<List<RegisteredMenu>>(emptyList())
     val registeredMenus: StateFlow<List<RegisteredMenu>> = _registeredMenus.asStateFlow()
 
