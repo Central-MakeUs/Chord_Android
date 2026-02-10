@@ -240,6 +240,9 @@ fun ChordNavHost(
             onNavigateToIngredientEdit = { menuId ->
                 navController.navigateToIngredientEdit(menuId)
             },
+            onMenuDeleted = {
+                navController.popBackStack(MENU_LIST_ROUTE, inclusive = false)
+            },
         )
 
         menuManagementScreen(

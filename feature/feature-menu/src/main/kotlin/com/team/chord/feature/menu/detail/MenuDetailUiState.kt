@@ -8,6 +8,9 @@ sealed interface MenuDetailUiState {
 
     data class Success(
         val menuDetail: MenuDetailUi,
+        val showDropdownMenu: Boolean = false,
+        val showDeleteDialog: Boolean = false,
+        val showDeleteSuccessDialog: Boolean = false,
     ) : MenuDetailUiState
 
     data class Error(

@@ -5,7 +5,9 @@ import com.team.chord.core.data.datasource.MenuDataSource
 import com.team.chord.core.data.datasource.NewRecipeInput
 import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.domain.model.menu.CheckDupResult
+import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.domain.model.menu.Menu
+import com.team.chord.core.domain.model.menu.MenuIngredient
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import com.team.chord.core.network.api.MenuApi
@@ -41,7 +43,20 @@ class RemoteMenuDataSource @Inject constructor(
     }
 
     override suspend fun getMenuDetail(menuId: Long): Menu? {
-        return safeApiCall { menuApi.getMenuDetail(menuId) }.toDomain()
+        val menu = safeApiCall { menuApi.getMenuDetail(menuId) }.toDomain()
+        val recipeList = safeApiCall { menuApi.getMenuRecipes(menuId) }
+        return menu.copy(
+            ingredients = recipeList.recipes.map { recipe ->
+                MenuIngredient(
+                    id = recipe.ingredientId,
+                    name = recipe.ingredientName,
+                    quantity = recipe.amount,
+                    unit = IngredientUnit.entries.find { it.name == recipe.unitCode } ?: IngredientUnit.G,
+                    unitPrice = recipe.price.toInt(),
+                    totalPrice = recipe.price.toInt(),
+                )
+            },
+        )
     }
 
     override suspend fun getMenuRecipes(menuId: Long): Pair<List<MenuRecipe>, Int> {

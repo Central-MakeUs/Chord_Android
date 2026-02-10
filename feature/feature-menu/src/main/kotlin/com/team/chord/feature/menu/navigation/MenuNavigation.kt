@@ -57,6 +57,7 @@ fun NavGraphBuilder.menuDetailScreen(
     onNavigateBack: () -> Unit,
     onNavigateToManagement: (Long) -> Unit,
     onNavigateToIngredientEdit: (Long) -> Unit,
+    onMenuDeleted: () -> Unit,
 ) {
     composable(
         route = MENU_DETAIL_ROUTE,
@@ -68,6 +69,7 @@ fun NavGraphBuilder.menuDetailScreen(
             onNavigateBack = onNavigateBack,
             onNavigateToManagement = onNavigateToManagement,
             onNavigateToIngredientEdit = onNavigateToIngredientEdit,
+            onMenuDeleted = onMenuDeleted,
         )
     }
 }

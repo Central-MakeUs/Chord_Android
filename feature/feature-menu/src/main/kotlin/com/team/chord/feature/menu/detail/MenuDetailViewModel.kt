@@ -3,11 +3,14 @@ package com.team.chord.feature.menu.detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.model.onSuccess
+import com.team.chord.core.domain.usecase.menu.DeleteMenuUseCase
 import com.team.chord.core.domain.usecase.menu.GetMenuDetailUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -15,6 +18,7 @@ import javax.inject.Inject
 class MenuDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getMenuDetailUseCase: GetMenuDetailUseCase,
+    private val deleteMenuUseCase: DeleteMenuUseCase,
 ) : ViewModel() {
 
     private val menuId: Long = savedStateHandle.get<Long>("menuId") ?: 0L
@@ -30,6 +34,41 @@ class MenuDetailViewModel @Inject constructor(
 
     fun refresh() {
         loadMenuDetail()
+    }
+
+    fun showDropdownMenu() {
+        updateSuccessState { it.copy(showDropdownMenu = true) }
+    }
+
+    fun hideDropdownMenu() {
+        updateSuccessState { it.copy(showDropdownMenu = false) }
+    }
+
+    fun showDeleteDialog() {
+        updateSuccessState { it.copy(showDropdownMenu = false, showDeleteDialog = true) }
+    }
+
+    fun hideDeleteDialog() {
+        updateSuccessState { it.copy(showDeleteDialog = false) }
+    }
+
+    fun hideDeleteSuccessDialog() {
+        updateSuccessState { it.copy(showDeleteSuccessDialog = false) }
+    }
+
+    fun deleteMenu() {
+        viewModelScope.launch {
+            deleteMenuUseCase(menuId).onSuccess {
+                updateSuccessState { it.copy(showDeleteDialog = false, showDeleteSuccessDialog = true) }
+            }
+        }
+    }
+
+    private fun updateSuccessState(transform: (MenuDetailUiState.Success) -> MenuDetailUiState.Success) {
+        val current = _uiState.value
+        if (current is MenuDetailUiState.Success) {
+            _uiState.value = transform(current)
+        }
     }
 
     private fun loadMenuDetail() {
