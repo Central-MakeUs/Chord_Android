@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -28,8 +27,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -55,10 +52,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
+import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordToast
-import com.team.chord.core.ui.component.ChordTooltipBubble
-import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
@@ -95,7 +91,8 @@ fun MenuDetailScreen(
             viewModel.onPreparationTimeChanged(minutes, seconds)
             viewModel.onDismissTimePicker()
         },
-        onPreviousClick = onNavigateBack,
+        onCategoryPickerClick = { viewModel.onShowCategoryPicker() },
+        onCategoryPickerDismiss = { viewModel.onDismissCategoryPicker() },
         onNextClick = {
             onNavigateToIngredientInput(viewModel.createMenuDetailData())
         },
@@ -114,7 +111,8 @@ internal fun MenuDetailScreenContent(
     showTimePicker: Boolean = false,
     onTimePickerDismiss: () -> Unit = {},
     onTimePickerConfirm: (Int, Int) -> Unit = { _, _ -> },
-    onPreviousClick: () -> Unit,
+    onCategoryPickerClick: () -> Unit,
+    onCategoryPickerDismiss: () -> Unit,
     onNextClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -151,7 +149,6 @@ internal fun MenuDetailScreenContent(
         ) {
             MenuDetailTopBar(
                 onBackClick = onNavigateBack,
-                onFavoriteClick = { },
             )
 
             Column(
@@ -184,50 +181,100 @@ internal fun MenuDetailScreenContent(
                     PriceTextField(
                         value = uiState.price,
                         onValueChange = onPriceChanged,
-                        placeholder = "가격을 입력해주세요",
+                        placeholder = "메뉴 가격 입력",
                     )
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp)
-                        .background(Grayscale200),
-                )
-
                 if (uiState.price.isNotBlank()) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Grayscale100)
                             .padding(horizontal = 20.dp, vertical = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        FieldLabel(text = "카테고리")
-                        Spacer(modifier = Modifier.height(16.dp))
-                        CategoryRadioGroup(
-                            selectedCategory = uiState.selectedCategory,
-                            onCategorySelected = onCategorySelected,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Grayscale200)
+                                .clickable(onClick = onCategoryPickerClick)
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                        ) {
+                            Column {
+                                Text(
+                                    text = "카테고리",
+                                    fontFamily = PretendardFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                    color = Grayscale700,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = uiState.selectedCategory.displayName,
+                                        fontFamily = PretendardFontFamily,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 16.sp,
+                                        color = Grayscale900,
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_chevron_right),
+                                        contentDescription = "카테고리 선택",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = Grayscale500,
+                                    )
+                                }
+                            }
+                        }
 
-                        Spacer(modifier = Modifier.height(62.dp))
-
-                        PreparationTimeRow(
-                            minutes = uiState.preparationMinutes,
-                            seconds = uiState.preparationSeconds,
-                            onClick = onPreparationTimeClick,
-                        )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Grayscale200)
+                                .clickable(onClick = onPreparationTimeClick)
+                                .padding(horizontal = 16.dp, vertical = 16.dp),
+                        ) {
+                            Column {
+                                Text(
+                                    text = "제조시간",
+                                    fontFamily = PretendardFontFamily,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                    color = Grayscale700,
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "${uiState.preparationMinutes}분 ${uiState.preparationSeconds}초",
+                                        fontFamily = PretendardFontFamily,
+                                        fontWeight = FontWeight.Medium,
+                                        fontSize = 16.sp,
+                                        color = Grayscale900,
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_chevron_right),
+                                        contentDescription = "시간 선택",
+                                        modifier = Modifier.size(16.dp),
+                                        tint = Grayscale500,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
             }
 
-            BottomNavigationButtons(
-                isNextEnabled = uiState.isNextEnabled,
-                onPreviousClick = onPreviousClick,
-                onNextClick = onNextClick,
+            ChordLargeButton(
+                text = "메뉴 등록",
+                onClick = onNextClick,
+                enabled = uiState.isNextEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp),
@@ -241,6 +288,17 @@ internal fun MenuDetailScreenContent(
             initialSeconds = uiState.preparationSeconds,
             onDismiss = onTimePickerDismiss,
             onConfirm = onTimePickerConfirm,
+        )
+    }
+
+    if (uiState.showCategoryPicker) {
+        CategoryPickerBottomSheet(
+            selectedCategory = uiState.selectedCategory,
+            onDismiss = onCategoryPickerDismiss,
+            onConfirm = { category ->
+                onCategorySelected(category)
+                onCategoryPickerDismiss()
+            },
         )
     }
 }
@@ -414,7 +472,6 @@ private fun WheelPicker(
 @Composable
 private fun MenuDetailTopBar(
     onBackClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -430,16 +487,6 @@ private fun MenuDetailTopBar(
                 .align(Alignment.CenterStart)
                 .size(24.dp)
                 .clickable(onClick = onBackClick),
-            tint = Grayscale900,
-        )
-
-        Icon(
-            painter = painterResource(R.drawable.ic_favorite),
-            contentDescription = "즐겨찾기",
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .size(24.dp)
-                .clickable(onClick = onFavoriteClick),
             tint = Grayscale900,
         )
     }
@@ -468,6 +515,22 @@ private fun MenuNameTextField(
                 ),
                 singleLine = true,
                 cursorBrush = SolidColor(Grayscale800),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = "메뉴명 입력",
+                                style = TextStyle(
+                                    fontFamily = PretendardFontFamily,
+                                    fontWeight = FontWeight.Normal,
+                                    fontSize = 20.sp,
+                                    color = Grayscale500,
+                                ),
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
             )
             if (value.isNotEmpty()) {
                 Icon(
@@ -537,143 +600,60 @@ private fun PriceTextField(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CategoryRadioGroup(
+private fun CategoryPickerBottomSheet(
     selectedCategory: MenuCategory,
-    onCategorySelected: (MenuCategory) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: (MenuCategory) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
-        MenuCategory.entries.forEachIndexed { index, category ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .offset(x = (-12).dp)
-                    .clickable { onCategorySelected(category) },
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(
-                    selected = category == selectedCategory,
-                    onClick = { onCategorySelected(category) },
-                    colors = RadioButtonDefaults.colors(
-                        selectedColor = PrimaryBlue500,
-                        unselectedColor = Grayscale500,
-                    ),
-                )
-                Text(
-                    text = category.displayName,
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp,
-                        color = if (category == selectedCategory) PrimaryBlue500 else Grayscale900,
-                    ),
-                )
-            }
-            if (index < MenuCategory.entries.lastIndex) {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        }
-    }
-}
+    var tempSelection by remember { mutableStateOf(selectedCategory) }
 
-@Composable
-private fun PreparationTimeRow(
-    minutes: Int,
-    seconds: Int,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var showTooltip by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(3000L)
-        showTooltip = false
-    }
-
-    Column(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(Grayscale200)
-                .clickable(onClick = onClick)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "제조시간",
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Grayscale700,
-                ),
-            )
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = "${minutes}분 ${seconds}초",
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 18.sp,
-                        color = Grayscale900,
-                    ),
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(R.drawable.ic_chevron_right),
-                    contentDescription = "시간 선택",
-                    modifier = Modifier.size(16.dp),
-                    tint = Grayscale500,
-                )
-            }
-        }
-
-        if (showTooltip) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                contentAlignment = Alignment.CenterEnd,
-            ) {
-                ChordTooltipBubble(
-                    text = "평균적인 제조시간이에요",
-                    direction = TooltipDirection.UpRight,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BottomNavigationButtons(
-    isNextEnabled: Boolean,
-    onPreviousClick: () -> Unit,
-    onNextClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(
+    ChordBottomSheet(
+        onDismissRequest = onDismiss,
+        title = "메뉴 카테고리",
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(7.dp),
-    ) {
-        ChordLargeButton(
-            text = "이전",
-            onClick = onPreviousClick,
-            modifier = Modifier.weight(1f),
-        )
-
-        ChordLargeButton(
-            text = "다음",
-            onClick = onNextClick,
-            modifier = Modifier.weight(1f),
-            enabled = isNextEnabled,
-        )
-    }
+        content = {
+            Column {
+                MenuCategory.entries.forEachIndexed { index, category ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { tempSelection = category }
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = category.displayName,
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = if (category == tempSelection) PrimaryBlue500 else Grayscale900,
+                        )
+                        if (category == tempSelection) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_check),
+                                contentDescription = "선택됨",
+                                modifier = Modifier.size(20.dp),
+                                tint = PrimaryBlue500,
+                            )
+                        }
+                    }
+                    if (index < MenuCategory.entries.lastIndex) {
+                        HorizontalDivider(color = Grayscale200, thickness = 1.dp)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            ChordLargeButton(
+                text = "확인",
+                onClick = { onConfirm(tempSelection) },
+            )
+        },
+    )
 }
 
 @Composable

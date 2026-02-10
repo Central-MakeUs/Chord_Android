@@ -81,4 +81,12 @@ class MenuDetailViewModel @Inject constructor(
     fun onDismissTimePicker() {
         _uiState.update { it.copy(showTimePicker = false) }
     }
+
+    fun onShowCategoryPicker() {
+        _uiState.update { it.copy(showCategoryPicker = true) }
+    }
+
+    fun onDismissCategoryPicker() {
+        _uiState.update { it.copy(showCategoryPicker = false) }
+    }
 }
