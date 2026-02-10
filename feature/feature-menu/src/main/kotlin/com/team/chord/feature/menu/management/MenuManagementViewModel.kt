@@ -155,7 +155,9 @@ class MenuManagementViewModel @Inject constructor(
                             price = menu.price,
                             preparationTimeSeconds = menu.preparationTimeSeconds,
                             categories = categories,
-                            selectedCategoryCode = menu.categoryCode,
+                            selectedCategoryCode = menu.categoryCode.ifEmpty {
+                                categories.firstOrNull()?.code.orEmpty()
+                            },
                         )
                     }
                 } else {

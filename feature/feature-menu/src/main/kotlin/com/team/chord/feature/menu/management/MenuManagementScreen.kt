@@ -13,13 +13,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,25 +33,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.ui.R
-import com.team.chord.core.ui.component.ChordOutlinedButton
-import com.team.chord.core.ui.component.ChordRadioGroup
-import com.team.chord.core.ui.component.ChordTopAppBarWithBackTitle
+import com.team.chord.core.ui.component.ChordBottomSheet
+import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordOneButtonDialog
+import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
-import com.team.chord.core.ui.component.RadioOption
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
-import com.team.chord.core.ui.theme.Grayscale600
-import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.menu.management.component.EditMenuNameBottomSheet
-import com.team.chord.feature.menu.management.component.EditPriceBottomSheet
 import com.team.chord.feature.menu.management.component.EditPreparationTimeBottomSheet
+import com.team.chord.feature.menu.management.component.EditPriceBottomSheet
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -83,6 +86,7 @@ fun MenuManagementScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MenuManagementScreenContent(
     uiState: MenuManagementUiState,
@@ -104,14 +108,15 @@ internal fun MenuManagementScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
+    var showCategoryBottomSheet by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Grayscale100),
     ) {
-        ChordTopAppBarWithBackTitle(
-            title = "관리",
+        ChordTopAppBar(
+            title = "",
             onBackClick = onNavigateBack,
         )
 
@@ -125,18 +130,25 @@ internal fun MenuManagementScreenContent(
         } else {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp),
             ) {
                 // 메뉴명 섹션
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onShowNameBottomSheet() }
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(7.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(vertical = 16.dp),
                 ) {
+                    Text(
+                        text = "메뉴명",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                        color = Grayscale500,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = uiState.menuName,
                         fontFamily = PretendardFontFamily,
@@ -144,83 +156,102 @@ internal fun MenuManagementScreenContent(
                         fontSize = 20.sp,
                         color = Grayscale900,
                     )
-                    Icon(
-                        painter = painterResource(R.drawable.ic_edit),
-                        contentDescription = "메뉴명 수정",
-                        modifier = Modifier.size(20.dp),
-                        tint = Grayscale600,
-                    )
                 }
 
-                // 구분선 (스페이서)
-                Spacer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp)
-                        .background(Grayscale200),
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
+                HorizontalDivider(color = Grayscale300)
 
                 // 가격 섹션
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onShowPriceBottomSheet() }
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                        .padding(vertical = 16.dp),
                 ) {
-                    Column {
+                    Text(
+                        text = "가격",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 14.sp,
+                        color = Grayscale500,
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${numberFormat.format(uiState.price)}원",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = Grayscale900,
+                    )
+                }
+
+                HorizontalDivider(color = Grayscale300)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 카테고리 + 제조시간 카드
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    // 카테고리 카드
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(
+                                color = Grayscale200,
+                                shape = RoundedCornerShape(12.dp),
+                            )
+                            .clickable { showCategoryBottomSheet = true }
+                            .padding(16.dp),
+                    ) {
                         Text(
-                            text = "가격",
+                            text = "카테고리",
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp,
-                            color = Grayscale700,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            color = Grayscale500,
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                text = "${numberFormat.format(uiState.price)}원",
+                                text = uiState.categories
+                                    .find { it.code == uiState.selectedCategoryCode }
+                                    ?.name ?: "",
                                 fontFamily = PretendardFontFamily,
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 20.sp,
+                                fontSize = 16.sp,
                                 color = Grayscale900,
                             )
                             Icon(
                                 painter = painterResource(R.drawable.ic_arrow_right),
                                 contentDescription = null,
                                 modifier = Modifier.size(16.dp),
-                                tint = Grayscale700,
+                                tint = Grayscale500,
                             )
                         }
                     }
-                }
 
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    color = Grayscale300,
-                )
-
-                // 제조시간 섹션
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onShowTimeBottomSheet() }
-                        .padding(horizontal = 20.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column {
+                    // 제조시간 카드
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(
+                                color = Grayscale200,
+                                shape = RoundedCornerShape(12.dp),
+                            )
+                            .clickable { onShowTimeBottomSheet() }
+                            .padding(16.dp),
+                    ) {
                         Text(
                             text = "제조시간",
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 18.sp,
-                            color = Grayscale700,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 14.sp,
+                            color = Grayscale500,
                         )
+                        Spacer(modifier = Modifier.height(4.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -228,7 +259,7 @@ internal fun MenuManagementScreenContent(
                                 text = formatTime(uiState.preparationTimeSeconds),
                                 fontFamily = PretendardFontFamily,
                                 fontWeight = FontWeight.Medium,
-                                fontSize = 20.sp,
+                                fontSize = 16.sp,
                                 color = Grayscale900,
                             )
                             Icon(
@@ -240,40 +271,17 @@ internal fun MenuManagementScreenContent(
                         }
                     }
                 }
-
-                HorizontalDivider(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    color = Grayscale300,
-                )
-
-                // 카테고리 섹션
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "카테고리",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 18.sp,
-                    color = Grayscale700,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
-
-                ChordRadioGroup(
-                    options = uiState.categories.map { RadioOption(it.code, it.name) },
-                    selectedOptionId = uiState.selectedCategoryCode,
-                    onOptionSelected = { code -> onCategorySelected(code) },
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                // 메뉴 삭제 버튼
-                ChordOutlinedButton(
-                    text = "메뉴 삭제",
-                    onClick = onShowDeleteDialog,
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
-                )
             }
+
+            // 수정 완료 버튼
+            ChordLargeButton(
+                text = "수정 완료",
+                onClick = onNavigateBack,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp),
+            )
         }
     }
 
@@ -302,6 +310,19 @@ internal fun MenuManagementScreenContent(
         )
     }
 
+    // Category Bottom Sheet
+    if (showCategoryBottomSheet) {
+        CategoryEditBottomSheet(
+            categories = uiState.categories,
+            selectedCategoryCode = uiState.selectedCategoryCode,
+            onDismiss = { showCategoryBottomSheet = false },
+            onConfirm = { code ->
+                showCategoryBottomSheet = false
+                onCategorySelected(code)
+            },
+        )
+    }
+
     // Delete Dialog
     if (uiState.showDeleteDialog) {
         ChordTwoButtonDialog(
@@ -321,6 +342,63 @@ internal fun MenuManagementScreenContent(
             confirmText = "확인",
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryEditBottomSheet(
+    categories: List<Category>,
+    selectedCategoryCode: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var tempSelection by remember { mutableStateOf(selectedCategoryCode) }
+
+    ChordBottomSheet(
+        onDismissRequest = onDismiss,
+        title = "카테고리",
+        modifier = modifier,
+        content = {
+            Column {
+                categories.forEachIndexed { index, category ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { tempSelection = category.code }
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = category.name,
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = if (category.code == tempSelection) PrimaryBlue500 else Grayscale900,
+                        )
+                        if (category.code == tempSelection) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_check),
+                                contentDescription = "선택됨",
+                                modifier = Modifier.size(20.dp),
+                                tint = PrimaryBlue500,
+                            )
+                        }
+                    }
+                    if (index < categories.lastIndex) {
+                        HorizontalDivider(color = Grayscale200, thickness = 1.dp)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            ChordLargeButton(
+                text = "확인",
+                onClick = { onConfirm(tempSelection) },
+            )
+        },
+    )
 }
 
 private fun formatTime(seconds: Int): String {
