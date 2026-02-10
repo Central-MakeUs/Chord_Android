@@ -154,7 +154,7 @@ class IngredientEditViewModel @Inject constructor(
                     amount = quantity.toInt(),
                     price = unitPrice,
                     unitCode = unit.name,
-                    ingredientCategoryCode = "FOOD_MATERIAL",
+                    ingredientCategoryCode = "INGREDIENTS",
                     ingredientName = name,
                 )
             }

@@ -55,8 +55,8 @@ class IngredientListViewModel @Inject constructor(
                             filters.all { filter ->
                                 when (filter) {
                                     IngredientFilter.FAVORITE -> ingredient.isFavorite
-                                    IngredientFilter.FOOD_INGREDIENT -> ingredient.categoryCode == "FOOD_MATERIAL"
-                                    IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.categoryCode == "OPERATIONAL"
+                                    IngredientFilter.FOOD_INGREDIENT -> ingredient.categoryCode == "INGREDIENTS"
+                                    IngredientFilter.OPERATIONAL_SUPPLY -> ingredient.categoryCode == "MATERIALS"
                                 }
                             }
                         }

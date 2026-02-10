@@ -88,19 +88,19 @@ class FakeIngredientDataSource @Inject constructor() : IngredientDataSource {
 
     override fun getCategories(): Flow<List<IngredientCategory>> = flowOf(
         listOf(
-            IngredientCategory(code = "FOOD_MATERIAL", name = "식재료", displayOrder = 1),
-            IngredientCategory(code = "OPERATIONAL", name = "운영 재료", displayOrder = 2),
+            IngredientCategory(code = "INGREDIENTS", name = "식재료", displayOrder = 1),
+            IngredientCategory(code = "MATERIALS", name = "운영 재료", displayOrder = 2),
         )
     )
 
     private fun createInitialMyIngredients(): List<Ingredient> = listOf(
-        Ingredient(1L, "우유", "FOOD_MATERIAL", IngredientUnit.ML, 1000, 4500, "서울우유", true),
-        Ingredient(2L, "설탕", "FOOD_MATERIAL", IngredientUnit.G, 1000, 3000, "CJ제일제당", false),
-        Ingredient(3L, "시럽", "FOOD_MATERIAL", IngredientUnit.ML, 500, 8000, "모닌", true),
-        Ingredient(4L, "초콜릿 가루", "FOOD_MATERIAL", IngredientUnit.G, 500, 12000, "기라델리", false),
-        Ingredient(5L, "생크림", "FOOD_MATERIAL", IngredientUnit.ML, 500, 6500, "서울우유", false),
-        Ingredient(6L, "바닐라 엑스트랙", "FOOD_MATERIAL", IngredientUnit.ML, 100, 15000, "매콜믹", true),
-        Ingredient(7L, "종이컵", "OPERATIONAL", IngredientUnit.EA, 100, 5000, "컵월드", false),
-        Ingredient(8L, "컵 홀더", "OPERATIONAL", IngredientUnit.EA, 100, 3000, "컵월드", false),
+        Ingredient(1L, "우유", "INGREDIENTS", IngredientUnit.ML, 1000, 4500, "서울우유", true),
+        Ingredient(2L, "설탕", "INGREDIENTS", IngredientUnit.G, 1000, 3000, "CJ제일제당", false),
+        Ingredient(3L, "시럽", "INGREDIENTS", IngredientUnit.ML, 500, 8000, "모닌", true),
+        Ingredient(4L, "초콜릿 가루", "INGREDIENTS", IngredientUnit.G, 500, 12000, "기라델리", false),
+        Ingredient(5L, "생크림", "INGREDIENTS", IngredientUnit.ML, 500, 6500, "서울우유", false),
+        Ingredient(6L, "바닐라 엑스트랙", "INGREDIENTS", IngredientUnit.ML, 100, 15000, "매콜믹", true),
+        Ingredient(7L, "종이컵", "MATERIALS", IngredientUnit.EA, 100, 5000, "컵월드", false),
+        Ingredient(8L, "컵 홀더", "MATERIALS", IngredientUnit.EA, 100, 3000, "컵월드", false),
     )
 }

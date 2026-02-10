@@ -191,15 +191,15 @@ class IngredientDetailViewModel @Inject constructor(
     }
 
     private fun String.toIngredientFilter(): IngredientFilter = when (this) {
-        "FOOD_MATERIAL" -> IngredientFilter.FOOD_INGREDIENT
-        "OPERATIONAL" -> IngredientFilter.OPERATIONAL_SUPPLY
+        "INGREDIENTS" -> IngredientFilter.FOOD_INGREDIENT
+        "MATERIALS" -> IngredientFilter.OPERATIONAL_SUPPLY
         else -> IngredientFilter.FOOD_INGREDIENT
     }
 
     private fun IngredientFilter.toCategoryCode(): String = when (this) {
-        IngredientFilter.FOOD_INGREDIENT -> "FOOD_MATERIAL"
-        IngredientFilter.OPERATIONAL_SUPPLY -> "OPERATIONAL"
-        IngredientFilter.FAVORITE -> "FOOD_MATERIAL"
+        IngredientFilter.FOOD_INGREDIENT -> "INGREDIENTS"
+        IngredientFilter.OPERATIONAL_SUPPLY -> "MATERIALS"
+        IngredientFilter.FAVORITE -> "INGREDIENTS"
     }
 
     private fun String.toDisplayDate(): String {
