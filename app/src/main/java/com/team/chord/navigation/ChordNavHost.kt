@@ -36,9 +36,9 @@ import com.team.chord.feature.menu.navigation.navigateToIngredientEdit
 import com.team.chord.feature.menu.navigation.navigateToMenuDetail
 import com.team.chord.feature.menu.navigation.navigateToMenuList
 import com.team.chord.feature.menu.navigation.navigateToMenuManagement
+import com.team.chord.navigation.menuAddGraph
+import com.team.chord.navigation.navigateToMenuAddGraph
 import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
-import com.team.chord.feature.setup.navigation.addMenuGraph
-import com.team.chord.feature.setup.navigation.navigateToAddMenuGraph
 import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
 import com.team.chord.feature.aicoach.navigation.aiCoachScreen
@@ -219,11 +219,11 @@ fun ChordNavHost(
                 navController.navigateToMenuDetail(menuId)
             },
             onAddMenuClick = {
-                navController.navigateToAddMenuGraph()
+                navController.navigateToMenuAddGraph()
             },
         )
 
-        addMenuGraph(
+        menuAddGraph(
             navController = navController,
             onComplete = {
                 navController.popBackStack(MENU_LIST_ROUTE, inclusive = false)
