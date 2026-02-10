@@ -133,7 +133,7 @@ internal fun StoreInfoScreenContent(
                         // Title
                         Text(
                             text = when (uiState.screenState) {
-                                StoreInfoScreenState.PostStoreName -> "매장의 운영 정보를 알려주세요"
+                                StoreInfoScreenState.PostStoreName -> "매장 운영 정보를 알려주세요"
                                 else -> "매장 정보를 알려주세요"
                             },
                             fontFamily = PretendardFontFamily,
