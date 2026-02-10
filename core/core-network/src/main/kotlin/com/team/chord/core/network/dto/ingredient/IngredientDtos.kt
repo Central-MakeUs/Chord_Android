@@ -16,7 +16,7 @@ data class IngredientDto(
     val ingredientName: String,
     val unitCode: String,
     val baseQuantity: Int,
-    val currentUnitPrice: Int,
+    val currentUnitPrice: Double,
 )
 
 @Serializable

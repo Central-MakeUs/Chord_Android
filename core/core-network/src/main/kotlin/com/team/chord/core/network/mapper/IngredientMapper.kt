@@ -26,7 +26,7 @@ fun IngredientDto.toDomain(): Ingredient =
         categoryCode = ingredientCategoryCode,
         unit = unitCode.toIngredientUnit(),
         baseQuantity = baseQuantity,
-        currentUnitPrice = currentUnitPrice,
+        currentUnitPrice = currentUnitPrice.toInt(),
     )
 
 fun IngredientDetailDto.toDomain(): Ingredient =
