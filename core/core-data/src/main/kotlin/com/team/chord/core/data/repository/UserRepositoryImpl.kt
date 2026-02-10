@@ -17,4 +17,24 @@ class UserRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Result.Error(e)
         }
+
+    override suspend fun updateStore(
+        name: String,
+        employees: Int,
+        laborCost: Int,
+        rentCost: Int?,
+        includeWeeklyHolidayPay: Boolean,
+    ): Result<Unit> =
+        try {
+            userDataSource.updateStore(
+                name = name,
+                employees = employees,
+                laborCost = laborCost,
+                rentCost = rentCost,
+                includeWeeklyHolidayPay = includeWeeklyHolidayPay,
+            )
+            Result.Success(Unit)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
 }

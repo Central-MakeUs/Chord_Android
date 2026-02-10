@@ -2,7 +2,9 @@ package com.team.chord.feature.setup.storeinfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.repository.SetupRepository
+import com.team.chord.core.domain.usecase.user.UpdateStoreUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +18,7 @@ class StoreInfoViewModel
     @Inject
     constructor(
         private val setupRepository: SetupRepository,
+        private val updateStoreUseCase: UpdateStoreUseCase,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(StoreInfoUiState())
         val uiState: StateFlow<StoreInfoUiState> = _uiState.asStateFlow()
@@ -83,6 +86,19 @@ class StoreInfoViewModel
 
             viewModelScope.launch {
                 try {
+                    when (
+                        updateStoreUseCase(
+                            name = state.storeName,
+                            employees = employeeCountValue,
+                            laborCost = laborCost,
+                            includeWeeklyHolidayPay = state.includeWeeklyAllowance,
+                        )
+                    ) {
+                        is Result.Success -> Unit
+                        is Result.Error -> throw IllegalStateException("매장 정보 업데이트 실패")
+                        is Result.Loading -> Unit
+                    }
+
                     setupRepository.completeOnboarding(
                         name = state.storeName,
                         employees = employeeCountValue,
