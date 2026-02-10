@@ -10,6 +10,7 @@ import com.team.chord.core.network.dto.ingredient.IngredientCreateRequestDto
 import com.team.chord.core.network.dto.ingredient.IngredientUpdateDto
 import com.team.chord.core.network.dto.ingredient.SupplierUpdateDto
 import com.team.chord.core.network.mapper.toDomain
+import com.team.chord.core.network.mapper.toIngredientUnit
 import com.team.chord.core.network.util.safeApiCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -50,10 +51,11 @@ class RemoteIngredientDataSource @Inject constructor(
             Ingredient(
                 id = dto.ingredientId,
                 name = dto.ingredientName,
-                categoryCode = "",
-                unit = com.team.chord.core.domain.model.menu.IngredientUnit.G,
-                baseQuantity = 0,
-                currentUnitPrice = 0,
+                categoryCode = dto.ingredientCategoryCode.orEmpty(),
+                unit = dto.unitCode?.toIngredientUnit() ?: com.team.chord.core.domain.model.menu.IngredientUnit.G,
+                baseQuantity = dto.baseQuantity ?: 0,
+                currentUnitPrice = dto.currentUnitPrice ?: 0,
+                supplier = dto.supplier,
             )
         })
     }
@@ -65,12 +67,12 @@ class RemoteIngredientDataSource @Inject constructor(
         price: Int,
         amount: Int,
         supplier: String?,
-    ) {
-        safeApiCall {
+    ): Ingredient {
+        return safeApiCall {
             ingredientApi.createIngredient(
                 IngredientCreateRequestDto(categoryCode, ingredientName, unitCode, price, amount, supplier)
             )
-        }
+        }.toDomain()
     }
 
     override suspend fun toggleFavorite(ingredientId: Long, favorite: Boolean) {

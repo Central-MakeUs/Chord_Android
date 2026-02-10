@@ -103,6 +103,14 @@ class MenuAddFlowViewModel @Inject constructor(
     suspend fun registerMenus(): Result<Unit> {
         val menus = _registeredMenus.value
         for (menu in menus) {
+            val duplicateCheck = menuRepository.checkMenuDuplicate(
+                menuName = menu.name,
+                ingredientNames = menu.ingredients.map { it.name },
+            )
+            if (duplicateCheck.menuNameDuplicate || duplicateCheck.dupIngredientNames.isNotEmpty()) {
+                return Result.Error(IllegalStateException("중복된 메뉴 또는 재료가 있어요."))
+            }
+
             val existingRecipes = menu.ingredients
                 .filter { it.id > 0 }
                 .map { ingredient ->

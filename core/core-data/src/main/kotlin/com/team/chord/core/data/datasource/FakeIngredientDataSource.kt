@@ -48,7 +48,7 @@ class FakeIngredientDataSource @Inject constructor() : IngredientDataSource {
     override suspend fun createIngredient(
         categoryCode: String, ingredientName: String, unitCode: String,
         price: Int, amount: Int, supplier: String?,
-    ) {
+    ): Ingredient {
         val newId = (myIngredients.value.maxOfOrNull { it.id } ?: 0) + 1
         val ingredient = Ingredient(
             id = newId, name = ingredientName, categoryCode = categoryCode,
@@ -56,6 +56,7 @@ class FakeIngredientDataSource @Inject constructor() : IngredientDataSource {
             baseQuantity = amount, currentUnitPrice = price, supplier = supplier,
         )
         myIngredients.update { it + ingredient }
+        return ingredient
     }
 
     override suspend fun toggleFavorite(ingredientId: Long, favorite: Boolean) {

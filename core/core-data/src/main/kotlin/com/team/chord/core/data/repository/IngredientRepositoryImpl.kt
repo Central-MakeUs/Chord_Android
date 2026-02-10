@@ -60,7 +60,7 @@ class IngredientRepositoryImpl @Inject constructor(
         price: Int,
         amount: Int,
         supplier: String?,
-    ): Result<Unit> = runCatching {
+    ): Result<Ingredient> = runCatching {
         ingredientDataSource.createIngredient(categoryCode, ingredientName, unitCode, price, amount, supplier)
     }
 
@@ -86,10 +86,9 @@ class IngredientRepositoryImpl @Inject constructor(
     override suspend fun clearRecentSearches() =
         recentSearchDataSource.clearRecentSearches()
 
-    private inline fun runCatching(block: () -> Unit): Result<Unit> {
+    private inline fun <T> runCatching(block: () -> T): Result<T> {
         return try {
-            block()
-            Result.Success(Unit)
+            Result.Success(block())
         } catch (e: Exception) {
             Result.Error(e)
         }

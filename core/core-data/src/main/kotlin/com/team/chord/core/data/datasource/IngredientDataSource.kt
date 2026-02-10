@@ -20,7 +20,7 @@ interface IngredientDataSource {
         price: Int,
         amount: Int,
         supplier: String?,
-    )
+    ): Ingredient
     suspend fun toggleFavorite(ingredientId: Long, favorite: Boolean)
     suspend fun updateSupplier(ingredientId: Long, supplier: String?)
     suspend fun updateIngredient(ingredientId: Long, category: String, price: Int, amount: Int, unitCode: String)

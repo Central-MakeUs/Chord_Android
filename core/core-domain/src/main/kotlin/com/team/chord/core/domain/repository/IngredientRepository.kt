@@ -30,7 +30,7 @@ interface IngredientRepository {
         price: Int,
         amount: Int,
         supplier: String? = null,
-    ): Result<Unit>
+    ): Result<Ingredient>
     fun searchIngredients(query: String): Flow<List<IngredientSearchResult>>
     suspend fun checkDuplicate(name: String): Result<Unit>
     fun searchMyIngredients(query: String): Flow<List<Ingredient>>

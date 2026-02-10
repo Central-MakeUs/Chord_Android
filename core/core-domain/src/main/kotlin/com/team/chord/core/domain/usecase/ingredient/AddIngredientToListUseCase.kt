@@ -1,6 +1,7 @@
 package com.team.chord.core.domain.usecase.ingredient
 
 import com.team.chord.core.domain.model.Result
+import com.team.chord.core.domain.model.ingredient.Ingredient
 import com.team.chord.core.domain.repository.IngredientRepository
 import javax.inject.Inject
 
@@ -14,7 +15,7 @@ class AddIngredientToListUseCase @Inject constructor(
         price: Int,
         amount: Int,
         supplier: String? = null,
-    ): Result<Unit> = ingredientRepository.createIngredient(
+    ): Result<Ingredient> = ingredientRepository.createIngredient(
         categoryCode = categoryCode,
         ingredientName = ingredientName,
         unitCode = unitCode,

@@ -3,7 +3,10 @@ package com.team.chord.feature.menu.add.ingredientinput
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.IngredientUnit
+import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
+import com.team.chord.core.domain.usecase.ingredient.CheckIngredientDuplicateUseCase
 import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
 import com.team.chord.core.domain.usecase.menu.GetTemplateIngredientsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +28,8 @@ class IngredientInputViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val searchIngredientUseCase: SearchIngredientUseCase,
     private val getTemplateIngredientsUseCase: GetTemplateIngredientsUseCase,
+    private val checkIngredientDuplicateUseCase: CheckIngredientDuplicateUseCase,
+    private val addIngredientToListUseCase: AddIngredientToListUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IngredientInputUiState())
@@ -92,6 +97,11 @@ class IngredientInputViewModel @Inject constructor(
                         ingredientId = result.ingredientId,
                         templateId = result.templateId,
                         name = result.ingredientName,
+                        categoryCode = result.categoryCode,
+                        unitPrice = result.unitPrice,
+                        unitCode = result.unitCode,
+                        baseQuantity = result.baseQuantity,
+                        supplier = result.supplier,
                         sourceType = when {
                             result.ingredientId != null && !result.isTemplate -> IngredientSourceType.SAVED
                             result.isTemplate -> IngredientSourceType.TEMPLATE
@@ -271,31 +281,97 @@ class IngredientInputViewModel @Inject constructor(
                 )
             }
         } else {
-            val newIngredient = SelectedIngredient(
-                id = bottomSheetState.id ?: System.currentTimeMillis(),
-                name = bottomSheetState.name,
-                amount = bottomSheetState.amount.toIntOrNull() ?: 0,
-                unit = bottomSheetState.unit,
-                price = bottomSheetState.price.toIntOrNull() ?: 0,
-                categoryCode = bottomSheetState.categoryCode,
-                supplier = bottomSheetState.supplier,
-                sourceType = bottomSheetState.sourceType,
-                baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
-                unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
-            )
-
-            _uiState.update { state ->
-                val updatedIngredients = state.selectedIngredients + newIngredient
-                state.copy(
-                    selectedIngredients = updatedIngredients,
-                    showBottomSheet = false,
-                    bottomSheetIngredient = null,
-                    searchQuery = "",
-                    searchResults = emptyList(),
-                    showCompletionToast = true,
-                    completionToastMessage = "재료 추가가 완료되었어요!",
+            if (bottomSheetState.sourceType == IngredientSourceType.NEW) {
+                createAndAddNewIngredient(bottomSheetState)
+            } else {
+                addSelectedIngredient(
+                    SelectedIngredient(
+                        id = bottomSheetState.id ?: 0L,
+                        name = bottomSheetState.name,
+                        amount = bottomSheetState.amount.toIntOrNull() ?: 0,
+                        unit = bottomSheetState.unit,
+                        price = bottomSheetState.price.toIntOrNull() ?: 0,
+                        categoryCode = bottomSheetState.categoryCode,
+                        supplier = bottomSheetState.supplier,
+                        sourceType = bottomSheetState.sourceType,
+                        baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
+                        unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
+                    )
                 )
             }
+        }
+    }
+
+    private fun createAndAddNewIngredient(bottomSheetState: IngredientBottomSheetState) {
+        viewModelScope.launch {
+            when (checkIngredientDuplicateUseCase(bottomSheetState.name)) {
+                is Result.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            showCompletionToast = true,
+                            completionToastMessage = "이미 등록된 재료예요. 목록에서 선택해주세요.",
+                        )
+                    }
+                    return@launch
+                }
+
+                is Result.Success,
+                is Result.Loading -> Unit
+            }
+
+            val createResult = addIngredientToListUseCase(
+                categoryCode = bottomSheetState.categoryCode,
+                ingredientName = bottomSheetState.name,
+                unitCode = bottomSheetState.unit.name,
+                price = bottomSheetState.price.toIntOrNull() ?: 0,
+                amount = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
+                supplier = bottomSheetState.supplier.takeIf { it.isNotBlank() },
+            )
+
+            when (createResult) {
+                is Result.Success -> {
+                    addSelectedIngredient(
+                        SelectedIngredient(
+                            id = createResult.data.id,
+                            name = bottomSheetState.name,
+                            amount = bottomSheetState.amount.toIntOrNull() ?: 0,
+                            unit = bottomSheetState.unit,
+                            price = bottomSheetState.price.toIntOrNull() ?: 0,
+                            categoryCode = bottomSheetState.categoryCode,
+                            supplier = bottomSheetState.supplier,
+                            sourceType = IngredientSourceType.SAVED,
+                            baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
+                            unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
+                        ),
+                    )
+                }
+
+                is Result.Error -> {
+                    _uiState.update {
+                        it.copy(
+                            showCompletionToast = true,
+                            completionToastMessage = "재료 저장에 실패했어요. 다시 시도해주세요.",
+                        )
+                    }
+                }
+
+                is Result.Loading -> Unit
+            }
+        }
+    }
+
+    private fun addSelectedIngredient(newIngredient: SelectedIngredient) {
+        _uiState.update { state ->
+            val updatedIngredients = state.selectedIngredients + newIngredient
+            state.copy(
+                selectedIngredients = updatedIngredients,
+                showBottomSheet = false,
+                bottomSheetIngredient = null,
+                searchQuery = "",
+                searchResults = emptyList(),
+                showCompletionToast = true,
+                completionToastMessage = "재료 추가가 완료되었어요!",
+            )
         }
     }
 
