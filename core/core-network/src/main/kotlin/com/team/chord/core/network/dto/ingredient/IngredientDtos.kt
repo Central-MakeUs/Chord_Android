@@ -22,6 +22,7 @@ data class IngredientDto(
 @Serializable
 data class IngredientDetailDto(
     val ingredientId: Long,
+    val ingredientCategoryCode: String? = null,
     val ingredientName: String,
     val unitPrice: Int,
     val baseQuantity: Int,
@@ -55,12 +56,22 @@ data class SearchIngredientDto(
     val templateId: Long? = null,
     val ingredientId: Long? = null,
     val ingredientName: String,
+    val categoryCode: String? = null,
+    val unitPrice: Int? = null,
+    val unitCode: String? = null,
+    val baseQuantity: Int? = null,
+    val supplier: String? = null,
 )
 
 @Serializable
 data class SearchMyIngredientDto(
     val ingredientId: Long,
     val ingredientName: String,
+    val ingredientCategoryCode: String? = null,
+    val unitCode: String? = null,
+    val baseQuantity: Int? = null,
+    val currentUnitPrice: Int? = null,
+    val supplier: String? = null,
 )
 
 @Serializable

@@ -13,6 +13,9 @@ data class MenuCategoryDto(
 data class SearchMenusDto(
     val templateId: Long,
     val menuName: String,
+    val defaultSellingPrice: Double? = null,
+    val categoryCode: String? = null,
+    val workTime: Int? = null,
 )
 
 @Serializable
@@ -37,6 +40,8 @@ data class MenuDto(
     val menuId: Long,
     val menuName: String,
     val sellingPrice: Double,
+    val categoryCode: String? = null,
+    val workTime: Int? = null,
     val costRate: Float,
     val marginGradeCode: String,
     val marginGradeName: String,
@@ -48,6 +53,7 @@ data class MenuDetailDto(
     val menuId: Long,
     val menuName: String,
     val workTime: Int,
+    val categoryCode: String? = null,
     val sellingPrice: Double,
     val marginRate: Float,
     val totalCost: Double,
@@ -57,6 +63,7 @@ data class MenuDetailDto(
     val marginGradeName: String,
     val marginGradeMessage: String,
     val recommendedPrice: Double? = null,
+    val recommendedPriceMessage: String? = null,
 )
 
 @Serializable

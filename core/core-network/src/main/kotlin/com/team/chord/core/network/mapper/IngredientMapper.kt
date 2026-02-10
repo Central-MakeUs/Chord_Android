@@ -33,7 +33,7 @@ fun IngredientDetailDto.toDomain(): Ingredient =
     Ingredient(
         id = ingredientId,
         name = ingredientName,
-        categoryCode = "",
+        categoryCode = ingredientCategoryCode.orEmpty(),
         unit = unitCode.toIngredientUnit(),
         baseQuantity = baseQuantity,
         currentUnitPrice = unitPrice,
@@ -65,6 +65,11 @@ fun SearchIngredientDto.toDomain(): IngredientSearchResult =
         templateId = templateId,
         ingredientId = ingredientId,
         ingredientName = ingredientName,
+        categoryCode = categoryCode,
+        unitPrice = unitPrice,
+        unitCode = unitCode,
+        baseQuantity = baseQuantity,
+        supplier = supplier,
     )
 
 fun String.toIngredientUnit(): IngredientUnit =
