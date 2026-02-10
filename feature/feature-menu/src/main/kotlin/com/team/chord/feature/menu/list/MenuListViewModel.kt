@@ -2,6 +2,7 @@ package com.team.chord.feature.menu.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.model.menu.Category
 import com.team.chord.core.domain.usecase.menu.GetCategoriesUseCase
 import com.team.chord.core.domain.usecase.menu.GetMenuListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,7 @@ class MenuListViewModel @Inject constructor(
 
     fun onCategorySelected(categoryCode: String?) {
         selectedCategoryCode.value = categoryCode
+        _uiState.update { it.copy(selectedCategoryCode = categoryCode) }
     }
 
     fun refresh() {
@@ -53,10 +55,18 @@ class MenuListViewModel @Inject constructor(
                     getMenuListUseCase(),
                     selectedCategoryCode,
                 ) { categories, menus, selectedCode ->
+                    val categoryCodes = resolveFixedCategoryCodes(categories)
                     val filteredMenus = if (selectedCode == null) {
                         menus
                     } else {
-                        menus.filter { it.categoryCode == selectedCode }
+                        val selectedGroup = resolveCategoryGroup(selectedCode, categoryCodes)
+                        menus.filter { menu ->
+                            if (selectedGroup == null) {
+                                normalizeCategoryCode(menu.categoryCode) == normalizeCategoryCode(selectedCode)
+                            } else {
+                                resolveCategoryGroup(menu.categoryCode, categoryCodes) == selectedGroup
+                            }
+                        }
                     }
 
                     MenuListUiState(
@@ -85,4 +95,88 @@ class MenuListViewModel @Inject constructor(
             }
         }
     }
+
+    private fun normalizeCategoryCode(categoryCode: String): String {
+        return when (categoryCode.trim().uppercase()) {
+            "BEVERAGE", "DRINK", "DRINKS", "음료" -> "BEVERAGE"
+            "DESSERT", "디저트" -> "DESSERT"
+            "FOOD", "FOODS", "푸드" -> "FOOD"
+            else -> categoryCode.trim().uppercase()
+        }
+    }
+
+    private fun resolveCategoryGroup(categoryCode: String, categoryCodes: FixedCategoryCodes): CategoryGroup? {
+        val normalizedCode = normalizeCategoryCode(categoryCode)
+        val normalizedBeverageCode = normalizeCategoryCode(categoryCodes.beverageCode)
+        val normalizedDessertCode = normalizeCategoryCode(categoryCodes.dessertCode)
+        val normalizedFoodCode = normalizeCategoryCode(categoryCodes.foodCode)
+
+        return when {
+            normalizedCode == "BEVERAGE" || normalizedCode == normalizedBeverageCode -> CategoryGroup.BEVERAGE
+            normalizedCode == "DESSERT" || normalizedCode == normalizedDessertCode -> CategoryGroup.DESSERT
+            normalizedCode == "FOOD" || normalizedCode == normalizedFoodCode -> CategoryGroup.FOOD
+            else -> null
+        }
+    }
+
+    private fun resolveFixedCategoryCodes(categories: List<Category>): FixedCategoryCodes {
+        val sortedCategories = categories.sortedBy { it.displayOrder }
+
+        val beverageCode = categories.firstOrNull { isBeverageCategory(it) }?.code
+            ?: sortedCategories.getOrNull(0)?.code
+            ?: "BEVERAGE"
+        val dessertCode = categories.firstOrNull { isDessertCategory(it) }?.code
+            ?: sortedCategories.getOrNull(1)?.code
+            ?: "DESSERT"
+        val foodCode = categories.firstOrNull { isFoodCategory(it) }?.code
+            ?: sortedCategories.getOrNull(2)?.code
+            ?: "FOOD"
+
+        return FixedCategoryCodes(
+            beverageCode = beverageCode,
+            dessertCode = dessertCode,
+            foodCode = foodCode,
+        )
+    }
+
+    private fun isBeverageCategory(category: Category): Boolean {
+        val code = category.code.trim().uppercase()
+        val name = category.name.trim().uppercase()
+        return code == "BEVERAGE" ||
+            code == "DRINK" ||
+            code == "DRINKS" ||
+            name == "음료" ||
+            name == "BEVERAGE" ||
+            name == "DRINK"
+    }
+
+    private fun isDessertCategory(category: Category): Boolean {
+        val code = category.code.trim().uppercase()
+        val name = category.name.trim().uppercase()
+        return code == "DESSERT" ||
+            code == "DESSERTS" ||
+            name == "디저트" ||
+            name == "DESSERT"
+    }
+
+    private fun isFoodCategory(category: Category): Boolean {
+        val code = category.code.trim().uppercase()
+        val name = category.name.trim().uppercase()
+        return code == "FOOD" ||
+            code == "FOODS" ||
+            name == "푸드" ||
+            name == "FOOD"
+    }
+
+    private enum class CategoryGroup {
+        BEVERAGE,
+        DESSERT,
+        FOOD,
+    }
+
+    private data class FixedCategoryCodes(
+        val beverageCode: String,
+        val dessertCode: String,
+        val foodCode: String,
+    )
 }
