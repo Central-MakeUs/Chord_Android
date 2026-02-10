@@ -34,7 +34,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
+import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
+import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
@@ -110,10 +112,6 @@ internal fun MenuListScreenContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                MenuListLegend()
-
-                Spacer(modifier = Modifier.height(12.dp))
-
                 if (uiState.isLoading) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
@@ -121,7 +119,37 @@ internal fun MenuListScreenContent(
                     ) {
                         CircularProgressIndicator(color = PrimaryBlue500)
                     }
+                } else if (uiState.menuItems.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 40.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(
+                                    color = Grayscale100,
+                                    shape = RoundedCornerShape(16.dp),
+                                )
+                                .padding(vertical = 40.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = "등록된 메뉴가 없어요",
+                                fontFamily = PretendardFontFamily,
+                                fontWeight = FontWeight.Normal,
+                                fontSize = 14.sp,
+                                color = Grayscale500,
+                            )
+                        }
+                    }
                 } else {
+                    MenuListLegend()
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
