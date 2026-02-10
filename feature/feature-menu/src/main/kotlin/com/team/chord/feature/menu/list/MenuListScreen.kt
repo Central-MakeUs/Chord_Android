@@ -19,11 +19,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -34,6 +38,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
+import com.team.chord.core.ui.component.ChordBottomSheet
+import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale500
@@ -41,13 +47,14 @@ import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
+import com.team.chord.feature.menu.add.menudetail.MenuCategory
 import com.team.chord.feature.menu.component.CategoryTabRow
 import com.team.chord.feature.menu.component.MenuListItem
 
 @Composable
 fun MenuListScreen(
     onNavigateToDetail: (Long) -> Unit,
-    onAddMenuClick: () -> Unit,
+    onAddMenuClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MenuListViewModel = hiltViewModel(),
 ) {
@@ -74,10 +81,23 @@ internal fun MenuListScreenContent(
     uiState: MenuListUiState,
     onCategorySelected: (String?) -> Unit,
     onNavigateToDetail: (Long) -> Unit,
-    onAddMenuClick: () -> Unit,
+    onAddMenuClick: (String) -> Unit,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showCategoryBottomSheet by remember { mutableStateOf(false) }
+
+    if (showCategoryBottomSheet) {
+        CategoryPickerBottomSheet(
+            selectedCategory = MenuCategory.BEVERAGE,
+            onDismiss = { showCategoryBottomSheet = false },
+            onConfirm = { category ->
+                showCategoryBottomSheet = false
+                onAddMenuClick(category.name)
+            },
+        )
+    }
+
     PullToRefreshBox(
         isRefreshing = uiState.isRefreshing,
         onRefresh = onRefresh,
@@ -90,7 +110,7 @@ internal fun MenuListScreenContent(
         ) {
             MenuListHeader(
                 menuCount = uiState.menuItems.size,
-                onAddClick = onAddMenuClick,
+                onAddClick = { showCategoryBottomSheet = true },
             )
 
             Column(
@@ -249,5 +269,61 @@ private fun MenuListLegend(
             color = Grayscale600,
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CategoryPickerBottomSheet(
+    selectedCategory: MenuCategory,
+    onDismiss: () -> Unit,
+    onConfirm: (MenuCategory) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var tempSelection by remember { mutableStateOf(selectedCategory) }
+
+    ChordBottomSheet(
+        onDismissRequest = onDismiss,
+        title = "메뉴 카테고리",
+        modifier = modifier,
+        content = {
+            Column {
+                MenuCategory.entries.forEachIndexed { index, category ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { tempSelection = category }
+                            .padding(vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = category.displayName,
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = if (category == tempSelection) PrimaryBlue500 else Grayscale900,
+                        )
+                        if (category == tempSelection) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_check),
+                                contentDescription = "선택됨",
+                                modifier = Modifier.size(20.dp),
+                                tint = PrimaryBlue500,
+                            )
+                        }
+                    }
+                    if (index < MenuCategory.entries.lastIndex) {
+                        HorizontalDivider(color = Grayscale200, thickness = 1.dp)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            ChordLargeButton(
+                text = "확인",
+                onClick = { onConfirm(tempSelection) },
+            )
+        },
+    )
 }
 

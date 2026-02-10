@@ -26,6 +26,13 @@ class MenuAddFlowViewModel @Inject constructor(
     private val _currentMenuDraft = MutableStateFlow<MenuDraft?>(null)
     val currentMenuDraft: StateFlow<MenuDraft?> = _currentMenuDraft.asStateFlow()
 
+    private var _initialCategoryCode: String? = null
+    val initialCategoryCode: String? get() = _initialCategoryCode
+
+    fun setInitialCategoryCode(code: String) {
+        _initialCategoryCode = code
+    }
+
     fun startNewMenu(
         name: String,
         isTemplateApplied: Boolean,
@@ -39,7 +46,7 @@ class MenuAddFlowViewModel @Inject constructor(
                 price = templatePrice ?: 0,
                 isTemplateApplied = isTemplateApplied,
                 templateId = templateId,
-                categoryCode = categoryCode,
+                categoryCode = categoryCode ?: _initialCategoryCode,
             )
         }
     }
@@ -107,8 +114,8 @@ class MenuAddFlowViewModel @Inject constructor(
                 menuName = menu.name,
                 ingredientNames = menu.ingredients.map { it.name },
             )
-            if (duplicateCheck.menuNameDuplicate || duplicateCheck.dupIngredientNames.isNotEmpty()) {
-                return Result.Error(IllegalStateException("중복된 메뉴 또는 재료가 있어요."))
+            if (duplicateCheck.menuNameDuplicate) {
+                return Result.Error(IllegalStateException("이미 등록된 메뉴명이에요."))
             }
 
             val existingRecipes = menu.ingredients
@@ -154,6 +161,7 @@ class MenuAddFlowViewModel @Inject constructor(
     fun clearAll() {
         _registeredMenus.update { emptyList() }
         _currentMenuDraft.update { null }
+        _initialCategoryCode = null
     }
 }
 

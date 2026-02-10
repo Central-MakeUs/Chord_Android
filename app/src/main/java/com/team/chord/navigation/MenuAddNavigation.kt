@@ -1,5 +1,6 @@
 package com.team.chord.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -15,7 +16,9 @@ import com.team.chord.feature.menu.add.ingredientinput.IngredientInputScreen
 import com.team.chord.feature.menu.add.menudetail.MenuDetailScreen
 import com.team.chord.feature.menu.add.menusearch.MenuSearchScreen
 
-const val MENU_ADD_GRAPH_ROUTE = "menu_add_graph"
+private const val MENU_ADD_GRAPH_BASE = "menu_add_graph"
+private const val ARG_CATEGORY_CODE = "categoryCode"
+const val MENU_ADD_GRAPH_ROUTE = "$MENU_ADD_GRAPH_BASE?$ARG_CATEGORY_CODE={$ARG_CATEGORY_CODE}"
 private const val MENU_ADD_SEARCH_ROUTE = "menu_add_search"
 private const val MENU_ADD_DETAIL_ROUTE = "menu_add_detail"
 private const val MENU_ADD_INGREDIENT_INPUT_ROUTE = "menu_add_ingredient_input"
@@ -32,8 +35,13 @@ private const val MENU_ADD_DETAIL_ROUTE_PATTERN =
 private const val MENU_ADD_INGREDIENT_INPUT_ROUTE_PATTERN =
     "$MENU_ADD_INGREDIENT_INPUT_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_ID={$ARG_TEMPLATE_ID}"
 
-fun NavController.navigateToMenuAddGraph(navOptions: NavOptions? = null) {
-    navigate(MENU_ADD_GRAPH_ROUTE, navOptions)
+fun NavController.navigateToMenuAddGraph(categoryCode: String? = null, navOptions: NavOptions? = null) {
+    val route = if (categoryCode != null) {
+        "$MENU_ADD_GRAPH_BASE?$ARG_CATEGORY_CODE=$categoryCode"
+    } else {
+        MENU_ADD_GRAPH_BASE
+    }
+    navigate(route, navOptions)
 }
 
 fun NavGraphBuilder.menuAddGraph(
@@ -44,11 +52,23 @@ fun NavGraphBuilder.menuAddGraph(
         startDestination = MENU_ADD_SEARCH_ROUTE,
         route = MENU_ADD_GRAPH_ROUTE,
     ) {
+        argument(ARG_CATEGORY_CODE) {
+            type = NavType.StringType
+            nullable = true
+            defaultValue = null
+        }
         composable(route = MENU_ADD_SEARCH_ROUTE) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(MENU_ADD_GRAPH_ROUTE)
             }
             val menuAddFlowViewModel: MenuAddFlowViewModel = hiltViewModel(parentEntry)
+            val categoryCode = parentEntry.arguments?.getString(ARG_CATEGORY_CODE)
+
+            LaunchedEffect(categoryCode) {
+                if (categoryCode != null) {
+                    menuAddFlowViewModel.setInitialCategoryCode(categoryCode)
+                }
+            }
 
             MenuSearchScreen(
                 onNavigateBack = {
@@ -164,9 +184,6 @@ fun NavGraphBuilder.menuAddGraph(
                 registeredMenus = menuAddFlowViewModel.getRegisteredMenuSummaries(),
                 onNavigateBack = {
                     navController.popBackStack()
-                },
-                onAddAnother = {
-                    navController.popBackStack(MENU_ADD_SEARCH_ROUTE, inclusive = false)
                 },
                 onRegisterSuccess = {
                     navController.navigate(MENU_ADD_COMPLETE_ROUTE)

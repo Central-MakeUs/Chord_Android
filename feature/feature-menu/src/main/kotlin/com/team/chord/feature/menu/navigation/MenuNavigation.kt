@@ -43,7 +43,7 @@ fun NavController.navigateToIngredientEdit(
 
 fun NavGraphBuilder.menuListScreen(
     onNavigateToDetail: (Long) -> Unit,
-    onAddMenuClick: () -> Unit,
+    onAddMenuClick: (String) -> Unit,
 ) {
     composable(route = MENU_LIST_ROUTE) {
         MenuListScreen(

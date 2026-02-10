@@ -36,8 +36,6 @@ import com.team.chord.core.domain.model.Result
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale400
-import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue100
@@ -51,7 +49,6 @@ import java.util.Locale
 fun MenuAddConfirmScreen(
     registeredMenus: List<RegisteredMenuSummary>,
     onNavigateBack: () -> Unit,
-    onAddAnother: () -> Unit,
     onRegisterSuccess: () -> Unit,
     onRegisterMenus: suspend () -> Result<Unit>,
     modifier: Modifier = Modifier,
@@ -94,30 +91,6 @@ fun MenuAddConfirmScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            ChordLargeButton(
-                text = "이전",
-                onClick = onNavigateBack,
-                enabled = !isRegistering,
-                modifier = Modifier.weight(1f),
-                backgroundColor = Grayscale400,
-                textColor = Grayscale600,
-            )
-            ChordLargeButton(
-                text = "추가 등록",
-                onClick = onAddAnother,
-                enabled = !isRegistering,
-                modifier = Modifier.weight(1f),
-                backgroundColor = Grayscale400,
-                textColor = Grayscale600,
-            )
-        }
-
         ChordLargeButton(
             text = if (isRegistering) "등록 중..." else "마치기",
             onClick = {
@@ -140,7 +113,7 @@ fun MenuAddConfirmScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
-                .padding(top = 8.dp, bottom = 24.dp),
+                .padding(bottom = 24.dp),
         )
     }
 }

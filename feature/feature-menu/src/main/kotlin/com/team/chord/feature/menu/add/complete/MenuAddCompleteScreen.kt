@@ -41,7 +41,7 @@ fun MenuAddCompleteScreen(
         verticalArrangement = Arrangement.Center,
     ) {
         Icon(
-            painter = painterResource(id = R.drawable.ic_check),
+            painter = painterResource(id = R.drawable.ic_blue_linear_check),
             contentDescription = null,
             tint = PrimaryBlue500,
             modifier = Modifier.size(36.dp),
@@ -52,13 +52,6 @@ fun MenuAddCompleteScreen(
             fontWeight = FontWeight.Bold,
             fontSize = 28.sp,
             color = Grayscale900,
-        )
-        Text(
-            text = "잠시 후 메뉴 화면으로 이동해요",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 15.sp,
-            color = Grayscale700,
         )
     }
 }

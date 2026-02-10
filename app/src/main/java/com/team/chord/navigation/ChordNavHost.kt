@@ -218,8 +218,8 @@ fun ChordNavHost(
             onNavigateToDetail = { menuId ->
                 navController.navigateToMenuDetail(menuId)
             },
-            onAddMenuClick = {
-                navController.navigateToMenuAddGraph()
+            onAddMenuClick = { categoryCode ->
+                navController.navigateToMenuAddGraph(categoryCode)
             },
         )
 
