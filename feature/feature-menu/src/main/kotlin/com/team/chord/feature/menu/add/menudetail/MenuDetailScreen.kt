@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -26,12 +23,10 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
+import com.team.chord.core.ui.component.ChordTimeWheelPicker
 import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
@@ -312,161 +308,30 @@ private fun TimePickerBottomSheet(
     onConfirm: (Int, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var selectedMinutes by remember { mutableIntStateOf(initialMinutes) }
     var selectedSeconds by remember { mutableIntStateOf(initialSeconds) }
 
-    ModalBottomSheet(
+    ChordBottomSheet(
         onDismissRequest = onDismiss,
-        sheetState = sheetState,
+        title = "제조 시간",
         modifier = modifier,
-        containerColor = Grayscale100,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        dragHandle = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .background(
-                            color = Grayscale300,
-                            shape = RoundedCornerShape(2.dp),
-                        ),
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-        },
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp),
-        ) {
-            Text(
-                text = "제조 시간",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = Grayscale900,
+        content = {
+            ChordTimeWheelPicker(
+                selectedMinutes = selectedMinutes,
+                selectedSeconds = selectedSeconds,
+                onTimeSelected = { minutes, seconds ->
+                    selectedMinutes = minutes
+                    selectedSeconds = seconds
+                },
             )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                WheelPicker(
-                    items = (0..59).toList(),
-                    selectedItem = selectedMinutes,
-                    onItemSelected = { selectedMinutes = it },
-                    modifier = Modifier.weight(1f),
-                )
-
-                Text(
-                    text = "분",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 18.sp,
-                    color = Grayscale900,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-
-                WheelPicker(
-                    items = (0..59).toList(),
-                    selectedItem = selectedSeconds,
-                    onItemSelected = { selectedSeconds = it },
-                    modifier = Modifier.weight(1f),
-                )
-
-                Text(
-                    text = "초",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 18.sp,
-                    color = Grayscale900,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
+        },
+        confirmButton = {
             ChordLargeButton(
                 text = "완료",
                 onClick = { onConfirm(selectedMinutes, selectedSeconds) },
             )
-        }
-    }
-}
-
-@Composable
-private fun WheelPicker(
-    items: List<Int>,
-    selectedItem: Int,
-    onItemSelected: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = (selectedItem - 2).coerceAtLeast(0),
+        },
     )
-
-    LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress) {
-            val centerIndex = listState.firstVisibleItemIndex + 2
-            if (centerIndex in items.indices && items[centerIndex] != selectedItem) {
-                onItemSelected(items[centerIndex])
-            }
-        }
-    }
-
-    Box(
-        modifier = modifier
-            .height(200.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(Grayscale200),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp)
-                .background(PrimaryBlue100),
-        )
-
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            contentPadding = PaddingValues(vertical = 80.dp),
-        ) {
-            items(items.size) { index ->
-                val isSelected = items[index] == selectedItem
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .clickable {
-                            onItemSelected(items[index])
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = items[index].toString(),
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = if (isSelected) 20.sp else 16.sp,
-                        color = if (isSelected) Grayscale900 else Grayscale500,
-                    )
-                }
-            }
-        }
-    }
 }
 
 @Composable
