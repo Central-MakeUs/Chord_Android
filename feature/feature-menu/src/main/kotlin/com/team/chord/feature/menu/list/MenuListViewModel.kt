@@ -5,14 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.usecase.menu.GetCategoriesUseCase
 import com.team.chord.core.domain.usecase.menu.GetMenuListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -26,7 +27,8 @@ class MenuListViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MenuListUiState())
     val uiState: StateFlow<MenuListUiState> = _uiState.asStateFlow()
 
-    private val selectedCategoryCode = MutableStateFlow<String?>(null)
+    private var selectedCategoryCode: String? = null
+    private var menusByCategory: Map<String, List<MenuItemUi>> = emptyMap()
     private var loadJob: Job? = null
 
     init {
@@ -34,15 +36,19 @@ class MenuListViewModel @Inject constructor(
     }
 
     fun onCategorySelected(categoryCode: String?) {
-        selectedCategoryCode.value = categoryCode
-        _uiState.update { it.copy(selectedCategoryCode = categoryCode) }
+        selectedCategoryCode = categoryCode
+        _uiState.update {
+            it.copy(
+                selectedCategoryCode = categoryCode,
+                menuItems = getMenusForCategory(categoryCode),
+            )
+        }
     }
 
     fun refresh() {
         loadData(isRefresh = true)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private fun loadData(isRefresh: Boolean = false) {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
@@ -52,37 +58,45 @@ class MenuListViewModel @Inject constructor(
             }
 
             try {
-                selectedCategoryCode
-                    .flatMapLatest { selectedCode ->
-                        combine(
-                            getCategoriesUseCase(),
-                            getMenuListUseCase(selectedCode),
-                        ) { categories, menus ->
-                            MenuListUiState(
-                                isLoading = false,
-                                isRefreshing = false,
-                                categories = categories,
-                                selectedCategoryCode = selectedCode,
-                                menuItems = menus.map { menu ->
-                                    MenuItemUi(
-                                        id = menu.id,
-                                        name = menu.name,
-                                        sellingPrice = menu.price,
-                                        costRatio = menu.costRatio,
-                                        marginRatio = menu.marginRatio,
-                                        marginGrade = menu.marginGrade,
-                                    )
-                                },
-                            )
+                val categories = getCategoriesUseCase().first()
+
+                val menuResults = coroutineScope {
+                    categories.map { category ->
+                        async {
+                            category.code to getMenuListUseCase(category.code).first()
                         }
-                    }.collect { state ->
-                        _uiState.value = state
+                    }.awaitAll().toMap()
+                }
+
+                menusByCategory = menuResults.mapValues { (_, menus) ->
+                    menus.map { menu ->
+                        MenuItemUi(
+                            id = menu.id,
+                            name = menu.name,
+                            sellingPrice = menu.price,
+                            costRatio = menu.costRatio,
+                            marginRatio = menu.marginRatio,
+                            marginGrade = menu.marginGrade,
+                        )
                     }
+                }
+
+                _uiState.value = MenuListUiState(
+                    categories = categories,
+                    selectedCategoryCode = selectedCategoryCode,
+                    menuItems = getMenusForCategory(selectedCategoryCode),
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, isRefreshing = false, errorMessage = e.message) }
+                _uiState.update {
+                    it.copy(isLoading = false, isRefreshing = false, errorMessage = e.message)
+                }
             }
         }
     }
+
+    private fun getMenusForCategory(categoryCode: String?): List<MenuItemUi> =
+        if (categoryCode == null) menusByCategory.values.flatten()
+        else menusByCategory[categoryCode].orEmpty()
 }
