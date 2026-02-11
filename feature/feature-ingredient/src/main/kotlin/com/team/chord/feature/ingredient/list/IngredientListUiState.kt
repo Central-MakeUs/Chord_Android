@@ -8,6 +8,17 @@ data class IngredientListUiState(
     val ingredients: List<IngredientListItemUi> = emptyList(),
     val activeFilters: Set<IngredientFilter> = emptySet(),
     val errorMessage: String? = null,
+    // 삭제 모드
+    val isDeleteMode: Boolean = false,
+    val selectedIds: Set<Long> = emptySet(),
+    // 추가 플로우
+    val showMoreMenu: Boolean = false,
+    val showAddNameSheet: Boolean = false,
+    val showAddDetailSheet: Boolean = false,
+    val addIngredientName: String = "",
+    // Toast
+    val showToast: Boolean = false,
+    val toastMessage: String = "",
 )
 
 data class IngredientListItemUi(

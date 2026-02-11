@@ -2,7 +2,10 @@ package com.team.chord.feature.ingredient.list
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
+import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
+import com.team.chord.core.domain.usecase.ingredient.DeleteIngredientUseCase
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -20,6 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class IngredientListViewModel @Inject constructor(
     private val getIngredientListUseCase: GetIngredientListUseCase,
+    private val addIngredientToListUseCase: AddIngredientToListUseCase,
+    private val deleteIngredientUseCase: DeleteIngredientUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IngredientListUiState())
@@ -61,6 +66,129 @@ class IngredientListViewModel @Inject constructor(
         }
     }
 
+    // region More 메뉴
+
+    fun onMoreClick() {
+        _uiState.update { it.copy(showMoreMenu = true) }
+    }
+
+    fun onDismissMoreMenu() {
+        _uiState.update { it.copy(showMoreMenu = false) }
+    }
+
+    // endregion
+
+    // region 삭제 모드
+
+    fun enterDeleteMode() {
+        _uiState.update { it.copy(isDeleteMode = true, selectedIds = emptySet(), showMoreMenu = false) }
+    }
+
+    fun exitDeleteMode() {
+        _uiState.update { it.copy(isDeleteMode = false, selectedIds = emptySet()) }
+    }
+
+    fun toggleSelection(id: Long) {
+        _uiState.update { state ->
+            val newIds = if (state.selectedIds.contains(id)) {
+                state.selectedIds - id
+            } else {
+                state.selectedIds + id
+            }
+            state.copy(selectedIds = newIds)
+        }
+    }
+
+    fun deleteSelected() {
+        val selectedIds = _uiState.value.selectedIds
+        if (selectedIds.isEmpty()) return
+        viewModelScope.launch {
+            val count = selectedIds.size
+            var allSuccess = true
+            selectedIds.forEach { id ->
+                val result = deleteIngredientUseCase(id)
+                if (result is Result.Error) {
+                    allSuccess = false
+                }
+            }
+            if (allSuccess) {
+                _uiState.update {
+                    it.copy(
+                        isDeleteMode = false,
+                        selectedIds = emptySet(),
+                        showToast = true,
+                        toastMessage = "${count}개 재료가 삭제되었어요",
+                    )
+                }
+                loadData(isRefresh = true)
+            }
+        }
+    }
+
+    // endregion
+
+    // region 추가 플로우
+
+    fun onAddClick() {
+        _uiState.update { it.copy(showAddNameSheet = true, showMoreMenu = false) }
+    }
+
+    fun onAddNameChange(name: String) {
+        _uiState.update { it.copy(addIngredientName = name) }
+    }
+
+    fun onAddNameConfirm() {
+        _uiState.update { it.copy(showAddNameSheet = false, showAddDetailSheet = true) }
+    }
+
+    fun onDismissAddNameSheet() {
+        _uiState.update { it.copy(showAddNameSheet = false, addIngredientName = "") }
+    }
+
+    fun onDismissAddDetailSheet() {
+        _uiState.update { it.copy(showAddDetailSheet = false) }
+    }
+
+    fun onAddIngredient(
+        categoryCode: String,
+        unitCode: String,
+        price: Int,
+        amount: Int,
+        supplier: String?,
+    ) {
+        viewModelScope.launch {
+            val result = addIngredientToListUseCase(
+                categoryCode = categoryCode,
+                ingredientName = _uiState.value.addIngredientName,
+                unitCode = unitCode,
+                price = price,
+                amount = amount,
+                supplier = supplier,
+            )
+            if (result is Result.Success) {
+                _uiState.update {
+                    it.copy(
+                        showAddDetailSheet = false,
+                        addIngredientName = "",
+                        showToast = true,
+                        toastMessage = "재료가 추가되었어요",
+                    )
+                }
+                loadData(isRefresh = true)
+            }
+        }
+    }
+
+    // endregion
+
+    // region Toast
+
+    fun onToastDismissed() {
+        _uiState.update { it.copy(showToast = false, toastMessage = "") }
+    }
+
+    // endregion
+
     private fun loadData(isRefresh: Boolean = false) {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
@@ -89,11 +217,14 @@ class IngredientListViewModel @Inject constructor(
                     }
                 }
 
-                val currentFilters = _uiState.value.activeFilters
-                _uiState.value = IngredientListUiState(
-                    activeFilters = currentFilters,
-                    ingredients = getIngredientsForFilters(currentFilters),
-                )
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        ingredients = getIngredientsForFilters(it.activeFilters),
+                        errorMessage = null,
+                    )
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
