@@ -19,8 +19,10 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.ui.R
@@ -52,6 +55,11 @@ fun IngredientListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    LifecycleResumeEffect(Unit) {
+        viewModel.refresh()
+        onPauseOrDispose { }
+    }
+
     IngredientListScreenContent(
         uiState = uiState,
         onFilterToggle = viewModel::onFilterToggle,
@@ -59,10 +67,12 @@ fun IngredientListScreen(
         onNavigateToDetail = onNavigateToDetail,
         onSearchClick = onNavigateToSearch,
         onMoreClick = { /* TODO: Implement more options */ },
+        onRefresh = viewModel::refresh,
         modifier = modifier,
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun IngredientListScreenContent(
     uiState: IngredientListUiState,
@@ -71,6 +81,7 @@ internal fun IngredientListScreenContent(
     onNavigateToDetail: (Long) -> Unit,
     onSearchClick: () -> Unit,
     onMoreClick: () -> Unit,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -95,7 +106,9 @@ internal fun IngredientListScreenContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Column(
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
                 .background(

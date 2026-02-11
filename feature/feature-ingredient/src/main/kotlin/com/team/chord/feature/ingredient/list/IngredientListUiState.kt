@@ -4,6 +4,7 @@ import com.team.chord.core.domain.model.ingredient.IngredientFilter
 
 data class IngredientListUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
     val ingredients: List<IngredientListItemUi> = emptyList(),
     val activeFilters: Set<IngredientFilter> = emptySet(),
     val errorMessage: String? = null,
