@@ -190,17 +190,10 @@ class IngredientDetailViewModel @Inject constructor(
         }
     }
 
-    private fun String.toIngredientFilter(): IngredientFilter = when (this) {
-        "INGREDIENTS" -> IngredientFilter.FOOD_INGREDIENT
-        "MATERIALS" -> IngredientFilter.OPERATIONAL_SUPPLY
-        else -> IngredientFilter.FOOD_INGREDIENT
-    }
+    private fun String.toIngredientFilter(): IngredientFilter =
+        IngredientFilter.entries.find { it.categoryCode == this } ?: IngredientFilter.FOOD_INGREDIENT
 
-    private fun IngredientFilter.toCategoryCode(): String = when (this) {
-        IngredientFilter.FOOD_INGREDIENT -> "INGREDIENTS"
-        IngredientFilter.OPERATIONAL_SUPPLY -> "MATERIALS"
-        IngredientFilter.FAVORITE -> "INGREDIENTS"
-    }
+    private fun IngredientFilter.toCategoryCode(): String = categoryCode
 
     private fun String.toDisplayDate(): String {
         if (length < 10 || !contains('-')) return this

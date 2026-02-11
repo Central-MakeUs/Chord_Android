@@ -36,16 +36,16 @@ fun IngredientDetailDto.toDomain(): Ingredient =
         categoryCode = ingredientCategoryCode.orEmpty(),
         unit = unitCode.toIngredientUnit(),
         baseQuantity = baseQuantity,
-        currentUnitPrice = unitPrice,
+        currentUnitPrice = unitPrice.toInt(),
         supplier = supplier,
         isFavorite = isFavorite,
-        originalAmount = originalAmount,
-        originalPrice = originalPrice,
+        originalAmount = originalAmount?.toInt(),
+        originalPrice = originalPrice?.toInt(),
         usedMenus = menus.map { menu ->
             UsedMenu(
-                id = menu.menuId ?: 0L,
+                id = 0L,
                 name = menu.menuName ?: "",
-                usageAmount = menu.usageAmount ?: "",
+                usageAmount = "${menu.amount?.let { "%.0f".format(it) } ?: "0"}${menu.unitCode?.toIngredientUnit()?.displayName ?: ""}",
             )
         },
     )
@@ -54,7 +54,7 @@ fun PriceHistoryDto.toDomain(): PriceHistoryItem =
     PriceHistoryItem(
         id = historyId,
         date = changeDate,
-        price = unitPrice,
+        price = unitPrice.toInt(),
         unitAmount = baseQuantity,
         unit = unitCode.toIngredientUnit(),
     )
@@ -66,7 +66,7 @@ fun SearchIngredientDto.toDomain(): IngredientSearchResult =
         ingredientId = ingredientId,
         ingredientName = ingredientName,
         categoryCode = categoryCode,
-        unitPrice = unitPrice,
+        unitPrice = unitPrice?.toInt(),
         unitCode = unitCode,
         baseQuantity = baseQuantity,
         supplier = supplier,

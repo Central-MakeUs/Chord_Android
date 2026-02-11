@@ -54,7 +54,7 @@ class RemoteIngredientDataSource @Inject constructor(
                 categoryCode = dto.ingredientCategoryCode.orEmpty(),
                 unit = dto.unitCode?.toIngredientUnit() ?: com.team.chord.core.domain.model.menu.IngredientUnit.G,
                 baseQuantity = dto.baseQuantity ?: 0,
-                currentUnitPrice = dto.currentUnitPrice ?: 0,
+                currentUnitPrice = dto.currentUnitPrice?.toInt() ?: 0,
                 supplier = dto.supplier,
             )
         })

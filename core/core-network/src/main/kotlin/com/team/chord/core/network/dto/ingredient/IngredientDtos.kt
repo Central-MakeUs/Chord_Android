@@ -24,28 +24,28 @@ data class IngredientDetailDto(
     val ingredientId: Long,
     val ingredientCategoryCode: String? = null,
     val ingredientName: String,
-    val unitPrice: Int,
+    val unitPrice: Double,
     val baseQuantity: Int,
     val unitCode: String,
     val supplier: String? = null,
     val menus: List<UsedMenuDto> = emptyList(),
-    val originalAmount: Int? = null,
-    val originalPrice: Int? = null,
+    val originalAmount: Double? = null,
+    val originalPrice: Double? = null,
     val isFavorite: Boolean = false,
 )
 
 @Serializable
 data class UsedMenuDto(
-    val menuId: Long? = null,
     val menuName: String? = null,
-    val usageAmount: String? = null,
+    val amount: Double? = null,
+    val unitCode: String? = null,
 )
 
 @Serializable
 data class PriceHistoryDto(
     val historyId: Long,
     val changeDate: String,
-    val unitPrice: Int,
+    val unitPrice: Double,
     val unitCode: String,
     val baseQuantity: Int,
 )
@@ -57,7 +57,7 @@ data class SearchIngredientDto(
     val ingredientId: Long? = null,
     val ingredientName: String,
     val categoryCode: String? = null,
-    val unitPrice: Int? = null,
+    val unitPrice: Double? = null,
     val unitCode: String? = null,
     val baseQuantity: Int? = null,
     val supplier: String? = null,
@@ -70,7 +70,7 @@ data class SearchMyIngredientDto(
     val ingredientCategoryCode: String? = null,
     val unitCode: String? = null,
     val baseQuantity: Int? = null,
-    val currentUnitPrice: Int? = null,
+    val currentUnitPrice: Double? = null,
     val supplier: String? = null,
 )
 
