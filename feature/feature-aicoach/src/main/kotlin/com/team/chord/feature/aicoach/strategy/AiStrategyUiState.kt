@@ -4,6 +4,8 @@ import java.time.YearMonth
 
 data class AiStrategyUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val errorMessage: String? = null,
     val recommendedStrategies: List<RecommendedStrategyUi> = emptyList(),
     val selectedMonth: YearMonth = YearMonth.now(),
     val selectedFilter: StrategyFilter = StrategyFilter.COMPLETED,
@@ -22,7 +24,6 @@ data class StrategyHistoryItemUi(
     val weekLabel: String,
     val title: String,
     val description: String,
-    val imageUrl: String? = null,
 )
 
 enum class StrategyStatus {

@@ -39,6 +39,14 @@ class AiStrategyViewModel @Inject constructor(
         loadStrategies()
     }
 
+    fun refresh() {
+        loadStrategies(isRefresh = true)
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
+
     fun onMonthChange(yearMonth: YearMonth) {
         _uiState.value = _uiState.value.copy(selectedMonth = yearMonth)
         loadStrategies()
@@ -71,9 +79,12 @@ class AiStrategyViewModel @Inject constructor(
         }
     }
 
-    private fun loadStrategies() {
+    private fun loadStrategies(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update {
+                if (isRefresh) it.copy(isRefreshing = true)
+                else it.copy(isLoading = true)
+            }
             try {
                 val month = _uiState.value.selectedMonth
                 val isCompleted = _uiState.value.selectedFilter == StrategyFilter.COMPLETED
@@ -93,27 +104,30 @@ class AiStrategyViewModel @Inject constructor(
                 _uiState.update { state ->
                     state.copy(
                         isLoading = false,
+                        isRefreshing = false,
                         recommendedStrategies = weeklyStrategies.map { it.toRecommendedUi() },
+                        historyItems = savedStrategies.map { strategy -> strategy.toHistoryUi() },
+                        errorMessage = null,
                     )
                 }
-                _uiState.update {
-                    it.copy(historyItems = savedStrategies.map { strategy -> strategy.toHistoryUi() })
-                }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        recommendedStrategies = emptyList(),
-                        historyItems = emptyList(),
+                        isRefreshing = false,
+                        errorMessage = e.message ?: "전략을 불러오는데 실패했습니다",
                     )
                 }
             }
         }
     }
 
-    private fun loadSavedStrategies() {
+    private fun loadSavedStrategies(isRefresh: Boolean = false) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update {
+                if (isRefresh) it.copy(isRefreshing = true)
+                else it.copy(isLoading = true)
+            }
             try {
                 val month = _uiState.value.selectedMonth
                 savedStrategies = getSavedStrategiesUseCase(
@@ -124,11 +138,19 @@ class AiStrategyViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
+                        isRefreshing = false,
                         historyItems = savedStrategies.map { strategy -> strategy.toHistoryUi() },
+                        errorMessage = null,
                     )
                 }
-            } catch (_: Exception) {
-                _uiState.update { it.copy(isLoading = false, historyItems = emptyList()) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        errorMessage = e.message ?: "저장된 전략을 불러오는데 실패했습니다",
+                    )
+                }
             }
         }
     }
