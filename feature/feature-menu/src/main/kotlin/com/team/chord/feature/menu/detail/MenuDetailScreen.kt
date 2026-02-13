@@ -317,28 +317,30 @@ private fun MenuDetailContent(
             contributionProfit = menuDetail.contributionProfit,
         )
 
-        // 권장가격 한 줄 (있는 경우만)
-        if (menuDetail.recommendedPrice != null) {
-            Spacer(modifier = Modifier.height(12.dp))
+        // 권장가격 한 줄 (주의/위험 등급에서만 노출)
+        if (shouldShowRecommendedPrice(menuDetail)) {
+            menuDetail.recommendedPrice?.let { recommendedPrice ->
+                Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Icon(
-                    painter = painterResource(CoreUiR.drawable.ic_check),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    tint = PrimaryBlue500,
-                )
-                Text(
-                    text = "권장가격 ${numberFormat.format(menuDetail.recommendedPrice)}원",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp,
-                    color = PrimaryBlue500,
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Icon(
+                        painter = painterResource(CoreUiR.drawable.ic_check),
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = PrimaryBlue500,
+                    )
+                    Text(
+                        text = "권장가격 ${numberFormat.format(recommendedPrice)}원",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                        color = PrimaryBlue500,
+                    )
+                }
             }
         }
 
@@ -441,4 +443,10 @@ private fun formatPreparationTime(seconds: Int): String {
     } else {
         "약 ${remainingSeconds}초"
     }
+}
+
+private fun shouldShowRecommendedPrice(menuDetail: MenuDetailUi): Boolean {
+    val normalizedGradeCode = menuDetail.marginGrade.code.trim().uppercase(Locale.ROOT)
+    val isWarningOrDanger = normalizedGradeCode == "WARNING" || normalizedGradeCode == "DANGER"
+    return isWarningOrDanger && menuDetail.recommendedPrice != null
 }
