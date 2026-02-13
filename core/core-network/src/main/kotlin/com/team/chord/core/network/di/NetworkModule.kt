@@ -3,6 +3,7 @@ package com.team.chord.core.network.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.team.chord.core.network.BuildConfig
 import com.team.chord.core.network.api.AuthApi
+import com.team.chord.core.network.api.HomeApi
 import com.team.chord.core.network.api.IngredientApi
 import com.team.chord.core.network.api.MenuApi
 import com.team.chord.core.network.api.StrategyApi
@@ -76,6 +77,11 @@ object NetworkModule {
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi =
         retrofit.create(AuthApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideHomeApi(retrofit: Retrofit): HomeApi =
+        retrofit.create(HomeApi::class.java)
 
     @Provides
     @Singleton

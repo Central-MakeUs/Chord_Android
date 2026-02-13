@@ -1,5 +1,9 @@
 package com.team.chord.core.network.api
 
+import com.team.chord.core.network.dto.strategy.CautionMenuStrategyDetailResponseDto
+import com.team.chord.core.network.dto.strategy.CompletionPhraseResponseDto
+import com.team.chord.core.network.dto.strategy.DangerMenuStrategyDetailResponseDto
+import com.team.chord.core.network.dto.strategy.HighMarginMenuStrategyDetailResponseDto
 import com.team.chord.core.network.dto.strategy.StrategyDto
 import com.team.chord.core.network.model.ApiResponse
 import retrofit2.Response
@@ -35,4 +39,25 @@ interface StrategyApi {
         @Query("type") type: String,
         @Query("isSaved") isSaved: Boolean,
     ): Response<ApiResponse<Unit>>
+
+    @PATCH("insights/strategies/{strategyId}/complete")
+    suspend fun completeStrategy(
+        @Path("strategyId") strategyId: Long,
+        @Query("type") type: String,
+    ): Response<ApiResponse<CompletionPhraseResponseDto>>
+
+    @GET("insights/strategies/high-margin/{strategyId}")
+    suspend fun getHighMarginStrategyDetail(
+        @Path("strategyId") strategyId: Long,
+    ): Response<ApiResponse<HighMarginMenuStrategyDetailResponseDto>>
+
+    @GET("insights/strategies/danger/{strategyId}")
+    suspend fun getDangerStrategyDetail(
+        @Path("strategyId") strategyId: Long,
+    ): Response<ApiResponse<DangerMenuStrategyDetailResponseDto>>
+
+    @GET("insights/strategies/caution/{strategyId}")
+    suspend fun getCautionStrategyDetail(
+        @Path("strategyId") strategyId: Long,
+    ): Response<ApiResponse<CautionMenuStrategyDetailResponseDto>>
 }

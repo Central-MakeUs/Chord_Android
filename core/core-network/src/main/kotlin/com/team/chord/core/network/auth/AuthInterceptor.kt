@@ -13,11 +13,6 @@ class AuthInterceptor @Inject constructor(
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
-        val path = request.url.encodedPath
-
-        if (isPublicEndpoint(path)) {
-            return chain.proceed(request)
-        }
 
         val token = runBlocking { tokenManager.getAccessToken() }
 
@@ -30,17 +25,5 @@ class AuthInterceptor @Inject constructor(
         }
 
         return chain.proceed(authenticatedRequest)
-    }
-
-    private fun isPublicEndpoint(path: String): Boolean {
-        return PUBLIC_PATHS.any { path.contains(it) }
-    }
-
-    private companion object {
-        val PUBLIC_PATHS = listOf(
-            "/auth/sign-up",
-            "/auth/login",
-            "/auth/refresh",
-        )
     }
 }

@@ -22,9 +22,6 @@ class TokenAuthenticator @Inject constructor(
     private var lastRefreshTimeMs = 0L
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        val path = response.request.url.encodedPath
-        if (isPublicEndpoint(path)) return null
-
         if (responseCount(response) >= MAX_RETRY) {
             runBlocking { tokenManager.clearTokens() }
             return null
@@ -89,17 +86,8 @@ class TokenAuthenticator @Inject constructor(
         return count
     }
 
-    private fun isPublicEndpoint(path: String): Boolean {
-        return PUBLIC_PATHS.any { path.contains(it) }
-    }
-
     private companion object {
         const val MAX_RETRY = 2
         const val REFRESH_WINDOW_MS = 5_000L
-        val PUBLIC_PATHS = listOf(
-            "/auth/sign-up",
-            "/auth/login",
-            "/auth/refresh",
-        )
     }
 }
