@@ -10,6 +10,7 @@ sealed interface HomeUiState {
         val ctaCount: Int,
         val stats: List<HomeStatItem>,
         val strategyItems: List<HomeStrategyItem>,
+        val isRefreshing: Boolean = false,
     ) : HomeUiState
 
     data class Error(

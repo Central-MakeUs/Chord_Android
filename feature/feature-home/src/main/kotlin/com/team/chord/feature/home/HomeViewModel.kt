@@ -26,6 +26,8 @@ class HomeViewModel
         private val getHomeMenusUseCase: GetHomeMenusUseCase,
         private val getHomeStrategiesUseCase: GetHomeStrategiesUseCase,
     ) : ViewModel() {
+        private var isRequestInFlight = false
+
         private val _uiState =
             MutableStateFlow<HomeUiState>(
                 HomeUiState.Success(
@@ -43,44 +45,65 @@ class HomeViewModel
             )
         val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-        init {
+        fun onScreenResume() {
             loadHome()
         }
 
-        private fun loadHome() {
+        fun refresh() {
+            loadHome(isRefresh = true)
+        }
+
+        private fun loadHome(isRefresh: Boolean = false) {
             viewModelScope.launch {
+                if (isRequestInFlight) return@launch
+
                 val current = _uiState.value as? HomeUiState.Success ?: return@launch
+                isRequestInFlight = true
+
+                if (isRefresh) {
+                    _uiState.update { state ->
+                        (state as? HomeUiState.Success)?.copy(isRefreshing = true) ?: state
+                    }
+                }
+
                 val now = LocalDate.now()
                 val weekOfMonth = now.get(WeekFields.of(Locale.getDefault()).weekOfMonth()).coerceAtLeast(1)
 
-                val nextState = supervisorScope {
-                    val homeMenusResultDeferred = async {
-                        runCatching { getHomeMenusUseCase() }
-                    }
-                    val homeStrategiesResultDeferred = async {
-                        runCatching {
-                            getHomeStrategiesUseCase(
-                                year = now.year,
-                                month = now.monthValue,
-                                weekOfMonth = weekOfMonth,
-                            )
+                try {
+                    val baseState = _uiState.value as? HomeUiState.Success ?: current
+
+                    val nextState = supervisorScope {
+                        val homeMenusResultDeferred = async {
+                            runCatching { getHomeMenusUseCase() }
                         }
+                        val homeStrategiesResultDeferred = async {
+                            runCatching {
+                                getHomeStrategiesUseCase(
+                                    year = now.year,
+                                    month = now.monthValue,
+                                    weekOfMonth = weekOfMonth,
+                                )
+                            }
+                        }
+
+                        val homeMenus = homeMenusResultDeferred.await().getOrNull()
+                        val homeStrategies = homeStrategiesResultDeferred.await().getOrNull()
+
+                        baseState.copy(
+                            ctaCount = homeMenus?.numOfDangerMenus ?: baseState.ctaCount,
+                            stats = homeMenus?.let(::buildStats) ?: baseState.stats,
+                            strategyItems = homeStrategies
+                                ?.take(3)
+                                ?.map(::mapToHomeStrategyItem)
+                                ?: baseState.strategyItems,
+                            isRefreshing = false,
+                        )
                     }
 
-                    val homeMenus = homeMenusResultDeferred.await().getOrNull()
-                    val homeStrategies = homeStrategiesResultDeferred.await().getOrNull()
-
-                    current.copy(
-                        ctaCount = homeMenus?.numOfDangerMenus ?: current.ctaCount,
-                        stats = homeMenus?.let(::buildStats) ?: current.stats,
-                        strategyItems = homeStrategies
-                            ?.take(3)
-                            ?.map(::mapToHomeStrategyItem)
-                            ?: current.strategyItems,
-                    )
+                    _uiState.update { nextState }
+                } finally {
+                    isRequestInFlight = false
                 }
-
-                _uiState.update { nextState }
             }
         }
 
