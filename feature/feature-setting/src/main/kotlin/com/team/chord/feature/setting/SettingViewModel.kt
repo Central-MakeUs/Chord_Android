@@ -20,10 +20,6 @@ class SettingViewModel
         private val _uiState = MutableStateFlow(SettingUiState())
         val uiState: StateFlow<SettingUiState> = _uiState.asStateFlow()
 
-        fun onToggleNotification() {
-            _uiState.update { it.copy(notificationEnabled = !it.notificationEnabled) }
-        }
-
         fun onShowLogoutDialog() {
             _uiState.update { it.copy(showLogoutDialog = true) }
         }

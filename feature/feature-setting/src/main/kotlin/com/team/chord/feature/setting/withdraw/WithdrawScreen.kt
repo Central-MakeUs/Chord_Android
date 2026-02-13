@@ -18,9 +18,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordOneButtonDialog
-import com.team.chord.core.ui.component.ChordTopAppBarWithIconAction
+import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
-import com.team.chord.core.ui.component.TopAppBarActionIcon
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale600
@@ -48,18 +47,16 @@ fun WithdrawScreen(
             .fillMaxSize()
             .background(Grayscale100),
     ) {
-        ChordTopAppBarWithIconAction(
+        ChordTopAppBar(
             title = "회원탈퇴",
             onBackClick = onNavigateBack,
-            actionIcon = TopAppBarActionIcon.Menu,
-            onActionClick = { },
         )
 
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp),
         ) {
             Text(
-                text = "탈퇴안내 내용",
+                text = "정말 탈퇴하시겠어요?",
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp,
@@ -69,7 +66,37 @@ fun WithdrawScreen(
             Spacer(modifier = Modifier.padding(top = 8.dp))
 
             Text(
-                text = "정말 탈퇴하시겠어요?",
+                text = "회원 탈퇴를 진행하면 즉시 계정이 삭제되며 서비스 이용이 불가합니다.",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Grayscale600,
+            )
+
+            Spacer(modifier = Modifier.padding(top = 20.dp))
+
+            Text(
+                text = "- 탈퇴 후에는 기존 데이터가 복구되지 않습니다.",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Grayscale600,
+            )
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            Text(
+                text = "- 탈퇴 즉시 계정 정보(아이디, 비밀번호 등)는 지체 없이 삭제됩니다.",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Grayscale600,
+            )
+
+            Spacer(modifier = Modifier.padding(top = 8.dp))
+
+            Text(
+                text = "- 단, 관련 법령에 따라 결제·거래 기록 등 일부 정보는 일정 기간 보관될 수 있습니다.",
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,

@@ -89,11 +89,10 @@ fun StoreInfoCard(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             InfoLabel(label = "직원", value = "${employeeCount}명")
-            Spacer(modifier = Modifier.width(16.dp))
             InfoLabel(label = "인건비", value = laborCost)
         }
     }

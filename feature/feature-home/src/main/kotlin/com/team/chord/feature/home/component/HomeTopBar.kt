@@ -13,16 +13,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.team.chord.core.ui.R
-import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.PrimaryBlue500
-import com.team.chord.feature.home.R as HomeR
 
 @Composable
 fun HomeTopBar(
-    onNotificationClick: () -> Unit,
     onMenuClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -31,27 +29,26 @@ fun HomeTopBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = "코치코치",
-            style = MaterialTheme.typography.titleLarge,
-            color = PrimaryBlue500,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_logo),
+                contentDescription = "로고",
+                tint = Color.Unspecified,
+                modifier = Modifier.size(15.dp),
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "코치코치",
+                style = MaterialTheme.typography.titleLarge,
+                color = PrimaryBlue500,
+            )
+        }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                painter = painterResource(id = HomeR.drawable.ic_notification),
-                contentDescription = "알림",
-                tint = Grayscale700,
-                modifier =
-                    Modifier
-                        .size(24.dp)
-                        .clickable(onClick = onNotificationClick),
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Icon(
                 painter = painterResource(id = R.drawable.ic_settings),
                 contentDescription = "설정",
-                tint = Grayscale700,
+                tint = Color.Unspecified,
                 modifier =
                     Modifier
                         .size(24.dp)

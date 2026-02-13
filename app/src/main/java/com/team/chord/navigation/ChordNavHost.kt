@@ -43,10 +43,14 @@ import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
 import com.team.chord.feature.aicoach.navigation.aiCoachScreen
 import com.team.chord.feature.setting.navigation.SETTING_ROUTE
+import com.team.chord.feature.setting.navigation.faqScreen
+import com.team.chord.feature.setting.navigation.navigateToFaq
 import com.team.chord.feature.setting.navigation.navigateToSetting
+import com.team.chord.feature.setting.navigation.navigateToStoreEdit
 import com.team.chord.feature.setting.navigation.navigateToSettingWebView
 import com.team.chord.feature.setting.navigation.navigateToWithdraw
 import com.team.chord.feature.setting.navigation.settingScreen
+import com.team.chord.feature.setting.navigation.storeEditScreen
 import com.team.chord.feature.setting.navigation.settingWebViewScreen
 import com.team.chord.feature.setting.navigation.withdrawScreen
 
@@ -166,16 +170,10 @@ fun ChordNavHost(
                 navController.popBackStack()
             },
             onNavigateToStoreEdit = {
-                // TODO: navigate to store info edit screen
-            },
-            onNavigateToSubscription = {
-                // TODO: navigate to subscription screen
+                navController.navigateToStoreEdit()
             },
             onNavigateToFaq = {
-                navController.navigateToSettingWebView(
-                    title = "FAQ",
-                    url = "https://www.notion.so/FAQ-30064018c6f68052a4bae8d09d20cd43",
-                )
+                navController.navigateToFaq()
             },
             onNavigateToTerms = {
                 navController.navigateToSettingWebView(
@@ -192,6 +190,21 @@ fun ChordNavHost(
                         popUpTo(SETTING_ROUTE) { inclusive = true }
                     },
                 )
+            },
+        )
+
+        storeEditScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onStoreEditComplete = {
+                navController.popBackStack()
+            },
+        )
+
+        faqScreen(
+            onNavigateBack = {
+                navController.popBackStack()
             },
         )
 

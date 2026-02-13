@@ -70,7 +70,6 @@ internal fun HomeScreenContent(
             ) {
                 item {
                     HomeTopBar(
-                        onNotificationClick = { },
                         onMenuClick = onNavigateToSetting,
                     )
                 }

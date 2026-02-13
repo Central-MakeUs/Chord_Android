@@ -23,21 +23,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.team.chord.core.ui.component.ChordTopAppBarWithIconAction
+import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
-import com.team.chord.core.ui.component.TopAppBarActionIcon
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.feature.setting.component.SettingMenuRow
-import com.team.chord.feature.setting.component.SettingToggleRow
 import com.team.chord.feature.setting.component.StoreInfoCard
 
 @Composable
 fun SettingScreen(
     onNavigateBack: () -> Unit,
     onNavigateToStoreEdit: () -> Unit,
-    onNavigateToSubscription: () -> Unit,
     onNavigateToFaq: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToWithdraw: () -> Unit,
@@ -57,11 +54,9 @@ fun SettingScreen(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onNavigateToStoreEdit = onNavigateToStoreEdit,
-        onNavigateToSubscription = onNavigateToSubscription,
         onNavigateToFaq = onNavigateToFaq,
         onNavigateToTerms = onNavigateToTerms,
         onNavigateToWithdraw = onNavigateToWithdraw,
-        onToggleNotification = viewModel::onToggleNotification,
         onShowLogoutDialog = viewModel::onShowLogoutDialog,
         onDismissLogoutDialog = viewModel::onDismissLogoutDialog,
         onConfirmLogout = viewModel::onLogout,
@@ -74,11 +69,9 @@ internal fun SettingScreenContent(
     uiState: SettingUiState,
     onNavigateBack: () -> Unit,
     onNavigateToStoreEdit: () -> Unit,
-    onNavigateToSubscription: () -> Unit,
     onNavigateToFaq: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToWithdraw: () -> Unit,
-    onToggleNotification: () -> Unit,
     onShowLogoutDialog: () -> Unit,
     onDismissLogoutDialog: () -> Unit,
     onConfirmLogout: () -> Unit,
@@ -89,11 +82,9 @@ internal fun SettingScreenContent(
             .fillMaxSize()
             .background(Grayscale200),
     ) {
-        ChordTopAppBarWithIconAction(
+        ChordTopAppBar(
             title = "설정",
             onBackClick = onNavigateBack,
-            actionIcon = TopAppBarActionIcon.Menu,
-            onActionClick = { /* TODO: menu action */ },
         )
 
         Column(
@@ -108,18 +99,6 @@ internal fun SettingScreenContent(
                 employeeCount = uiState.employeeCount,
                 laborCost = uiState.laborCost,
                 onEditClick = onNavigateToStoreEdit,
-            )
-
-            SettingMenuRow(
-                title = "구독관리",
-                subText = uiState.subscriptionStatus,
-                onClick = onNavigateToSubscription,
-            )
-
-            SettingToggleRow(
-                title = "알림",
-                checked = uiState.notificationEnabled,
-                onCheckedChange = { onToggleNotification() },
             )
 
             SettingMenuRow(
@@ -171,11 +150,9 @@ private fun SettingScreenContentPreview() {
         uiState = SettingUiState(),
         onNavigateBack = {},
         onNavigateToStoreEdit = {},
-        onNavigateToSubscription = {},
         onNavigateToFaq = {},
         onNavigateToTerms = {},
         onNavigateToWithdraw = {},
-        onToggleNotification = {},
         onShowLogoutDialog = {},
         onDismissLogoutDialog = {},
         onConfirmLogout = {},
@@ -189,11 +166,9 @@ private fun SettingScreenContentWithDialogPreview() {
         uiState = SettingUiState(showLogoutDialog = true),
         onNavigateBack = {},
         onNavigateToStoreEdit = {},
-        onNavigateToSubscription = {},
         onNavigateToFaq = {},
         onNavigateToTerms = {},
         onNavigateToWithdraw = {},
-        onToggleNotification = {},
         onShowLogoutDialog = {},
         onDismissLogoutDialog = {},
         onConfirmLogout = {},
