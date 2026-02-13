@@ -1,13 +1,18 @@
+---
+name: commit
+description: Use this skill when the user explicitly asks to create git commits. Do not trigger for code changes that do not request commit creation.
+---
+
 # Commit Skill
 
-코드 변경사항을 커밋하는 스킬입니다.
+OpenAI Codex/OpenCode 워크플로우에서 코드 변경사항을 안전하게 커밋하기 위한 스킬입니다.
 
 ---
 
 ## When to Trigger
 
 - 사용자가 "커밋해줘", "commit", "변경사항 커밋" 요청 시
-- `/commit` 명령어 실행 시
+- `/commit` 명령어 실행 시 (지원되는 환경에서만)
 
 ---
 
@@ -18,8 +23,6 @@
 <type>: <subject>
 
 <body>
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 ```
 
 ### Type Prefix
@@ -81,8 +84,6 @@ git commit -m "$(cat <<'EOF'
 <type>: <subject>
 
 <body>
-
-Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 EOF
 )"
 ```
@@ -120,10 +121,11 @@ git status --short
 ## DO NOT
 
 - `.idea/`, `.gradle/` 등 IDE/빌드 파일 커밋 금지
+- 사용자의 명시적 요청 없이 커밋 생성 금지
 - 사용자 확인 없이 `git push` 금지
 - `--force`, `--amend` (최근 커밋이 아닌 경우) 금지
 - 비밀번호, API 키 등 민감 정보 포함 파일 커밋 금지
 
 ---
 
-*Last Updated: 2026-01-13 (feat vs refactor 구분 가이드 추가)*
+*Last Updated: 2026-02-13 (Codex/OpenCode 기준으로 커밋 템플릿과 안전 규칙 정리)*

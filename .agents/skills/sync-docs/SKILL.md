@@ -1,6 +1,11 @@
+---
+name: sync-docs
+description: Use this skill when the user asks to synchronize project documentation after implemented changes. Do not trigger for planning-only conversations.
+---
+
 # Sync Docs Skill
 
-세션 작업 완료 후 프로젝트 문서를 `.claude/docs/`에 동기화하는 스킬입니다.
+세션 작업 완료 후 프로젝트 문서를 `docs/`에 동기화하는 스킬입니다. OpenAI Codex 워크플로우를 기본으로 하며 특정 벤더 도구에 종속되지 않게 관리합니다.
 
 ---
 
@@ -10,16 +15,16 @@
 
 1. **세션 종료 시**: 사용자가 "문서 동기화", "sync docs", "문서 업데이트" 요청 시
 2. **주요 작업 완료 후**: 아키텍처 변경, 새로운 기능 구현, 중요한 리팩토링 완료 시
-3. **사용자 요청 시**: `/sync-docs` 커맨드 또는 명시적 요청 시
+3. **사용자 요청 시**: `sync-docs` 스킬 명시 호출(지원 환경) 또는 명시적 요청 시
 
 ---
 
 ## Documentation Structure
 
-`.claude/docs/` 디렉토리 구조:
+`docs/` 디렉토리 구조:
 
 ```
-.claude/docs/
+docs/
 ├── ARCHITECTURE.md      # 프로젝트 아키텍처 개요
 ├── CONVENTIONS.md       # 코드 컨벤션 및 패턴
 ├── MODULES.md           # 모듈별 설명 (구현된 모듈만)
@@ -32,8 +37,9 @@
 
 `/sync-docs` 실행 시 동기화 대상:
 
-1. **`.claude/docs/`** - 프로젝트 문서
-2. **`.claude/skills/sync-docs/SKILL.md`** - 이 스킬 파일 자체
+1. **`docs/`** - 프로젝트 문서
+2. **`.agents/skills/sync-docs/SKILL.md`** - 이 스킬 파일 자체
+3. **`AGENTS.md`** - 문서 진입점(인덱스) 일관성 확인
 
 ---
 
@@ -42,15 +48,15 @@
 ### Step 1: 현재 문서 상태 확인
 
 ```
-1. .claude/docs/ 디렉토리의 기존 문서 파일들 읽기
-2. .claude/skills/sync-docs/SKILL.md 읽기
+1. docs/ 디렉토리의 기존 문서 파일들 읽기
+2. .agents/skills/sync-docs/SKILL.md 읽기
 3. 마지막 업데이트 시점 파악
 ```
 
 ### Step 2: 변경 사항 분석
 
 ```
-1. 이번 세션에서 수행한 작업 목록 수집 (todoread 활용)
+1. 이번 세션에서 수행한 작업 목록 수집 (todowrite로 관리된 TODO와 작업 로그 활용)
 2. 변경된 파일들 분석 (git diff 또는 작업 기록)
 3. 아키텍처/패턴 변경 사항 식별
 4. 실제 구현된 코드 변경만 문서화 대상으로 식별
@@ -187,18 +193,18 @@
 
 ---
 
-## Integration with AGENTS.md
+## Integration with Entry Docs
 
-문서 동기화 후 `AGENTS.md`에 다음을 추가하거나 업데이트:
+문서 동기화 후 엔트리 문서(`AGENTS.md`)에 참조가 최신인지 확인:
 
 ```markdown
 ## External File Loading
 
 CRITICAL: 다음 문서들은 작업 시 참고하세요:
-- 아키텍처 이해: @.claude/docs/ARCHITECTURE.md
-- 코드 컨벤션: @.claude/docs/CONVENTIONS.md
-- 모듈 설명: @.claude/docs/MODULES.md
-- 요구사항: @.claude/docs/REQUIREMENTS.md
+- 아키텍처 이해: @docs/ARCHITECTURE.md
+- 코드 컨벤션: @docs/CONVENTIONS.md
+- 모듈 설명: @docs/MODULES.md
+- 요구사항: @docs/REQUIREMENTS.md
 ```
 
 ---
@@ -209,7 +215,7 @@ CRITICAL: 다음 문서들은 작업 시 참고하세요:
 User: 문서 동기화해줘
 
 Agent:
-1. .claude/docs/ 및 .claude/skills/sync-docs/SKILL.md 확인
+1. docs/ 및 .agents/skills/sync-docs/SKILL.md 확인
 2. 이번 세션 작업 분석 (실제 구현된 것만)
 3. 관련 문서 업데이트
 4. 변경 사항 요약 출력
@@ -218,4 +224,4 @@ Agent:
 
 ---
 
-*Last Updated: 2026-01-13*
+*Last Updated: 2026-02-13 (Codex 기준 docs/ + .agents/skills 구조로 경로 갱신)*

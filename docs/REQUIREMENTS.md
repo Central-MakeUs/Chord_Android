@@ -2,12 +2,12 @@
 
 ## Overview
 
-프로젝트 요구사항 문서. `requirements-analyzer` 에이전트를 통해 관리됨.
+프로젝트 요구사항 문서. 특정 툴에 종속되지 않으며 OpenAI Codex 등 AI 어시스턴트를 활용한 요구사항 정리 결과를 단일 출처로 유지한다.
 
 ### How to Use
-1. 새 기능 논의 시 `requirements-analyzer` 에이전트와 대화
-2. 요구사항 정리 완료 후 "문서화해줘" 요청
-3. 에이전트가 이 문서에 새 섹션 추가
+1. 새 기능 논의 시 문제, 사용자, 성공 기준을 먼저 확정
+2. 요구사항 정리 완료 후 "요구사항 문서화해줘" 요청
+3. 문서 갱신 시 변경 범위와 상태(Planned/In Progress/Done)를 함께 업데이트
 
 ### Status Legend
 | Status | Description |

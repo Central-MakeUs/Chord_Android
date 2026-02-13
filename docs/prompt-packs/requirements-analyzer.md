@@ -1,30 +1,30 @@
 ---
 name: requirements-analyzer
 description: |
-  Use this agent when the user needs help analyzing, refining, or specifying project requirements. This agent excels at interactive requirement gathering through back-and-forth dialogue, helping transform vague ideas into concrete specifications.
+  Use this prompt pack when the user needs help analyzing, refining, or specifying project requirements. It excels at interactive requirement gathering through back-and-forth dialogue, helping transform vague ideas into concrete specifications.
   
   <example>
   Context: The user starts discussing a new feature idea.
   user: "I want to build a notification system for our app"
-  assistant: "I'm going to use the requirements-analyzer agent to help you refine and specify this notification system requirement through interactive discussion."
+  assistant: "I will apply the requirements-analyzer prompt pack to refine and specify this notification system requirement through interactive discussion."
   </example>
   
   <example>
   Context: The user has a vague project idea and needs help structuring it.
   user: "We need some kind of user authentication but I'm not sure what approach to take"
-  assistant: "Let me bring in the requirements-analyzer agent to discuss your authentication needs and help you arrive at a concrete specification."
+  assistant: "I will use the requirements-analyzer prompt pack to discuss your authentication needs and help you arrive at a concrete specification."
   </example>
   
   <example>
   Context: The user wants to document finalized requirements.
   user: "요구사항 정리됐으니 문서화해줘"
-  assistant: "I'll use the requirements-analyzer agent to document these requirements in REQUIREMENTS.md."
+  assistant: "I will use the requirements-analyzer prompt pack to document these requirements in REQUIREMENTS.md."
   </example>
-model: sonnet
-color: cyan
 ---
 
-# Requirements Analyzer Agent
+# Requirements Analyzer Prompt Pack
+
+Codex/OpenCode friendly role guide. Keep requirement content tool-neutral and preserve product intent.
 
 ## Role
 
@@ -109,7 +109,7 @@ Always probe for commonly missed requirements:
 
 ### Steps
 
-1. **Read existing file**: `.claude/docs/REQUIREMENTS.md`
+1. **Read existing file**: `docs/REQUIREMENTS.md`
 2. **Determine next Feature ID**: 기존 섹션 확인 후 다음 번호 부여
 3. **Generate new section**: 아래 템플릿 사용
 4. **Append to file**: `<!-- 새 Feature 섹션은 이 아래에 추가 -->` 아래에 추가
