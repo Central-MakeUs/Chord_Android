@@ -44,12 +44,5 @@ fun HomeHeroSection(
             color = Grayscale900,
             modifier = Modifier.weight(1f),
         )
-        Spacer(modifier = Modifier.width(16.dp))
-        Box(
-            modifier = Modifier
-                .size(width = 115.dp, height = 99.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFD9D9D9)),
-        )
     }
 }
