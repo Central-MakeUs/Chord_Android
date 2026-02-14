@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class StrategyDto(
     val strategyId: Long,
+    val title: String? = null,
     val summary: String? = null,
     val detail: String? = null,
     val weekLabel: String? = null,

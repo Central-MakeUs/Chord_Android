@@ -20,7 +20,7 @@ fun StrategyDto.toDomain(): Strategy {
 
     return Strategy(
         id = strategyId,
-        title = summary.orEmpty(),
+        title = title ?: summary.orEmpty(),
         description = detail.orEmpty(),
         weekLabel = derivedWeekLabel,
         status = progressStatus,
