@@ -129,9 +129,9 @@ internal fun AiStrategyScreenContent(
                     key = { it.id },
                 ) { strategy ->
                     StrategyCard(
+                        state = strategy.state,
                         title = strategy.title,
-                        description = strategy.description,
-                        status = strategy.status,
+                        type = strategy.type,
                     )
                 }
             }

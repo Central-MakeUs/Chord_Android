@@ -17,17 +17,17 @@ import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.core.ui.theme.StatusSafe
-import com.team.chord.feature.aicoach.strategy.StrategyStatus
+import com.team.chord.feature.aicoach.strategy.StrategyState
 
 @Composable
 fun StrategyStatusIndicator(
-    status: StrategyStatus,
+    state: StrategyState,
     modifier: Modifier = Modifier,
 ) {
-    val (dotColor, labelText) = when (status) {
-        StrategyStatus.IN_PROGRESS -> PrimaryBlue500 to "진행중"
-        StrategyStatus.NOT_STARTED -> Grayscale500 to "진행전"
-        StrategyStatus.COMPLETED -> StatusSafe to "완료"
+    val (dotColor, labelText) = when (state) {
+        StrategyState.IN_PROGRESS -> PrimaryBlue500 to "진행중"
+        StrategyState.NOT_STARTED -> Grayscale500 to "진행전"
+        StrategyState.COMPLETED -> StatusSafe to "완료"
     }
 
     Row(

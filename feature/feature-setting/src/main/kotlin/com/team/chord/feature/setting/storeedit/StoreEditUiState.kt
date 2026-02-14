@@ -4,10 +4,10 @@ import java.text.NumberFormat
 import java.util.Locale
 
 data class StoreEditUiState(
-    val storeName: String = "코치카페",
-    val employeeCountInput: String = "3",
+    val storeName: String = "",
+    val employeeCountInput: String = "",
     val ownerSolo: Boolean = false,
-    val hourlyWageInput: String = "12000",
+    val hourlyWageInput: String = "",
     val includeWeeklyHolidayPay: Boolean = false,
     val submitSuccess: Boolean = false,
 ) {

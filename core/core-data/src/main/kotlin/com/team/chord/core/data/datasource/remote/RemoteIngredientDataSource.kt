@@ -11,6 +11,7 @@ import com.team.chord.core.network.dto.ingredient.IngredientUpdateDto
 import com.team.chord.core.network.dto.ingredient.SupplierUpdateDto
 import com.team.chord.core.network.mapper.toDomain
 import com.team.chord.core.network.mapper.toIngredientUnit
+import com.team.chord.core.network.model.ApiException
 import com.team.chord.core.network.util.safeApiCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -29,11 +30,29 @@ class RemoteIngredientDataSource @Inject constructor(
     }
 
     override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? {
-        return safeApiCall { ingredientApi.getIngredientDetail(ingredientId) }.toDomain()
+        return try {
+            safeApiCall { ingredientApi.getIngredientDetail(ingredientId) }.toDomain()
+        } catch (e: ApiException) {
+            if (e.code == CATALOG_EMPTY_HISTORY_CODE) {
+                safeApiCall { ingredientApi.getIngredientList(null) }
+                    .firstOrNull { it.ingredientId == ingredientId }
+                    ?.toDomain()
+            } else {
+                throw e
+            }
+        }
     }
 
     override suspend fun getPriceHistory(ingredientId: Long): List<PriceHistoryItem> {
-        return safeApiCall { ingredientApi.getPriceHistory(ingredientId) }.map { it.toDomain() }
+        return try {
+            safeApiCall { ingredientApi.getPriceHistory(ingredientId) }.map { it.toDomain() }
+        } catch (e: ApiException) {
+            if (e.code == CATALOG_EMPTY_HISTORY_CODE) {
+                emptyList()
+            } else {
+                throw e
+            }
+        }
     }
 
     override fun searchIngredients(query: String): Flow<List<IngredientSearchResult>> = flow {
@@ -96,5 +115,9 @@ class RemoteIngredientDataSource @Inject constructor(
     override fun getCategories(): Flow<List<IngredientCategory>> = flow {
         val categories = safeApiCall { ingredientApi.getCategories() }
         emit(categories.map { it.toDomain() })
+    }
+
+    private companion object {
+        const val CATALOG_EMPTY_HISTORY_CODE = "CATALOG_008"
     }
 }

@@ -14,9 +14,9 @@ data class AiStrategyUiState(
 
 data class RecommendedStrategyUi(
     val id: Long,
+    val state: StrategyState,
     val title: String,
-    val description: String,
-    val status: StrategyStatus,
+    val type: String,
 )
 
 data class StrategyHistoryItemUi(
@@ -26,7 +26,7 @@ data class StrategyHistoryItemUi(
     val description: String,
 )
 
-enum class StrategyStatus {
+enum class StrategyState {
     IN_PROGRESS,
     NOT_STARTED,
     COMPLETED,

@@ -1,17 +1,51 @@
 package com.team.chord.feature.setting.storeedit
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.team.chord.core.domain.model.Result
+import com.team.chord.core.domain.usecase.user.GetStoreUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class StoreEditViewModel @Inject constructor() : ViewModel() {
+class StoreEditViewModel @Inject constructor(
+    private val getStoreUseCase: GetStoreUseCase,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(StoreEditUiState())
     val uiState: StateFlow<StoreEditUiState> = _uiState.asStateFlow()
+
+    init {
+        loadStoreInfo()
+    }
+
+    private fun loadStoreInfo() {
+        viewModelScope.launch {
+            when (val result = getStoreUseCase()) {
+                is Result.Success -> {
+                    val store = result.data
+                    val ownerSolo = store.employees == 0
+
+                    _uiState.update {
+                        it.copy(
+                            storeName = store.name,
+                            employeeCountInput = store.employees.toString(),
+                            ownerSolo = ownerSolo,
+                            hourlyWageInput = store.laborCost.toString(),
+                            includeWeeklyHolidayPay = if (ownerSolo) false else store.includeWeeklyHolidayPay,
+                        )
+                    }
+                }
+
+                is Result.Error,
+                Result.Loading -> Unit
+            }
+        }
+    }
 
     fun onStoreNameChanged(name: String) {
         _uiState.update { it.copy(storeName = name) }

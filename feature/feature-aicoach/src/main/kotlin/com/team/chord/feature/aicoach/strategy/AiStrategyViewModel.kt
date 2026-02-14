@@ -170,13 +170,13 @@ class AiStrategyViewModel @Inject constructor(
 private fun Strategy.toRecommendedUi(): RecommendedStrategyUi =
     RecommendedStrategyUi(
         id = id,
-        title = title,
-        description = description,
-        status = when (status) {
-            StrategyProgressStatus.IN_PROGRESS -> StrategyStatus.IN_PROGRESS
-            StrategyProgressStatus.COMPLETED -> StrategyStatus.COMPLETED
-            StrategyProgressStatus.NOT_STARTED -> StrategyStatus.NOT_STARTED
+        state = when (status) {
+            StrategyProgressStatus.IN_PROGRESS -> StrategyState.IN_PROGRESS
+            StrategyProgressStatus.COMPLETED -> StrategyState.COMPLETED
+            StrategyProgressStatus.NOT_STARTED -> StrategyState.NOT_STARTED
         },
+        title = title,
+        type = type,
     )
 
 private fun Strategy.toHistoryUi(): StrategyHistoryItemUi =

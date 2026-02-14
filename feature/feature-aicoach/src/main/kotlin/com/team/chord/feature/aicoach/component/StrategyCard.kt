@@ -19,13 +19,13 @@ import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.feature.aicoach.strategy.StrategyStatus
+import com.team.chord.feature.aicoach.strategy.StrategyState
 
 @Composable
 fun StrategyCard(
+    state: StrategyState,
     title: String,
-    description: String,
-    status: StrategyStatus,
+    type: String,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -38,7 +38,7 @@ fun StrategyCard(
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-            StrategyStatusIndicator(status = status)
+            StrategyStatusIndicator(state = state)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = title,
@@ -51,7 +51,7 @@ fun StrategyCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = description,
+                text = type,
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,

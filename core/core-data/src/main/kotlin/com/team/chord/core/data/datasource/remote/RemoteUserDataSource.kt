@@ -1,8 +1,10 @@
 package com.team.chord.core.data.datasource.remote
 
 import com.team.chord.core.data.datasource.UserDataSource
+import com.team.chord.core.domain.model.Store
 import com.team.chord.core.network.api.UserApi
 import com.team.chord.core.network.dto.user.UpdateStoreRequestDto
+import com.team.chord.core.network.mapper.toDomain
 import com.team.chord.core.network.util.safeApiCall
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,6 +13,9 @@ import javax.inject.Singleton
 class RemoteUserDataSource @Inject constructor(
     private val userApi: UserApi,
 ) : UserDataSource {
+    override suspend fun getStore(): Store =
+        safeApiCall { userApi.getStore() }.toDomain()
+
     override suspend fun deleteMe() {
         safeApiCall { userApi.deleteMe() }
     }
