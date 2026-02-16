@@ -29,6 +29,10 @@ class SettingViewModel
             loadStoreInfo()
         }
 
+        fun refreshStoreInfo() {
+            loadStoreInfo()
+        }
+
         private fun loadStoreInfo() {
             viewModelScope.launch {
                 when (val result = getStoreUseCase()) {

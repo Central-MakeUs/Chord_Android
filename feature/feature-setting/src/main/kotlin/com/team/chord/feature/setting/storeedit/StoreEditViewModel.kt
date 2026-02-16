@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.usecase.user.GetStoreUseCase
+import com.team.chord.core.domain.usecase.user.UpdateStoreUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class StoreEditViewModel @Inject constructor(
     private val getStoreUseCase: GetStoreUseCase,
+    private val updateStoreUseCase: UpdateStoreUseCase,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StoreEditUiState())
     val uiState: StateFlow<StoreEditUiState> = _uiState.asStateFlow()
@@ -104,7 +106,27 @@ class StoreEditViewModel @Inject constructor(
         val state = _uiState.value
         if (!state.isSubmitEnabled) return
 
-        _uiState.update { it.copy(submitSuccess = true) }
+        val employeeCount = state.employeeCount ?: return
+        val laborCost = state.laborCost ?: return
+
+        viewModelScope.launch {
+            when (
+                updateStoreUseCase(
+                    name = state.storeName,
+                    employees = employeeCount,
+                    laborCost = laborCost,
+                    rentCost = null,
+                    includeWeeklyHolidayPay = if (state.ownerSolo) false else state.includeWeeklyHolidayPay,
+                )
+            ) {
+                is Result.Success -> {
+                    _uiState.update { it.copy(submitSuccess = true) }
+                }
+
+                is Result.Error,
+                Result.Loading -> Unit
+            }
+        }
     }
 
     fun onSubmitSuccessConsumed() {
