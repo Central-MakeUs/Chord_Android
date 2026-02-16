@@ -114,6 +114,7 @@ data class RecipeCreateRequestDto(
 @Serializable
 data class NewRecipeCreateRequestDto(
     val amount: Int,
+    val usageAmount: Int,
     val price: Int,
     val unitCode: String,
     val ingredientCategoryCode: String,

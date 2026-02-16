@@ -45,6 +45,7 @@ interface MenuDataSource {
 
 data class NewRecipeInput(
     val amount: Int,
+    val usageAmount: Int,
     val price: Int,
     val unitCode: String,
     val ingredientCategoryCode: String,

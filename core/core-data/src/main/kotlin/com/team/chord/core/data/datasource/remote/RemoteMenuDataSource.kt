@@ -89,6 +89,7 @@ class RemoteMenuDataSource @Inject constructor(
                     newRecipes = newRecipes?.map {
                         NewRecipeCreateRequestDto(
                             amount = it.amount,
+                            usageAmount = it.usageAmount,
                             price = it.price,
                             unitCode = it.unitCode,
                             ingredientCategoryCode = it.ingredientCategoryCode,
@@ -119,7 +120,15 @@ class RemoteMenuDataSource @Inject constructor(
         safeApiCall {
             menuApi.addNewRecipe(
                 menuId,
-                NewRecipeCreateRequestDto(amount, price, unitCode, ingredientCategoryCode, ingredientName, supplier),
+                NewRecipeCreateRequestDto(
+                    amount = amount,
+                    usageAmount = amount,
+                    price = price,
+                    unitCode = unitCode,
+                    ingredientCategoryCode = ingredientCategoryCode,
+                    ingredientName = ingredientName,
+                    supplier = supplier,
+                ),
             )
         }
     }

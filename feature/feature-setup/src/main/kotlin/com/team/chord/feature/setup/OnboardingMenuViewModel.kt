@@ -173,7 +173,8 @@ class OnboardingMenuViewModel @Inject constructor(
                 .filter { it.id == 0L }
                 .map { ingredient ->
                     NewRecipeInfo(
-                        amount = ingredient.amount,
+                        amount = ingredient.baseQuantity,
+                        usageAmount = ingredient.amount,
                         price = ingredient.price,
                         unitCode = ingredient.unit.name,
                         ingredientCategoryCode = ingredient.categoryCode,

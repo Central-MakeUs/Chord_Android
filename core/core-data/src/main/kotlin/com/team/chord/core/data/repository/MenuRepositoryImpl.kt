@@ -37,6 +37,7 @@ class MenuRepositoryImpl @Inject constructor(
         val newRecipesList = newRecipes?.map {
             NewRecipeInput(
                 amount = it.amount,
+                usageAmount = it.usageAmount,
                 price = it.price,
                 unitCode = it.unitCode,
                 ingredientCategoryCode = it.ingredientCategoryCode,
