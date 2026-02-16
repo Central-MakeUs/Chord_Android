@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,17 +50,21 @@ fun <T> ChordWheelPicker(
 ) {
     val initialIndex = items.indexOf(selectedItem).coerceAtLeast(0)
     val listState = rememberLazyListState(
-        initialFirstVisibleItemIndex = (initialIndex - 2).coerceAtLeast(0),
+        initialFirstVisibleItemIndex = initialIndex,
     )
+    val itemHeightPx = with(LocalDensity.current) { 40.dp.toPx() }
 
     LaunchedEffect(listState.isScrollInProgress) {
-        if (!listState.isScrollInProgress) {
-            val centerIndex = listState.firstVisibleItemIndex + 2
-            if (centerIndex in items.indices) {
-                listState.animateScrollToItem((centerIndex - 2).coerceAtLeast(0))
-                if (items[centerIndex] != selectedItem) {
-                    onItemSelected(items[centerIndex])
-                }
+        if (!listState.isScrollInProgress && items.isNotEmpty()) {
+            val offsetItemCount = ((listState.firstVisibleItemScrollOffset + (itemHeightPx / 2f)) / itemHeightPx).toInt()
+            val targetIndex = (listState.firstVisibleItemIndex + offsetItemCount).coerceIn(items.indices)
+
+            if (listState.firstVisibleItemIndex != targetIndex || listState.firstVisibleItemScrollOffset != 0) {
+                listState.animateScrollToItem(targetIndex)
+            }
+
+            if (items[targetIndex] != selectedItem) {
+                onItemSelected(items[targetIndex])
             }
         }
     }
