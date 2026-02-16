@@ -23,9 +23,9 @@ class SetupRepositoryImpl
                 preferences[KEY_SETUP_COMPLETED] ?: false
             }
 
-        override suspend fun setSetupCompleted() {
+        override suspend fun setSetupCompleted(isCompleted: Boolean) {
             dataStore.edit { preferences ->
-                preferences[KEY_SETUP_COMPLETED] = true
+                preferences[KEY_SETUP_COMPLETED] = isCompleted
             }
         }
 

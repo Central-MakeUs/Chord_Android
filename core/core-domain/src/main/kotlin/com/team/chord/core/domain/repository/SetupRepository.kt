@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 interface SetupRepository {
     fun isSetupCompleted(): Flow<Boolean>
 
-    suspend fun setSetupCompleted()
+    suspend fun setSetupCompleted(isCompleted: Boolean = true)
 
     suspend fun completeOnboarding(
         name: String,

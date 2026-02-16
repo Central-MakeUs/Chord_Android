@@ -5,6 +5,7 @@ import com.team.chord.core.domain.model.AuthResult
 import com.team.chord.core.domain.model.AuthState
 import com.team.chord.core.domain.model.AuthToken
 import com.team.chord.core.domain.repository.AuthRepository
+import com.team.chord.core.domain.repository.SetupRepository
 import com.team.chord.core.network.auth.TokenManager
 import com.team.chord.core.network.model.ApiException
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +17,7 @@ import javax.inject.Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val authDataSource: AuthDataSource,
     private val tokenManager: TokenManager,
+    private val setupRepository: SetupRepository,
 ) : AuthRepository {
 
     override fun observeAuthState(): Flow<AuthState> =
@@ -26,6 +28,7 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signIn(loginId: String, password: String): AuthResult {
         return try {
             val result = authDataSource.login(loginId, password)
+            setupRepository.setSetupCompleted(result.onboardingCompleted)
             tokenManager.saveTokens(result.accessToken, result.refreshToken)
             AuthResult.LoginSuccess(
                 token = AuthToken(
