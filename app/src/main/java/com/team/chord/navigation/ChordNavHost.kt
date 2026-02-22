@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.navOptions
+import com.team.chord.feature.aicoach.navigation.AI_COACH_ROUTE
 import com.team.chord.feature.auth.navigation.LOGIN_ROUTE
 import com.team.chord.feature.auth.navigation.SIGNUP_ROUTE
 import com.team.chord.feature.auth.navigation.loginScreen
@@ -42,6 +43,12 @@ import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
 import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
 import com.team.chord.feature.aicoach.navigation.aiCoachScreen
+import com.team.chord.feature.aicoach.navigation.navigateToAiCoach
+import com.team.chord.feature.aicoach.navigation.navigateToAiCoachComplete
+import com.team.chord.feature.aicoach.navigation.navigateToAiCoachDetail
+import com.team.chord.feature.aicoach.navigation.strategyCompleteScreen
+import com.team.chord.feature.aicoach.navigation.strategyDetailScreen
+import com.team.chord.feature.aicoach.navigation.STRATEGY_STARTED_MESSAGE_KEY
 import com.team.chord.feature.setting.navigation.SETTING_ROUTE
 import com.team.chord.feature.setting.navigation.faqScreen
 import com.team.chord.feature.setting.navigation.navigateToFaq
@@ -297,6 +304,39 @@ fun ChordNavHost(
             },
         )
 
-        aiCoachScreen()
+        aiCoachScreen(
+            onNavigateToStrategyDetail = { strategyId, type ->
+                navController.navigateToAiCoachDetail(strategyId = strategyId, type = type)
+            },
+        )
+
+        strategyDetailScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onStrategyStarted = { message ->
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set(STRATEGY_STARTED_MESSAGE_KEY, message)
+                navController.popBackStack()
+            },
+            onNavigateToComplete = { completionPhrase ->
+                navController.navigateToAiCoachComplete(completionPhrase = completionPhrase)
+            },
+        )
+
+        strategyCompleteScreen(
+            onConfirm = {
+                val popped = navController.popBackStack(AI_COACH_ROUTE, inclusive = false)
+                if (!popped) {
+                    navController.navigateToAiCoach(
+                        navOptions = navOptions {
+                            popUpTo(navController.graph.id) { inclusive = false }
+                            launchSingleTop = true
+                        },
+                    )
+                }
+            },
+        )
     }
 }

@@ -1,5 +1,6 @@
 package com.team.chord.feature.aicoach.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,13 +26,15 @@ import com.team.chord.feature.aicoach.strategy.StrategyState
 fun StrategyCard(
     state: StrategyState,
     title: String,
-    type: String,
+    description: String,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier
             .width(160.dp)
-            .height(160.dp),
+            .height(152.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         color = Grayscale100,
     ) {
@@ -51,12 +54,12 @@ fun StrategyCard(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = type,
+                text = description,
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 color = Grayscale600,
-                maxLines = 3,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }

@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.R
+import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
-import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import java.time.YearMonth
@@ -39,19 +39,17 @@ fun MonthNavigator(
     val monthFormatter = DateTimeFormatter.ofPattern("yy년 M월", Locale.KOREAN)
 
     Column(modifier = modifier.fillMaxWidth()) {
-        // Month navigation row with trailing content
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Left section: Month navigation
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_left),
-                    contentDescription = "이전 달",
+                    contentDescription = "이전 월",
                     tint = Grayscale500,
                     modifier = Modifier
                         .size(24.dp)
@@ -66,7 +64,7 @@ fun MonthNavigator(
                 )
                 Icon(
                     painter = painterResource(id = R.drawable.ic_chevron_right),
-                    contentDescription = "다음 달",
+                    contentDescription = "다음 월",
                     tint = Grayscale500,
                     modifier = Modifier
                         .size(24.dp)
@@ -75,19 +73,16 @@ fun MonthNavigator(
             }
 
             Spacer(modifier = Modifier.weight(1f))
-
-            // Right section: Trailing content (filter tabs)
             trailingContent()
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Underline
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Grayscale700),
+                .background(Grayscale300),
         )
     }
 }

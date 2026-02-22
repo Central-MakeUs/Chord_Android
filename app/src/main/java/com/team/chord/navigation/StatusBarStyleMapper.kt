@@ -4,6 +4,8 @@ import androidx.compose.ui.graphics.Color
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.PrimaryBlue100
+import com.team.chord.feature.aicoach.navigation.AI_COACH_COMPLETE_ROUTE
+import com.team.chord.feature.aicoach.navigation.AI_COACH_DETAIL_ROUTE
 import com.team.chord.feature.aicoach.navigation.AI_COACH_ROUTE
 import com.team.chord.feature.auth.navigation.LOGIN_ROUTE
 import com.team.chord.feature.auth.navigation.SIGNUP_COMPLETE_ROUTE
@@ -56,6 +58,8 @@ private fun statusBarColorForRoute(route: String?): Color {
         route == MENU_LIST_ROUTE -> Grayscale200
         route == INGREDIENT_LIST_ROUTE -> Grayscale200
         route == AI_COACH_ROUTE -> Grayscale200
+        routeMatches(route, AI_COACH_DETAIL_ROUTE) -> Grayscale200
+        routeMatches(route, AI_COACH_COMPLETE_ROUTE) -> Grayscale200
         route == SETTING_ROUTE -> Grayscale200
 
         // Auth

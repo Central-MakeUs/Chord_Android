@@ -2,38 +2,31 @@ package com.team.chord.feature.aicoach.strategy
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.strategy.Strategy
 import com.team.chord.core.domain.model.strategy.StrategyProgressStatus
 import com.team.chord.core.domain.usecase.strategy.GetSavedStrategiesUseCase
 import com.team.chord.core.domain.usecase.strategy.GetWeeklyStrategiesUseCase
-import com.team.chord.core.domain.usecase.strategy.SaveStrategyUseCase
-import com.team.chord.core.domain.usecase.strategy.StartStrategyUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.YearMonth
+import java.time.temporal.WeekFields
+import java.util.Locale
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.YearMonth
-import java.time.temporal.WeekFields
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class AiStrategyViewModel @Inject constructor(
     private val getWeeklyStrategiesUseCase: GetWeeklyStrategiesUseCase,
     private val getSavedStrategiesUseCase: GetSavedStrategiesUseCase,
-    private val startStrategyUseCase: StartStrategyUseCase,
-    private val saveStrategyUseCase: SaveStrategyUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AiStrategyUiState())
     val uiState: StateFlow<AiStrategyUiState> = _uiState.asStateFlow()
-
-    private var weeklyStrategies: List<Strategy> = emptyList()
-    private var savedStrategies: List<Strategy> = emptyList()
 
     init {
         loadStrategies()
@@ -48,35 +41,13 @@ class AiStrategyViewModel @Inject constructor(
     }
 
     fun onMonthChange(yearMonth: YearMonth) {
-        _uiState.value = _uiState.value.copy(selectedMonth = yearMonth)
+        _uiState.update { it.copy(selectedMonth = yearMonth) }
         loadStrategies()
     }
 
     fun onFilterChange(filter: StrategyFilter) {
-        _uiState.value = _uiState.value.copy(selectedFilter = filter)
+        _uiState.update { it.copy(selectedFilter = filter) }
         loadSavedStrategies()
-    }
-
-    fun onStartStrategy(strategyId: Long) {
-        val strategy = weeklyStrategies.find { it.id == strategyId } ?: return
-        viewModelScope.launch {
-            when (startStrategyUseCase(strategyId, strategy.type)) {
-                is Result.Success -> loadStrategies()
-                is Result.Error,
-                is Result.Loading -> Unit
-            }
-        }
-    }
-
-    fun onSaveStrategy(strategyId: Long, isSaved: Boolean) {
-        val strategy = weeklyStrategies.find { it.id == strategyId } ?: return
-        viewModelScope.launch {
-            when (saveStrategyUseCase(strategyId, strategy.type, isSaved)) {
-                is Result.Success -> loadStrategies()
-                is Result.Error,
-                is Result.Loading -> Unit
-            }
-        }
     }
 
     private fun loadStrategies(isRefresh: Boolean = false) {
@@ -85,17 +56,18 @@ class AiStrategyViewModel @Inject constructor(
                 if (isRefresh) it.copy(isRefreshing = true)
                 else it.copy(isLoading = true)
             }
+
             try {
                 val month = _uiState.value.selectedMonth
-                val isCompleted = _uiState.value.selectedFilter == StrategyFilter.COMPLETED
                 val weekOfMonth = resolveWeekOfMonth(month)
+                val isCompleted = _uiState.value.selectedFilter == StrategyFilter.COMPLETED
 
-                weeklyStrategies = getWeeklyStrategiesUseCase(
+                val weeklyStrategies = getWeeklyStrategiesUseCase(
                     year = month.year,
                     month = month.monthValue,
                     weekOfMonth = weekOfMonth,
                 )
-                savedStrategies = getSavedStrategiesUseCase(
+                val savedStrategies = getSavedStrategiesUseCase(
                     year = month.year,
                     month = month.monthValue,
                     isCompleted = isCompleted,
@@ -105,8 +77,9 @@ class AiStrategyViewModel @Inject constructor(
                     state.copy(
                         isLoading = false,
                         isRefreshing = false,
+                        generatedAtMessage = formatGeneratedAtMessage(weeklyStrategies),
                         recommendedStrategies = weeklyStrategies.map { it.toRecommendedUi() },
-                        historyItems = savedStrategies.map { strategy -> strategy.toHistoryUi() },
+                        historyItems = savedStrategies.map { it.toHistoryUi() },
                         errorMessage = null,
                     )
                 }
@@ -115,7 +88,7 @@ class AiStrategyViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         isRefreshing = false,
-                        errorMessage = e.message ?: "전략을 불러오는데 실패했습니다",
+                        errorMessage = e.message ?: "전략을 불러오지 못했어요.",
                     )
                 }
             }
@@ -128,13 +101,15 @@ class AiStrategyViewModel @Inject constructor(
                 if (isRefresh) it.copy(isRefreshing = true)
                 else it.copy(isLoading = true)
             }
+
             try {
                 val month = _uiState.value.selectedMonth
-                savedStrategies = getSavedStrategiesUseCase(
+                val savedStrategies = getSavedStrategiesUseCase(
                     year = month.year,
                     month = month.monthValue,
                     isCompleted = _uiState.value.selectedFilter == StrategyFilter.COMPLETED,
                 )
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -148,7 +123,7 @@ class AiStrategyViewModel @Inject constructor(
                     it.copy(
                         isLoading = false,
                         isRefreshing = false,
-                        errorMessage = e.message ?: "저장된 전략을 불러오는데 실패했습니다",
+                        errorMessage = e.message ?: "저장된 전략을 불러오지 못했어요.",
                     )
                 }
             }
@@ -162,8 +137,14 @@ class AiStrategyViewModel @Inject constructor(
         } else {
             yearMonth.atDay(1)
         }
+
         val week = baseDate.get(WeekFields.of(Locale.getDefault()).weekOfMonth())
         return week.coerceAtLeast(1)
+    }
+
+    private fun formatGeneratedAtMessage(strategies: List<Strategy>): String {
+        val createdAt = strategies.maxByOrNull { it.createdAt ?: LocalDateTime.MIN }?.createdAt ?: LocalDateTime.now()
+        return "${createdAt.monthValue}월 ${createdAt.dayOfMonth}일 ${createdAt.hour.toString().padStart(2, '0')}시 기준으로 생성된 전략이에요!"
     }
 }
 
@@ -176,6 +157,7 @@ private fun Strategy.toRecommendedUi(): RecommendedStrategyUi =
             StrategyProgressStatus.NOT_STARTED -> StrategyState.NOT_STARTED
         },
         title = title,
+        description = type.toStrategyDescription(),
         type = type,
     )
 
@@ -184,5 +166,13 @@ private fun Strategy.toHistoryUi(): StrategyHistoryItemUi =
         id = id,
         weekLabel = weekLabel ?: "전략 히스토리",
         title = title,
-        description = description,
+        description = type.toStrategyDescription(),
+        type = type,
     )
+
+private fun String.toStrategyDescription(): String =
+    when (uppercase(Locale.ROOT)) {
+        "DANGER" -> "원가를 위험 메뉴 확인"
+        "HIGH_MARGIN" -> "우리 카페 고마진 메뉴 확인"
+        else -> "원가율 주의 메뉴 확인"
+    }
