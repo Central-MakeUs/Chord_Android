@@ -144,7 +144,7 @@ data class MenuWorktimeUpdateDto(
 
 @Serializable
 data class AmountUpdateDto(
-    val amount: Int,
+    val amount: Double,
 )
 
 @Serializable

@@ -51,12 +51,12 @@ class IngredientInputViewModel @Inject constructor(
                     SelectedIngredient(
                         id = recipe.ingredientId,
                         name = recipe.ingredientName,
-                        amount = recipe.amount,
+                        amount = recipe.amount.toInt(),
                         unit = recipe.unitCode.toIngredientUnit(),
                         price = recipe.price,
                         sourceType = IngredientSourceType.TEMPLATE,
                         templateRecipeId = recipe.recipeId,
-                        baseQuantity = recipe.amount,
+                        baseQuantity = recipe.amount.toInt(),
                         unitPrice = recipe.price,
                     )
                 }

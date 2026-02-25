@@ -157,7 +157,7 @@ private class FakeMenuRepository : MenuRepository {
         supplier: String?,
     ): Result<Unit> = Result.Success(Unit)
 
-    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int): Result<Unit> = Result.Success(Unit)
+    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Double): Result<Unit> = Result.Success(Unit)
     override suspend fun deleteRecipes(menuId: Long, recipeIds: List<Long>): Result<Unit> = Result.Success(Unit)
     override fun getCategories(): Flow<List<Category>> = emptyFlow()
     override fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>> = emptyFlow()

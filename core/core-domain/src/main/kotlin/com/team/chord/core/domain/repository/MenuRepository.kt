@@ -36,7 +36,7 @@ interface MenuRepository {
         ingredientName: String,
         supplier: String? = null,
     ): Result<Unit>
-    suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int): Result<Unit>
+    suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Double): Result<Unit>
     suspend fun deleteRecipes(menuId: Long, recipeIds: List<Long>): Result<Unit>
     fun getCategories(): Flow<List<Category>>
     fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>>

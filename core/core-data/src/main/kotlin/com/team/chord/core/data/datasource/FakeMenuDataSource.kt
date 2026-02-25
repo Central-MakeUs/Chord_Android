@@ -37,7 +37,7 @@ class FakeMenuDataSource @Inject constructor() : MenuDataSource {
                 menuId = menuId,
                 ingredientId = ing.id,
                 ingredientName = ing.name,
-                amount = ing.quantity.toInt(),
+                amount = ing.quantity,
                 unitCode = ing.unit.name,
                 price = ing.totalPrice,
             )
@@ -112,7 +112,7 @@ class FakeMenuDataSource @Inject constructor() : MenuDataSource {
         }
     }
 
-    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int) {
+    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Double) {
         // no-op for fake
     }
 

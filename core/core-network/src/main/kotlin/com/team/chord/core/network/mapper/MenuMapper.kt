@@ -61,7 +61,7 @@ fun RecipeDto.toDomain(): MenuRecipe =
         menuId = menuId,
         ingredientId = ingredientId,
         ingredientName = ingredientName,
-        amount = amount.toInt(),
+        amount = amount,
         unitCode = unitCode,
         price = price.toInt(),
     )

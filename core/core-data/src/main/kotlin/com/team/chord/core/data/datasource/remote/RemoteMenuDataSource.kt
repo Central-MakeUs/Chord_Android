@@ -149,7 +149,7 @@ class RemoteMenuDataSource @Inject constructor(
         safeApiCall { menuApi.updateMenuWorktime(menuId, MenuWorktimeUpdateDto(workTime)) }
     }
 
-    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int) {
+    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Double) {
         safeApiCall { menuApi.updateRecipeAmount(menuId, recipeId, AmountUpdateDto(amount)) }
     }
 
@@ -193,7 +193,7 @@ class RemoteMenuDataSource @Inject constructor(
                 menuId = 0,
                 ingredientId = 0,
                 ingredientName = recipe.ingredientName,
-                amount = recipe.defaultUsageAmount.toInt(),
+                amount = recipe.defaultUsageAmount,
                 unitCode = recipe.unitCode,
                 price = recipe.defaultPrice.toInt(),
             )

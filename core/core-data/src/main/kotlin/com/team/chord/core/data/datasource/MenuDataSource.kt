@@ -34,7 +34,7 @@ interface MenuDataSource {
     suspend fun updateMenuPrice(menuId: Long, price: Int)
     suspend fun updateMenuCategory(menuId: Long, categoryCode: String)
     suspend fun updateMenuWorktime(menuId: Long, workTime: Int)
-    suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int)
+    suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Double)
     suspend fun deleteRecipes(menuId: Long, recipeIds: List<Long>?)
     suspend fun deleteMenu(menuId: Long)
     fun getCategories(): Flow<List<Category>>

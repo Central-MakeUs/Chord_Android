@@ -45,6 +45,6 @@ class DeleteRecipesUseCase @Inject constructor(
 class UpdateRecipeAmountUseCase @Inject constructor(
     private val menuRepository: MenuRepository,
 ) {
-    suspend operator fun invoke(menuId: Long, recipeId: Long, amount: Int): Result<Unit> =
+    suspend operator fun invoke(menuId: Long, recipeId: Long, amount: Double): Result<Unit> =
         menuRepository.updateRecipeAmount(menuId, recipeId, amount)
 }

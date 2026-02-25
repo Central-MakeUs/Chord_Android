@@ -164,7 +164,7 @@ class OnboardingMenuViewModel @Inject constructor(
                         menuId = 0L,
                         ingredientId = ingredient.id,
                         ingredientName = ingredient.name,
-                        amount = ingredient.amount,
+                        amount = ingredient.amount.toDouble(),
                         unitCode = ingredient.unit.name,
                         price = ingredient.price,
                     )

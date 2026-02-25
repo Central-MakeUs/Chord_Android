@@ -33,7 +33,7 @@ class MenuRepositoryImpl @Inject constructor(
         recipes: List<MenuRecipe>?,
         newRecipes: List<NewRecipeInfo>?,
     ): Result<Unit> = runCatching {
-        val recipesList = recipes?.map { (it.ingredientId as Long?) to it.amount }
+        val recipesList = recipes?.map { (it.ingredientId as Long?) to it.amount.toInt() }
         val newRecipesList = newRecipes?.map {
             NewRecipeInput(
                 amount = it.amount,
@@ -87,7 +87,7 @@ class MenuRepositoryImpl @Inject constructor(
         menuDataSource.addNewRecipe(menuId, amount, price, unitCode, ingredientCategoryCode, ingredientName, supplier)
     }
 
-    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Int): Result<Unit> = runCatching {
+    override suspend fun updateRecipeAmount(menuId: Long, recipeId: Long, amount: Double): Result<Unit> = runCatching {
         menuDataSource.updateRecipeAmount(menuId, recipeId, amount)
     }
 

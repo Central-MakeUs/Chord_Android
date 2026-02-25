@@ -5,7 +5,7 @@ data class MenuRecipe(
     val menuId: Long,
     val ingredientId: Long,
     val ingredientName: String,
-    val amount: Int,
+    val amount: Double,
     val unitCode: String,
     val price: Int,
 )
