@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R as CoreUiR
+import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
@@ -113,6 +114,10 @@ internal fun AiStrategyScreenContent(
     }
 
     Scaffold(
+        topBar = {
+            ChordTopAppBar(title = "AI 전략")
+        },
+        containerColor = Grayscale200,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 ChordToast(
@@ -129,24 +134,25 @@ internal fun AiStrategyScreenContent(
                 .padding(paddingValues)
                 .background(Grayscale200),
         ) {
-            Text(
-                text = "이번주 추천 전략",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 24.sp,
-                color = Grayscale900,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 20.dp),
-            )
-            Text(
-                text = uiState.generatedAtMessage,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 12.sp,
-                color = Grayscale600,
-                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+            ) {
+                Text(
+                    text = "이번주 추천 전략",
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    color = Grayscale900,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = uiState.generatedAtMessage,
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = Grayscale600,
+                )
+            }
 
             if (uiState.recommendedStrategies.isEmpty()) {
                 Box(
@@ -198,7 +204,7 @@ internal fun AiStrategyScreenContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,

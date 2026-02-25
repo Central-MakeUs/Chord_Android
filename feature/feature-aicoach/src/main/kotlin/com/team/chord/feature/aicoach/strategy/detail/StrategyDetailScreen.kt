@@ -3,6 +3,7 @@ package com.team.chord.feature.aicoach.strategy.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -206,9 +208,22 @@ private fun StrategyDetailScreenContent(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                StrategyDetailBadge(
-                                    text = if (detail.status == StrategyProgressStatus.COMPLETED) "실행완료" else "진행중",
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                ) {
+                                    if (detail.status == StrategyProgressStatus.COMPLETED) {
+                                        Icon(
+                                            painter = painterResource(id = CoreUiR.drawable.ic_strategy_done),
+                                            contentDescription = null,
+                                            tint = Color.Unspecified,
+                                            modifier = Modifier.size(20.dp),
+                                        )
+                                    }
+                                    StrategyDetailBadge(
+                                        text = if (detail.status == StrategyProgressStatus.COMPLETED) "실행완료" else "진행중",
+                                    )
+                                }
                             }
                         }
                     }
@@ -230,6 +245,7 @@ private fun StrategyDetailScreenContent(
                     item {
                         StrategyDetailSectionCard(
                             title = "진단",
+                            leadingIconRes = CoreUiR.drawable.ic_warning,
                             headline = detail.diagnosisHeadline,
                             body = detail.diagnosisBody,
                             menuNames = detail.menuNames,
@@ -239,6 +255,7 @@ private fun StrategyDetailScreenContent(
                     item {
                         StrategyDetailSectionCard(
                             title = "행동 가이드",
+                            leadingIconRes = CoreUiR.drawable.ic_guide,
                             body = detail.guideBody,
                         )
                     }
@@ -246,6 +263,7 @@ private fun StrategyDetailScreenContent(
                     item {
                         StrategyDetailSectionCard(
                             title = "기대효과",
+                            leadingIconRes = CoreUiR.drawable.ic_effect,
                             body = detail.expectedEffectBody,
                         )
                     }
