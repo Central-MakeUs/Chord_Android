@@ -51,6 +51,8 @@ import com.team.chord.core.ui.component.ChordBottomSheet
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTimeWheelPicker
 import com.team.chord.core.ui.component.ChordToast
+import com.team.chord.core.ui.component.ChordTooltipBubble
+import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
@@ -62,6 +64,7 @@ import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.menu.add.component.StepIndicator
+import kotlinx.coroutines.delay
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -114,6 +117,19 @@ internal fun MenuDetailScreenContent(
 ) {
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
+    var showPrepTimeTooltip by remember { mutableStateOf(false) }
+    val shouldShowPrepTimeTooltip =
+        showPrepTimeTooltip && uiState.selectedCategory == MenuCategory.BEVERAGE
+
+    LaunchedEffect(uiState.price.isNotBlank()) {
+        if (uiState.price.isNotBlank()) {
+            showPrepTimeTooltip = true
+            delay(1000L)
+            showPrepTimeTooltip = false
+        } else {
+            showPrepTimeTooltip = false
+        }
+    }
 
     LaunchedEffect(uiState.isTemplateApplied) {
         if (uiState.isTemplateApplied) {
@@ -260,6 +276,20 @@ internal fun MenuDetailScreenContent(
                                     )
                                 }
                             }
+                        }
+                    }
+
+                    if (shouldShowPrepTimeTooltip) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                            contentAlignment = Alignment.CenterEnd,
+                        ) {
+                            ChordTooltipBubble(
+                                text = "평균적인 음료의 제조시간이에요.",
+                                direction = TooltipDirection.UpRight,
+                            )
                         }
                     }
                 }

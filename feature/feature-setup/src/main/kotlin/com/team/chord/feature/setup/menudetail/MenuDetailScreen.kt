@@ -129,6 +129,8 @@ internal fun MenuDetailScreenContent(
     val scrollState = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showPrepTimeTooltip by remember { mutableStateOf(true) }
+    val shouldShowPrepTimeTooltip =
+        showPrepTimeTooltip && uiState.selectedCategory == MenuCategory.BEVERAGE
 
     LaunchedEffect(Unit) {
         delay(1000L)
@@ -288,7 +290,7 @@ internal fun MenuDetailScreenContent(
                     }
                 }
 
-                if (showPrepTimeTooltip) {
+                if (shouldShowPrepTimeTooltip) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
