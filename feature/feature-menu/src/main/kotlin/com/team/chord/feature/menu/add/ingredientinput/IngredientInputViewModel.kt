@@ -159,9 +159,12 @@ class IngredientInputViewModel @Inject constructor(
     }
 
     fun onAddNewIngredient() {
+        val ingredientName = _uiState.value.searchQuery.trim()
+        if (ingredientName.isEmpty()) return
+
         val bottomSheetState = IngredientBottomSheetState(
             id = null,
-            name = _uiState.value.searchQuery,
+            name = ingredientName,
             sourceType = IngredientSourceType.NEW,
         )
 
@@ -174,6 +177,8 @@ class IngredientInputViewModel @Inject constructor(
     }
 
     fun onEditIngredient(ingredient: SelectedIngredient) {
+        if (_uiState.value.isDeleteMode) return
+
         val bottomSheetState = IngredientBottomSheetState(
             id = ingredient.id,
             name = ingredient.name,
@@ -379,10 +384,82 @@ class IngredientInputViewModel @Inject constructor(
         _uiState.update { it.copy(showCompletionToast = false) }
     }
 
+    fun enterDeleteMode() {
+        if (_uiState.value.selectedIngredients.isEmpty()) return
+        _uiState.update {
+            it.copy(
+                isDeleteMode = true,
+                selectedIngredientIdsForDeletion = emptySet(),
+                showDeleteConfirmDialog = false,
+            )
+        }
+    }
+
+    fun cancelDeleteMode() {
+        _uiState.update {
+            it.copy(
+                isDeleteMode = false,
+                selectedIngredientIdsForDeletion = emptySet(),
+                showDeleteConfirmDialog = false,
+            )
+        }
+    }
+
+    fun toggleIngredientSelectionForDeletion(ingredientId: Long) {
+        if (!_uiState.value.isDeleteMode) return
+        _uiState.update { state ->
+            val updatedSelections = if (ingredientId in state.selectedIngredientIdsForDeletion) {
+                state.selectedIngredientIdsForDeletion - ingredientId
+            } else {
+                state.selectedIngredientIdsForDeletion + ingredientId
+            }
+            state.copy(selectedIngredientIdsForDeletion = updatedSelections)
+        }
+    }
+
+    fun showDeleteConfirmDialog() {
+        _uiState.update { state ->
+            if (state.selectedIngredientIdsForDeletion.isEmpty()) {
+                state
+            } else {
+                state.copy(showDeleteConfirmDialog = true)
+            }
+        }
+    }
+
+    fun dismissDeleteConfirmDialog() {
+        _uiState.update { it.copy(showDeleteConfirmDialog = false) }
+    }
+
+    fun confirmDeleteSelectedIngredients() {
+        _uiState.update { state ->
+            if (state.selectedIngredientIdsForDeletion.isEmpty()) {
+                state.copy(showDeleteConfirmDialog = false)
+            } else {
+                val updatedIngredients = state.selectedIngredients.filterNot {
+                    it.id in state.selectedIngredientIdsForDeletion
+                }
+                state.copy(
+                    selectedIngredients = updatedIngredients,
+                    isDeleteMode = false,
+                    selectedIngredientIdsForDeletion = emptySet(),
+                    showDeleteConfirmDialog = false,
+                    showCompletionToast = true,
+                    completionToastMessage = "선택한 재료를 삭제했어요.",
+                )
+            }
+        }
+    }
+
     fun onRemoveIngredient(ingredientId: Long) {
         _uiState.update { state ->
             val updatedIngredients = state.selectedIngredients.filter { it.id != ingredientId }
-            state.copy(selectedIngredients = updatedIngredients)
+            val updatedSelections = state.selectedIngredientIdsForDeletion - ingredientId
+            state.copy(
+                selectedIngredients = updatedIngredients,
+                selectedIngredientIdsForDeletion = updatedSelections,
+                showDeleteConfirmDialog = if (updatedSelections.isEmpty()) false else state.showDeleteConfirmDialog,
+            )
         }
     }
 

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -47,7 +46,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,6 +60,7 @@ import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordToast
+import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.component.ChordTooltipBubble
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
@@ -66,10 +68,10 @@ import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.core.ui.theme.PrimaryBlue200
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.menu.add.component.StepIndicator
 import java.text.NumberFormat
@@ -91,7 +93,12 @@ fun IngredientInputScreen(
         onSuggestionClicked = viewModel::onSuggestionClicked,
         onAddNewIngredient = viewModel::onAddNewIngredient,
         onEditIngredient = viewModel::onEditIngredient,
-        onRemoveIngredient = viewModel::onRemoveIngredient,
+        onEnterDeleteMode = viewModel::enterDeleteMode,
+        onCancelDeleteMode = viewModel::cancelDeleteMode,
+        onToggleIngredientSelectionForDeletion = viewModel::toggleIngredientSelectionForDeletion,
+        onShowDeleteConfirmDialog = viewModel::showDeleteConfirmDialog,
+        onDismissDeleteConfirmDialog = viewModel::dismissDeleteConfirmDialog,
+        onConfirmDeleteSelectedIngredients = viewModel::confirmDeleteSelectedIngredients,
         onBottomSheetDismissed = viewModel::onBottomSheetDismissed,
         onBottomSheetCategoryChanged = viewModel::onBottomSheetCategoryChanged,
         onBottomSheetPriceChanged = viewModel::onBottomSheetPriceChanged,
@@ -116,7 +123,12 @@ internal fun IngredientInputScreenContent(
     onSuggestionClicked: (IngredientSuggestion) -> Unit,
     onAddNewIngredient: () -> Unit,
     onEditIngredient: (SelectedIngredient) -> Unit,
-    onRemoveIngredient: (Long) -> Unit,
+    onEnterDeleteMode: () -> Unit,
+    onCancelDeleteMode: () -> Unit,
+    onToggleIngredientSelectionForDeletion: (Long) -> Unit,
+    onShowDeleteConfirmDialog: () -> Unit,
+    onDismissDeleteConfirmDialog: () -> Unit,
+    onConfirmDeleteSelectedIngredients: () -> Unit,
     onBottomSheetDismissed: () -> Unit,
     onBottomSheetCategoryChanged: (String) -> Unit,
     onBottomSheetPriceChanged: (String) -> Unit,
@@ -143,6 +155,7 @@ internal fun IngredientInputScreenContent(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Grayscale100,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) {
                 ChordToast(
@@ -158,9 +171,11 @@ internal fun IngredientInputScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
         ) {
-            IngredientInputTopBar(onBackClick = onNavigateBack)
+            IngredientInputTopBar(
+                onBackClick = onNavigateBack,
+            )
 
             Column(
                 modifier = Modifier
@@ -170,10 +185,10 @@ internal fun IngredientInputScreenContent(
                 StepIndicator(
                     currentStep = 2,
                     totalSteps = 2,
-                    modifier = Modifier.padding(start = 24.dp, top = 16.dp),
+                    modifier = Modifier.padding(start = 24.dp, top = 8.dp),
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                     FieldLabel(text = "재료명")
@@ -220,26 +235,38 @@ internal fun IngredientInputScreenContent(
                         ) {
                             FieldLabel(text = "재료 리스트")
                             Text(
-                                text = "선택",
+                                text = if (uiState.isDeleteMode) "취소" else "삭제",
                                 fontFamily = PretendardFontFamily,
-                                fontWeight = FontWeight.Medium,
+                                fontWeight = FontWeight.Normal,
                                 fontSize = 14.sp,
                                 color = Grayscale500,
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .border(1.dp, Grayscale300, RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 12.dp, vertical = 6.dp)
-                                    .clickable { },
+                                modifier = Modifier.clickable {
+                                    if (uiState.isDeleteMode) {
+                                        onCancelDeleteMode()
+                                    } else {
+                                        onEnterDeleteMode()
+                                    }
+                                },
                             )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         uiState.selectedIngredients.forEach { ingredient ->
-                            IngredientListItem(
-                                ingredient = ingredient,
-                                onClick = { onEditIngredient(ingredient) },
-                            )
+                            if (uiState.isDeleteMode) {
+                                IngredientSelectableListItem(
+                                    ingredient = ingredient,
+                                    checked = ingredient.id in uiState.selectedIngredientIdsForDeletion,
+                                    onCheckedChange = {
+                                        onToggleIngredientSelectionForDeletion(ingredient.id)
+                                    },
+                                )
+                            } else {
+                                IngredientListItem(
+                                    ingredient = ingredient,
+                                    onClick = { onEditIngredient(ingredient) },
+                                )
+                            }
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
@@ -249,10 +276,21 @@ internal fun IngredientInputScreenContent(
             }
 
             BottomNavigationButtons(
-                isNextEnabled = uiState.isNextEnabled,
+                primaryButtonText = if (uiState.isDeleteMode) "삭제하기" else "재료 추가 완료",
+                isPrimaryEnabled = if (uiState.isDeleteMode) {
+                    uiState.deleteSelectionCount > 0
+                } else {
+                    uiState.isNextEnabled
+                },
                 showPreviousButton = !uiState.isTemplateApplied,
                 onPreviousClick = onPreviousClick,
-                onNextClick = onNextClick,
+                onPrimaryClick = {
+                    if (uiState.isDeleteMode) {
+                        onShowDeleteConfirmDialog()
+                    } else {
+                        onNextClick()
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
@@ -271,6 +309,16 @@ internal fun IngredientInputScreenContent(
                 onUnitChanged = onBottomSheetUnitChanged,
                 onSupplierChanged = onBottomSheetSupplierChanged,
                 onConfirm = onConfirmIngredient,
+            )
+        }
+
+        if (uiState.showDeleteConfirmDialog) {
+            ChordTwoButtonDialog(
+                title = "선택한 재료를 삭제할까요?",
+                onDismiss = onDismissDeleteConfirmDialog,
+                onConfirm = onConfirmDeleteSelectedIngredients,
+                dismissText = "취소하기",
+                confirmText = "삭제하기",
             )
         }
     }
@@ -307,19 +355,30 @@ private fun IngredientSearchField(
     placeholder: String,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+    val isAddEnabled = value.isNotBlank()
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(50.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Grayscale200)
+                .padding(horizontal = 20.dp),
+            contentAlignment = Alignment.CenterStart,
         ) {
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(
                     fontFamily = PretendardFontFamily,
                     fontWeight = FontWeight.Medium,
-                    fontSize = 20.sp,
+                    fontSize = 16.sp,
                     color = Grayscale900,
                 ),
                 singleLine = true,
@@ -332,7 +391,7 @@ private fun IngredientSearchField(
                                 style = TextStyle(
                                     fontFamily = PretendardFontFamily,
                                     fontWeight = FontWeight.Medium,
-                                    fontSize = 20.sp,
+                                    fontSize = 16.sp,
                                     color = Grayscale500,
                                 ),
                             )
@@ -341,24 +400,22 @@ private fun IngredientSearchField(
                     }
                 },
             )
-            Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(PrimaryBlue200)
-                    .clickable(onClick = onAddClick),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "재료 추가",
-                    modifier = Modifier.size(14.dp),
-                    tint = PrimaryBlue500,
-                )
-            }
         }
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(color = Grayscale300, thickness = 1.dp)
+
+        Text(
+            text = "추가",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp,
+            color = if (isAddEnabled) Grayscale700 else Grayscale400,
+            modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(
+                    enabled = isAddEnabled,
+                    onClick = onAddClick,
+                )
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+        )
     }
 }
 
@@ -488,6 +545,55 @@ private fun IngredientListItem(
             fontSize = 14.sp,
             color = Grayscale500,
         )
+    }
+}
+
+@Composable
+private fun IngredientSelectableListItem(
+    ingredient: SelectedIngredient,
+    checked: Boolean,
+    onCheckedChange: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onCheckedChange),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            painter = painterResource(
+                id = if (checked) R.drawable.ic_checkbox else R.drawable.ic_un_checkbox,
+            ),
+            contentDescription = if (checked) "선택됨" else "선택 안됨",
+            tint = Color.Unspecified,
+            modifier = Modifier.size(24.dp),
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = ingredient.name,
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Grayscale900,
+            )
+            Text(
+                text = "${ingredient.amount}${ingredient.unit.displayName}  ${numberFormat.format(ingredient.price)}원",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Grayscale500,
+            )
+        }
     }
 }
 
@@ -881,10 +987,11 @@ private fun UnitDropdown(
 
 @Composable
 private fun BottomNavigationButtons(
-    isNextEnabled: Boolean,
+    primaryButtonText: String,
+    isPrimaryEnabled: Boolean,
     showPreviousButton: Boolean,
     onPreviousClick: () -> Unit,
-    onNextClick: () -> Unit,
+    onPrimaryClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -902,10 +1009,10 @@ private fun BottomNavigationButtons(
         }
 
         ChordLargeButton(
-            text = "재료 추가 완료",
-            onClick = onNextClick,
+            text = primaryButtonText,
+            onClick = onPrimaryClick,
             modifier = Modifier.weight(if (showPreviousButton) 2f else 1f),
-            enabled = isNextEnabled,
+            enabled = isPrimaryEnabled,
         )
     }
 }

@@ -12,6 +12,9 @@ data class IngredientInputUiState(
     val searchQuery: String = "",
     val searchResults: List<IngredientSuggestion> = emptyList(),
     val selectedIngredients: List<SelectedIngredient> = emptyList(),
+    val isDeleteMode: Boolean = false,
+    val selectedIngredientIdsForDeletion: Set<Long> = emptySet(),
+    val showDeleteConfirmDialog: Boolean = false,
     val showBottomSheet: Boolean = false,
     val bottomSheetIngredient: IngredientBottomSheetState? = null,
     val isNextEnabled: Boolean = true,
@@ -19,7 +22,10 @@ data class IngredientInputUiState(
     val isTemplateApplied: Boolean = false,
     val showCompletionToast: Boolean = false,
     val completionToastMessage: String = "",
-)
+) {
+    val deleteSelectionCount: Int
+        get() = selectedIngredientIdsForDeletion.size
+}
 
 data class IngredientSuggestion(
     val ingredientId: Long? = null,

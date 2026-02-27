@@ -158,11 +158,10 @@ internal fun IngredientInputScreenContent(
                 )
             }
         },
-    ) { paddingValues ->
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+                .fillMaxSize(),
         ) {
             // Top Bar
             IngredientInputTopBar(onBackClick = onNavigateBack)
