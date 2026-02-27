@@ -2,4 +2,8 @@
 <resources>
 
     <style name="Theme.Chord" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Chord.Splash" parent="Theme.Chord">
+        <item name="android:windowBackground">@drawable/splash</item>
+    </style>
 </resources>
