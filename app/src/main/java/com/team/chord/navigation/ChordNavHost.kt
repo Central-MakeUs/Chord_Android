@@ -20,15 +20,18 @@ import com.team.chord.feature.auth.navigation.signUpCompleteScreen
 import com.team.chord.feature.auth.navigation.signUpScreen
 import com.team.chord.feature.auth.navigation.SIGNUP_COMPLETE_ROUTE
 import com.team.chord.feature.home.navigation.HOME_ROUTE
+import com.team.chord.feature.home.navigation.HOME_REFRESH_REQUEST_KEY
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToHome
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
+import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_REFRESH_REQUEST_KEY
 import com.team.chord.feature.ingredient.navigation.ingredientDetailScreen
 import com.team.chord.feature.ingredient.navigation.ingredientListScreen
 import com.team.chord.feature.ingredient.navigation.ingredientSearchScreen
 import com.team.chord.feature.ingredient.navigation.navigateToIngredientDetail
 import com.team.chord.feature.ingredient.navigation.navigateToIngredientSearch
 import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
+import com.team.chord.feature.menu.navigation.MENU_LIST_REFRESH_REQUEST_KEY
 import com.team.chord.feature.menu.navigation.ingredientEditScreen
 import com.team.chord.feature.menu.navigation.menuDetailScreen
 import com.team.chord.feature.menu.navigation.menuListScreen
@@ -43,6 +46,7 @@ import com.team.chord.feature.setup.navigation.SETUP_GRAPH_ROUTE
 import com.team.chord.feature.setup.navigation.navigateToSetupGraph
 import com.team.chord.feature.setup.navigation.setupGraph
 import com.team.chord.feature.aicoach.navigation.aiCoachScreen
+import com.team.chord.feature.aicoach.navigation.AI_COACH_REFRESH_REQUEST_KEY
 import com.team.chord.feature.aicoach.navigation.navigateToAiCoach
 import com.team.chord.feature.aicoach.navigation.navigateToAiCoachComplete
 import com.team.chord.feature.aicoach.navigation.navigateToAiCoachDetail
@@ -205,6 +209,7 @@ fun ChordNavHost(
                 navController.popBackStack()
             },
             onStoreEditComplete = {
+                requestRefresh(navController, HOME_ROUTE, HOME_REFRESH_REQUEST_KEY)
                 navController.popBackStack()
             },
         )
@@ -246,6 +251,7 @@ fun ChordNavHost(
         menuAddGraph(
             navController = navController,
             onComplete = {
+                requestRefresh(navController, MENU_LIST_ROUTE, MENU_LIST_REFRESH_REQUEST_KEY)
                 navController.popBackStack(MENU_LIST_ROUTE, inclusive = false)
             },
         )
@@ -261,21 +267,29 @@ fun ChordNavHost(
                 navController.navigateToIngredientEdit(menuId)
             },
             onMenuDeleted = {
+                requestRefresh(navController, MENU_LIST_ROUTE, MENU_LIST_REFRESH_REQUEST_KEY)
                 navController.popBackStack(MENU_LIST_ROUTE, inclusive = false)
             },
         )
 
         menuManagementScreen(
-            onNavigateBack = {
+            onNavigateBack = { hasChanges ->
+                if (hasChanges) {
+                    requestRefresh(navController, MENU_LIST_ROUTE, MENU_LIST_REFRESH_REQUEST_KEY)
+                }
                 navController.popBackStack()
             },
             onMenuDeleted = {
+                requestRefresh(navController, MENU_LIST_ROUTE, MENU_LIST_REFRESH_REQUEST_KEY)
                 navController.popBackStack(MENU_LIST_ROUTE, inclusive = false)
             },
         )
 
         ingredientEditScreen(
-            onNavigateBack = {
+            onNavigateBack = { hasChanges ->
+                if (hasChanges) {
+                    requestRefresh(navController, MENU_LIST_ROUTE, MENU_LIST_REFRESH_REQUEST_KEY)
+                }
                 navController.popBackStack()
             },
         )
@@ -290,7 +304,10 @@ fun ChordNavHost(
         )
 
         ingredientDetailScreen(
-            onNavigateBack = {
+            onNavigateBack = { hasChanges ->
+                if (hasChanges) {
+                    requestRefresh(navController, INGREDIENT_LIST_ROUTE, INGREDIENT_LIST_REFRESH_REQUEST_KEY)
+                }
                 navController.popBackStack()
             },
         )
@@ -318,6 +335,7 @@ fun ChordNavHost(
                 navController.previousBackStackEntry
                     ?.savedStateHandle
                     ?.set(STRATEGY_STARTED_MESSAGE_KEY, message)
+                requestRefresh(navController, AI_COACH_ROUTE, AI_COACH_REFRESH_REQUEST_KEY)
                 navController.popBackStack()
             },
             onNavigateToComplete = { completionPhrase ->
@@ -327,6 +345,7 @@ fun ChordNavHost(
 
         strategyCompleteScreen(
             onConfirm = {
+                requestRefresh(navController, AI_COACH_ROUTE, AI_COACH_REFRESH_REQUEST_KEY)
                 val popped = navController.popBackStack(AI_COACH_ROUTE, inclusive = false)
                 if (!popped) {
                     navController.navigateToAiCoach(
@@ -338,5 +357,15 @@ fun ChordNavHost(
                 }
             },
         )
+    }
+}
+
+private fun requestRefresh(
+    navController: NavHostController,
+    route: String,
+    key: String,
+) {
+    runCatching {
+        navController.getBackStackEntry(route).savedStateHandle[key] = true
     }
 }

@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.PrimaryBlue100
@@ -35,11 +34,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LifecycleResumeEffect(Unit) {
-        viewModel.onScreenResume()
-        onPauseOrDispose { }
-    }
 
     HomeScreenContent(
         uiState = uiState,

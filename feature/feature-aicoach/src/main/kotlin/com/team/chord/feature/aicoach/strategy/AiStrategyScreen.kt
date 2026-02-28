@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R as CoreUiR
 import com.team.chord.core.ui.component.ChordTopAppBar
@@ -61,11 +60,6 @@ fun AiStrategyScreen(
     viewModel: AiStrategyViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LifecycleResumeEffect(Unit) {
-        viewModel.refresh()
-        onPauseOrDispose { }
-    }
 
     AiStrategyScreenContent(
         uiState = uiState,

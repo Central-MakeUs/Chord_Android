@@ -33,6 +33,7 @@ class MenuManagementViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val menuId: Long = savedStateHandle.get<Long>("menuId") ?: 0L
+    private var hasChanges: Boolean = false
 
     private val _uiState = MutableStateFlow(MenuManagementUiState())
     val uiState: StateFlow<MenuManagementUiState> = _uiState.asStateFlow()
@@ -81,9 +82,12 @@ class MenuManagementViewModel @Inject constructor(
         _uiState.update { it.copy(showDeleteSuccessDialog = false) }
     }
 
+    fun hasChanges(): Boolean = hasChanges
+
     fun updateMenuName(name: String) {
         viewModelScope.launch {
             updateMenuNameUseCase(menuId, name).onSuccess {
+                hasChanges = true
                 _uiState.update { state ->
                     state.copy(
                         menuName = name,
@@ -97,6 +101,7 @@ class MenuManagementViewModel @Inject constructor(
     fun updatePrice(price: Int) {
         viewModelScope.launch {
             updateMenuPriceUseCase(menuId, price).onSuccess {
+                hasChanges = true
                 _uiState.update { state ->
                     state.copy(
                         price = price,
@@ -110,6 +115,7 @@ class MenuManagementViewModel @Inject constructor(
     fun updatePreparationTime(seconds: Int) {
         viewModelScope.launch {
             updateMenuPreparationTimeUseCase(menuId, seconds).onSuccess {
+                hasChanges = true
                 _uiState.update { state ->
                     state.copy(
                         preparationTimeSeconds = seconds,
@@ -123,6 +129,7 @@ class MenuManagementViewModel @Inject constructor(
     fun updateCategory(categoryCode: String) {
         viewModelScope.launch {
             updateMenuCategoryUseCase(menuId, categoryCode).onSuccess {
+                hasChanges = true
                 _uiState.update { state ->
                     state.copy(selectedCategoryCode = categoryCode)
                 }
@@ -133,6 +140,7 @@ class MenuManagementViewModel @Inject constructor(
     fun deleteMenu() {
         viewModelScope.launch {
             deleteMenuUseCase(menuId).onSuccess {
+                hasChanges = true
                 _uiState.update { it.copy(showDeleteDialog = false, showDeleteSuccessDialog = true) }
             }
         }

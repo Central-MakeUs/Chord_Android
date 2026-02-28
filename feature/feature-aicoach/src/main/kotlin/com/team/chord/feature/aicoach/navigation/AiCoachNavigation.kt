@@ -1,6 +1,10 @@
 package com.team.chord.feature.aicoach.navigation
 
 import android.net.Uri
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -8,10 +12,12 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.team.chord.feature.aicoach.strategy.AiStrategyScreen
+import com.team.chord.feature.aicoach.strategy.AiStrategyViewModel
 import com.team.chord.feature.aicoach.strategy.complete.StrategyCompleteScreen
 import com.team.chord.feature.aicoach.strategy.detail.StrategyDetailScreen
 
 const val AI_COACH_ROUTE = "ai_coach"
+const val AI_COACH_REFRESH_REQUEST_KEY = "ai_coach_refresh_request"
 const val AI_COACH_DETAIL_ROUTE = "ai_coach_detail/{strategyId}?type={type}"
 const val AI_COACH_COMPLETE_ROUTE = "ai_coach_complete?phrase={phrase}"
 
@@ -46,7 +52,18 @@ fun NavGraphBuilder.aiCoachScreen(
     onNavigateToStrategyDetail: (Long, String) -> Unit,
 ) {
     composable(route = AI_COACH_ROUTE) { backStackEntry ->
+        val viewModel: AiStrategyViewModel = hiltViewModel(backStackEntry)
+        val refreshRequested by backStackEntry.savedStateHandle
+            .getStateFlow(AI_COACH_REFRESH_REQUEST_KEY, false)
+            .collectAsStateWithLifecycle()
         val strategyStartedMessage = backStackEntry.savedStateHandle.get<String>(STRATEGY_STARTED_MESSAGE_KEY)
+
+        LaunchedEffect(refreshRequested) {
+            if (refreshRequested) {
+                viewModel.refresh()
+                backStackEntry.savedStateHandle[AI_COACH_REFRESH_REQUEST_KEY] = false
+            }
+        }
 
         AiStrategyScreen(
             onNavigateToStrategyDetail = onNavigateToStrategyDetail,
@@ -54,6 +71,7 @@ fun NavGraphBuilder.aiCoachScreen(
             onStrategyStartedMessageConsumed = {
                 backStackEntry.savedStateHandle.remove<String>(STRATEGY_STARTED_MESSAGE_KEY)
             },
+            viewModel = viewModel,
         )
     }
 }

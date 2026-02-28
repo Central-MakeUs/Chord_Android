@@ -42,7 +42,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
@@ -70,11 +69,6 @@ fun IngredientListScreen(
     viewModel: IngredientListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    LifecycleResumeEffect(Unit) {
-        viewModel.refresh()
-        onPauseOrDispose { }
-    }
 
     IngredientListScreenContent(
         uiState = uiState,

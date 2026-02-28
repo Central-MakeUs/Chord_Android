@@ -27,6 +27,7 @@ class IngredientDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val ingredientId: Long = savedStateHandle.get<Long>("ingredientId") ?: 0L
+    private var hasChanges: Boolean = false
 
     private val _uiState = MutableStateFlow<IngredientDetailUiState>(IngredientDetailUiState.Loading)
     val uiState: StateFlow<IngredientDetailUiState> = _uiState.asStateFlow()
@@ -34,6 +35,8 @@ class IngredientDetailViewModel @Inject constructor(
     init {
         loadIngredientDetail()
     }
+
+    fun hasChanges(): Boolean = hasChanges
 
     fun onFavoriteToggle() {
         viewModelScope.launch {
@@ -43,6 +46,7 @@ class IngredientDetailViewModel @Inject constructor(
             val currentFavorite = currentState.ingredientDetail.isFavorite
             when (updateIngredientUseCase.setFavorite(ingredientId, !currentFavorite)) {
                 is Result.Success -> {
+                    hasChanges = true
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
                             isFavorite = !currentFavorite,
@@ -66,6 +70,7 @@ class IngredientDetailViewModel @Inject constructor(
 
             when (deleteIngredientUseCase(ingredientId)) {
                 is Result.Success -> {
+                    hasChanges = true
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
                             isDeleted = true,
@@ -101,6 +106,7 @@ class IngredientDetailViewModel @Inject constructor(
                 unitCode = unit.name,
             )) {
                 is Result.Success -> {
+                    hasChanges = true
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
                             category = category,
@@ -127,6 +133,7 @@ class IngredientDetailViewModel @Inject constructor(
 
             when (updateIngredientUseCase.updateSupplier(ingredientId, supplier)) {
                 is Result.Success -> {
+                    hasChanges = true
                     _uiState.value = currentState.copy(
                         ingredientDetail = currentState.ingredientDetail.copy(
                             supplier = supplier,

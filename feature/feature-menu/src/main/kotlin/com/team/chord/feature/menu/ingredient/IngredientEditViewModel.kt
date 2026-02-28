@@ -32,6 +32,7 @@ class IngredientEditViewModel @Inject constructor(
 
     private val menuId: Long = savedStateHandle.get<Long>("menuId") ?: 0L
     private val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
+    private var hasChanges: Boolean = false
 
     private val _uiState = MutableStateFlow(IngredientEditUiState())
     val uiState: StateFlow<IngredientEditUiState> = _uiState.asStateFlow()
@@ -39,6 +40,8 @@ class IngredientEditViewModel @Inject constructor(
     init {
         loadData()
     }
+
+    fun hasChanges(): Boolean = hasChanges
 
     fun showEditBottomSheet(recipe: EditableRecipeUi) {
         _uiState.update {
@@ -76,6 +79,7 @@ class IngredientEditViewModel @Inject constructor(
             _uiState.update { it.copy(isSubmitting = true) }
             when (val result = updateRecipeAmountUseCase(menuId, sheet.recipe.recipeId, amount)) {
                 is Result.Success -> {
+                    hasChanges = true
                     _uiState.update { state ->
                         state.copy(
                             isSubmitting = false,

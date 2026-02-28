@@ -64,7 +64,7 @@ import com.team.chord.core.ui.R as CoreUiR
 
 @Composable
 fun IngredientDetailScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: IngredientDetailViewModel = hiltViewModel(),
 ) {
@@ -75,14 +75,14 @@ fun IngredientDetailScreen(
         if (uiState is IngredientDetailUiState.Success) {
             val detail = (uiState as IngredientDetailUiState.Success).ingredientDetail
             if (detail.isDeleted) {
-                onNavigateBack()
+                onNavigateBack(true)
             }
         }
     }
 
     IngredientDetailScreenContent(
         uiState = uiState,
-        onNavigateBack = onNavigateBack,
+        onNavigateBack = { onNavigateBack(viewModel.hasChanges()) },
         onFavoriteToggle = viewModel::onFavoriteToggle,
         onDelete = viewModel::onDelete,
         onUpdatePriceInfo = viewModel::onUpdatePriceInfo,

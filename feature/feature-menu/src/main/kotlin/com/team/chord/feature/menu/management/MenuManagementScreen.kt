@@ -55,7 +55,7 @@ import java.util.Locale
 
 @Composable
 fun MenuManagementScreen(
-    onNavigateBack: () -> Unit,
+    onNavigateBack: (Boolean) -> Unit,
     onMenuDeleted: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: MenuManagementViewModel = hiltViewModel(),
@@ -64,7 +64,7 @@ fun MenuManagementScreen(
 
     MenuManagementScreenContent(
         uiState = uiState,
-        onNavigateBack = onNavigateBack,
+        onNavigateBack = { onNavigateBack(viewModel.hasChanges()) },
         onShowNameBottomSheet = viewModel::showNameBottomSheet,
         onHideNameBottomSheet = viewModel::hideNameBottomSheet,
         onUpdateName = viewModel::updateMenuName,
