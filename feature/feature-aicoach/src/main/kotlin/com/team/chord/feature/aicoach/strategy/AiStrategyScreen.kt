@@ -115,7 +115,10 @@ internal fun AiStrategyScreenContent(
 
     Scaffold(
         topBar = {
-            ChordTopAppBar(title = "AI 전략")
+            ChordTopAppBar(
+                title = "AI 전략",
+                backgroundColor = Grayscale200,
+            )
         },
         containerColor = Grayscale200,
         snackbarHost = {

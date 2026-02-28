@@ -41,6 +41,7 @@ fun ChordTopAppBar(
     modifier: Modifier = Modifier,
     titleStyle: TextStyle = DefaultTitleStyle,
     titleColor: Color = Grayscale900,
+    backgroundColor: Color = Grayscale100,
     onBackClick: (() -> Unit)? = null,
     onActionClick: (() -> Unit)? = null,
     actionContent: @Composable (() -> Unit)? = null,
@@ -49,7 +50,7 @@ fun ChordTopAppBar(
         modifier = modifier
             .fillMaxWidth()
             .height(48.dp)
-            .background(Grayscale100),
+            .background(backgroundColor),
     ) {
         // Back button (left)
         if (onBackClick != null) {
