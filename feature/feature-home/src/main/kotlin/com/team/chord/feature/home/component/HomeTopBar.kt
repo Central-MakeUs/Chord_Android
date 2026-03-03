@@ -30,12 +30,12 @@ fun HomeTopBar(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_logo),
-                contentDescription = "로고",
-                tint = Color.Unspecified,
-                modifier = Modifier.size(15.dp),
-            )
+//            Icon(
+//                painter = painterResource(id = R.drawable.ic_logo),
+//                contentDescription = "로고",
+//                tint = Color.Unspecified,
+//                modifier = Modifier.size(15.dp),
+//            )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = "코치코치",
