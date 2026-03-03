@@ -1,7 +1,7 @@
 package com.team.chord.core.data.di
 
-import com.team.chord.core.data.datasource.FakeStrategyDataSource
 import com.team.chord.core.data.datasource.StrategyDataSource
+import com.team.chord.core.data.datasource.remote.RemoteStrategyDataSource
 import com.team.chord.core.data.repository.StrategyRepositoryImpl
 import com.team.chord.core.domain.repository.StrategyRepository
 import dagger.Binds
@@ -20,6 +20,5 @@ abstract class StrategyDataModule {
 
     @Binds
     @Singleton
-    // TODO: Switch back to RemoteStrategyDataSource when strategy API returns production data.
-    abstract fun bindStrategyDataSource(impl: FakeStrategyDataSource): StrategyDataSource
+    abstract fun bindStrategyDataSource(impl: RemoteStrategyDataSource): StrategyDataSource
 }
