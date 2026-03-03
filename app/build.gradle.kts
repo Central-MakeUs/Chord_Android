@@ -61,8 +61,8 @@ android {
 
     defaultConfig {
         applicationId = "com.team.chord"
-        versionCode = 2
-        versionName = "1.0"
+        versionCode = 13
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -72,12 +72,9 @@ android {
             if (hasReleaseSigning) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
+            // Temporarily disable shrinking/obfuscation to isolate release-only login issues.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
