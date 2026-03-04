@@ -22,6 +22,7 @@ import com.team.chord.core.domain.model.menu.MarginGrade
 import com.team.chord.core.ui.component.ChordStatusBadge
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale500
+import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
@@ -66,7 +67,7 @@ fun MenuListItem(
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp,
-                color = Grayscale900,
+                color = Grayscale600,
             )
         }
 

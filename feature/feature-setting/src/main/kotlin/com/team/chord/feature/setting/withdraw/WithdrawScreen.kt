@@ -25,6 +25,7 @@ import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.PrimaryBlue500
 
 @Composable
 fun WithdrawScreen(
@@ -111,8 +112,8 @@ fun WithdrawScreen(
             onClick = viewModel::onWithdrawClicked,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             enabled = !uiState.isSubmitting,
-            backgroundColor = Grayscale400,
-            textColor = Grayscale600,
+            backgroundColor = PrimaryBlue500,
+            textColor = Grayscale100,
         )
     }
 

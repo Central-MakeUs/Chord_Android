@@ -39,12 +39,12 @@ private val onboardingPages =
             description = "원가율 5%에 따라\n월수익 100~300만원의 차이가 발생해요",
         ),
         OnboardingPageData(
-            title = "코치코치가 대신 해드려요",
+            title = "카페코치가 대신 해드려요",
             description = "어렵고 귀찮은 원가 관리부터\n우리 가게 전략 설계까지!",
         ),
         OnboardingPageData(
             title = "메뉴와 재료만 알려주세요",
-            description = "바로 수익 진단을 내려드릴게요\n복잡한건 코치코치에게 맡기세요",
+            description = "바로 수익 진단을 내려드릴게요\n복잡한건 카페코치에게 맡기세요",
         ),
     )
 

@@ -86,7 +86,7 @@ internal fun LoginScreenContent(
             Spacer(modifier = Modifier.height(120.dp))
 
             Text(
-                text = "코치코치",
+                text = "카페코치",
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,

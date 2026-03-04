@@ -38,7 +38,7 @@ fun HomeTopBar(
 //            )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "코치코치",
+                text = "카페코치",
                 style = MaterialTheme.typography.titleLarge,
                 color = PrimaryBlue500,
             )

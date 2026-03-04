@@ -56,7 +56,7 @@ fun FaqScreen(
         ),
         FaqItem(
             question = "Q. 회원 탈퇴와 관련한 문의는 어디로 하나요?",
-            answer = "A. 회원 탈퇴와 관련한 문의는 이메일을 통해 문의하실 수 있습니다.\ncoach.operation@gmail.com",
+            answer = "A. 회원 탈퇴와 관련한 문의는 이메일을 통해 문의하실 수 있습니다.\nkochi.kochi.help@gmail.com",
         ),
     )
 
@@ -81,7 +81,7 @@ fun FaqScreen(
 
             item {
                 Text(
-                    text = "더 자세한 안내가 필요한 경우, 아래 이메일로 문의해 주세요.\ncoach.operation@gmail.com",
+                    text = "더 자세한 안내가 필요한 경우, 아래 이메일로 문의해 주세요.\nkochi.kochi.help@gmail.com",
                     style = TextStyle(
                         fontFamily = PretendardFontFamily,
                         fontWeight = FontWeight.Medium,
