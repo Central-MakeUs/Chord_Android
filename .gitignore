@@ -20,3 +20,6 @@ app/src/main/res/xml/network_security_config.xml
 
 # Screenshots (design reference)
 screenshot/
+
+# Keystore files
+keystore/
