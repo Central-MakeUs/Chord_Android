@@ -61,7 +61,7 @@ android {
 
     defaultConfig {
         applicationId = "com.team.chord"
-        versionCode = 13
+        versionCode = 15
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
