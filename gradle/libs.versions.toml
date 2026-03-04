@@ -6,6 +6,7 @@ ksp = "2.0.21-1.0.28"
 
 # AndroidX Core
 coreKtx = "1.17.0"
+splashscreen = "1.0.1"
 appcompat = "1.7.0"
 
 # Lifecycle
@@ -43,6 +44,7 @@ espressoCore = "3.7.0"
 [libraries]
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 # Lifecycle
@@ -121,4 +123,3 @@ chord-android-feature = { id = "chord.android.feature", version = "unspecified" 
 chord-android-compose = { id = "chord.android.compose", version = "unspecified" }
 chord-android-hilt = { id = "chord.android.hilt", version = "unspecified" }
 chord-jvm-library = { id = "chord.jvm.library", version = "unspecified" }
-

@@ -19,11 +19,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.Chord" />
-        <activity
-            android:name=".SplashActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Chord.Splash">
+            android:theme="@style/Theme.Chord.Startup">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

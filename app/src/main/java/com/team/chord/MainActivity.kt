@@ -7,6 +7,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,6 +42,8 @@ import com.team.chord.feature.menu.navigation.navigateToMenuList
 import com.team.chord.feature.aicoach.navigation.AI_COACH_ROUTE
 import com.team.chord.feature.aicoach.navigation.navigateToAiCoach
 import com.team.chord.navigation.ChordNavHost
+import com.team.chord.navigation.ChordNavHostViewModel
+import com.team.chord.navigation.NavigationState
 import com.team.chord.navigation.statusBarStyleForRoute
 import com.team.chord.ui.ApplySystemBarStyle
 import com.team.chord.ui.ChordBottomNavBar
@@ -51,20 +55,31 @@ private const val BACK_PRESS_EXIT_MESSAGE = "뒤로가기를 한번 더 누르�
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val navHostViewModel: ChordNavHostViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen().setKeepOnScreenCondition {
+            navHostViewModel.navigationState.value is NavigationState.Loading
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ChordTheme {
                 val navController = rememberNavController()
-                MainScreen(navController = navController)
+                MainScreen(
+                    navController = navController,
+                    navHostViewModel = navHostViewModel,
+                )
             }
         }
     }
 }
 
 @Composable
-private fun MainScreen(navController: NavHostController) {
+private fun MainScreen(
+    navController: NavHostController,
+    navHostViewModel: ChordNavHostViewModel,
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val statusBarStyle = statusBarStyleForRoute(currentDestination?.route)
@@ -111,6 +126,7 @@ private fun MainScreen(navController: NavHostController) {
             ChordNavHost(
                 navController = navController,
                 modifier = Modifier.padding(innerPadding),
+                viewModel = navHostViewModel,
             )
         }
 
