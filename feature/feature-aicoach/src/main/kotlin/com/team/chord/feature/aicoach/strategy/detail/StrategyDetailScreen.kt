@@ -245,7 +245,7 @@ private fun StrategyDetailScreenContent(
                     item {
                         StrategyDetailSectionCard(
                             title = "진단",
-                            leadingIconRes = CoreUiR.drawable.ic_warning,
+                            leadingIconRes = CoreUiR.drawable.ic_warning_menu,
                             headline = detail.diagnosisHeadline,
                             body = detail.diagnosisBody,
                             menuNames = detail.menuNames,
