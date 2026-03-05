@@ -52,6 +52,7 @@ import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
@@ -213,6 +214,8 @@ internal fun IngredientListScreenContent(
                         ) {
                             CircularProgressIndicator(color = PrimaryBlue500)
                         }
+                    } else if (uiState.ingredients.isEmpty()) {
+                        IngredientListEmptyState()
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
@@ -303,6 +306,37 @@ internal fun IngredientListScreenContent(
                     )
                 },
                 onDismiss = onDismissAddDetailSheet,
+            )
+        }
+    }
+}
+
+@Composable
+private fun IngredientListEmptyState(
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    color = Grayscale100,
+                    shape = RoundedCornerShape(16.dp),
+                )
+                .padding(vertical = 40.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "등록된 재료가 없어요",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 14.sp,
+                color = Grayscale500,
             )
         }
     }
