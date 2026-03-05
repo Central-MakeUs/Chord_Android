@@ -5,10 +5,12 @@ import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.feature.aicoach.navigation.AI_COACH_ROUTE
+import com.team.chord.feature.home.navigation.DANGER_MENU_REPORT_ROUTE
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
 import com.team.chord.feature.menu.navigation.MENU_LIST_ROUTE
 import com.team.chord.feature.setting.navigation.SETTING_ROUTE
+import com.team.chord.feature.setting.navigation.TERMS_ROUTE
 import com.team.chord.ui.shouldUseDarkIcons
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -29,6 +31,8 @@ class StatusBarStyleMapperTest {
     fun parameterizedRoutes_mapToExpectedColors() {
         assertEquals(Grayscale100, statusBarStyleForRoute("menu_detail/42").color)
         assertEquals(Grayscale100, statusBarStyleForRoute("ingredient_detail/7").color)
+        assertEquals(Grayscale200, statusBarStyleForRoute(DANGER_MENU_REPORT_ROUTE).color)
+        assertEquals(Grayscale100, statusBarStyleForRoute(TERMS_ROUTE).color)
         assertEquals(
             Grayscale100,
             statusBarStyleForRoute(

@@ -21,7 +21,9 @@ import com.team.chord.feature.auth.navigation.signUpScreen
 import com.team.chord.feature.auth.navigation.SIGNUP_COMPLETE_ROUTE
 import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.HOME_REFRESH_REQUEST_KEY
+import com.team.chord.feature.home.navigation.dangerMenuReportScreen
 import com.team.chord.feature.home.navigation.homeScreen
+import com.team.chord.feature.home.navigation.navigateToDangerMenuReport
 import com.team.chord.feature.home.navigation.navigateToHome
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_REFRESH_REQUEST_KEY
@@ -58,11 +60,12 @@ import com.team.chord.feature.setting.navigation.faqScreen
 import com.team.chord.feature.setting.navigation.navigateToFaq
 import com.team.chord.feature.setting.navigation.navigateToSetting
 import com.team.chord.feature.setting.navigation.navigateToStoreEdit
-import com.team.chord.feature.setting.navigation.navigateToSettingWebView
+import com.team.chord.feature.setting.navigation.navigateToTerms
 import com.team.chord.feature.setting.navigation.navigateToWithdraw
 import com.team.chord.feature.setting.navigation.settingScreen
 import com.team.chord.feature.setting.navigation.storeEditScreen
 import com.team.chord.feature.setting.navigation.settingWebViewScreen
+import com.team.chord.feature.setting.navigation.termsScreen
 import com.team.chord.feature.setting.navigation.withdrawScreen
 
 @Composable
@@ -174,6 +177,29 @@ fun ChordNavHost(
             onNavigateToSetting = {
                 navController.navigateToSetting()
             },
+            onNavigateToDangerMenuReport = {
+                navController.navigateToDangerMenuReport()
+            },
+            onNavigateToAiCoach = {
+                navController.navigateToAiCoach(
+                    navOptions = navOptions {
+                        popUpTo(HOME_ROUTE) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    },
+                )
+            },
+        )
+
+        dangerMenuReportScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+            onNavigateToStrategyDetail = { strategyId, type ->
+                navController.navigateToAiCoachDetail(strategyId = strategyId, type = type)
+            },
         )
 
         settingScreen(
@@ -187,10 +213,7 @@ fun ChordNavHost(
                 navController.navigateToFaq()
             },
             onNavigateToTerms = {
-                navController.navigateToSettingWebView(
-                    title = "이용약관",
-                    url = "https://www.notion.so/30064018c6f6805aaa09c3a1c71a3376",
-                )
+                navController.navigateToTerms()
             },
             onNavigateToWithdraw = {
                 navController.navigateToWithdraw()
@@ -215,6 +238,12 @@ fun ChordNavHost(
         )
 
         faqScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
+
+        termsScreen(
             onNavigateBack = {
                 navController.popBackStack()
             },

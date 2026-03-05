@@ -2,7 +2,6 @@ package com.team.chord.feature.home.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 
@@ -53,7 +52,7 @@ fun HomePrimaryCtaBar(
             text = title,
             style = TextStyle(
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
             ),
             color = Grayscale900,
@@ -78,7 +77,7 @@ fun HomePrimaryCtaBar(
         Icon(
             painter = painterResource(id = com.team.chord.core.ui.R.drawable.ic_chevron_right),
             contentDescription = null,
-            tint = Grayscale600,
+            tint = Grayscale400,
             modifier = Modifier.size(16.dp),
         )
     }

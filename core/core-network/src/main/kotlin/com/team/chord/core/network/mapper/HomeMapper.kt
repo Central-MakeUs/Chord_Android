@@ -19,8 +19,7 @@ fun HomeStrategiesResponseDto.toDomain(): List<HomeStrategyBrief> =
 
 fun HomeStrategyBriefDto.toDomain(): HomeStrategyBrief =
     HomeStrategyBrief(
-        menuId = menuId ?: 0L,
-        menuName = menuName.orEmpty(),
+        menuName = title?.ifBlank { null } ?: menuName.orEmpty(),
         strategyId = strategyId ?: 0L,
         summary = summary.orEmpty(),
     )

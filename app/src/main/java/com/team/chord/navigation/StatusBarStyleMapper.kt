@@ -11,6 +11,7 @@ import com.team.chord.feature.auth.navigation.LOGIN_ROUTE
 import com.team.chord.feature.auth.navigation.SIGNUP_COMPLETE_ROUTE
 import com.team.chord.feature.auth.navigation.SIGNUP_ROUTE
 import com.team.chord.feature.home.navigation.HOME_ROUTE
+import com.team.chord.feature.home.navigation.DANGER_MENU_REPORT_ROUTE
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_DETAIL_ROUTE
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_LIST_ROUTE
 import com.team.chord.feature.ingredient.navigation.INGREDIENT_SEARCH_ROUTE
@@ -22,6 +23,7 @@ import com.team.chord.feature.setting.navigation.FAQ_ROUTE
 import com.team.chord.feature.setting.navigation.SETTING_ROUTE
 import com.team.chord.feature.setting.navigation.SETTING_WEBVIEW_ROUTE
 import com.team.chord.feature.setting.navigation.STORE_EDIT_ROUTE
+import com.team.chord.feature.setting.navigation.TERMS_ROUTE
 import com.team.chord.feature.setting.navigation.WITHDRAW_ROUTE
 import com.team.chord.feature.setup.navigation.INGREDIENT_INPUT_ROUTE as SETUP_INGREDIENT_INPUT_ROUTE
 import com.team.chord.feature.setup.navigation.MENU_CONFIRM_ROUTE
@@ -55,6 +57,7 @@ private fun statusBarColorForRoute(route: String?): Color {
     return when {
         // Top-level tabs
         route == HOME_ROUTE -> PrimaryBlue100
+        route == DANGER_MENU_REPORT_ROUTE -> Grayscale200
         route == MENU_LIST_ROUTE -> Grayscale200
         route == INGREDIENT_LIST_ROUTE -> Grayscale200
         route == AI_COACH_ROUTE -> Grayscale200
@@ -68,6 +71,7 @@ private fun statusBarColorForRoute(route: String?): Color {
         // Setting sub-routes
         route == STORE_EDIT_ROUTE -> Grayscale100
         route == FAQ_ROUTE -> Grayscale100
+        route == TERMS_ROUTE -> Grayscale100
         route == WITHDRAW_ROUTE -> Grayscale100
         routeMatches(route, SETTING_WEBVIEW_ROUTE) -> Grayscale100
 

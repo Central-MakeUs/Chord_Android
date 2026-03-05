@@ -30,6 +30,8 @@ import com.team.chord.feature.home.component.HomeTopBar
 @Composable
 fun HomeScreen(
     onNavigateToSetting: () -> Unit,
+    onNavigateToDangerMenuReport: () -> Unit,
+    onNavigateToAiCoach: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -38,6 +40,8 @@ fun HomeScreen(
     HomeScreenContent(
         uiState = uiState,
         onNavigateToSetting = onNavigateToSetting,
+        onNavigateToDangerMenuReport = onNavigateToDangerMenuReport,
+        onNavigateToAiCoach = onNavigateToAiCoach,
         onRefresh = viewModel::refresh,
         modifier = modifier,
     )
@@ -48,6 +52,8 @@ fun HomeScreen(
 internal fun HomeScreenContent(
     uiState: HomeUiState,
     onNavigateToSetting: () -> Unit,
+    onNavigateToDangerMenuReport: () -> Unit,
+    onNavigateToAiCoach: () -> Unit,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -90,14 +96,17 @@ internal fun HomeScreenContent(
                         HomePrimaryCtaBar(
                             title = uiState.ctaTitle,
                             count = uiState.ctaCount,
-                            onClick = { },
+                            onClick = onNavigateToDangerMenuReport,
                         )
                     }
                     item {
                         HomeStatsRow(stats = uiState.stats)
                     }
                     item {
-                        HomeStrategyGuideCard(items = uiState.strategyItems)
+                        HomeStrategyGuideCard(
+                            items = uiState.strategyItems,
+                            onHeaderClick = onNavigateToAiCoach,
+                        )
                     }
                 }
             }

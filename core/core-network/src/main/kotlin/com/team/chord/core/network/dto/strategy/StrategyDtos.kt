@@ -25,6 +25,23 @@ data class CompletionPhraseResponseDto(
 )
 
 @Serializable
+data class NeedManagementResponseDto(
+    val strategyDate: String? = null,
+    val menus: List<NeedManagementMenuDto>? = null,
+)
+
+@Serializable
+data class NeedManagementMenuDto(
+    val strategyId: Long? = null,
+    val menuId: Long? = null,
+    val menuName: String? = null,
+    val costRate: Double? = null,
+    val marginRate: Double? = null,
+    val marginGradeCode: String? = null,
+    val state: String? = null,
+)
+
+@Serializable
 data class HighMarginMenuStrategyDetailResponseDto(
     val strategyId: Long,
     val summary: String? = null,

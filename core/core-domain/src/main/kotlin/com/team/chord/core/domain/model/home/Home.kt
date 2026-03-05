@@ -8,7 +8,6 @@ data class HomeMenus(
 )
 
 data class HomeStrategyBrief(
-    val menuId: Long,
     val menuName: String,
     val strategyId: Long,
     val summary: String,

@@ -9,6 +9,7 @@ import androidx.navigation.navArgument
 import com.team.chord.feature.setting.SettingScreen
 import com.team.chord.feature.setting.faq.FaqScreen
 import com.team.chord.feature.setting.storeedit.StoreEditScreen
+import com.team.chord.feature.setting.terms.TermsScreen
 import com.team.chord.feature.setting.webview.SettingWebViewScreen
 import com.team.chord.feature.setting.withdraw.WithdrawScreen
 import java.net.URLDecoder
@@ -18,6 +19,7 @@ import java.nio.charset.StandardCharsets
 const val SETTING_ROUTE = "setting"
 const val STORE_EDIT_ROUTE = "setting/store_edit"
 const val FAQ_ROUTE = "setting/faq"
+const val TERMS_ROUTE = "setting/terms"
 const val WITHDRAW_ROUTE = "setting/withdraw"
 const val SETTING_WEBVIEW_ROUTE = "setting_webview/{title}/{encodedUrl}"
 
@@ -31,6 +33,10 @@ fun NavController.navigateToStoreEdit(navOptions: NavOptions? = null) {
 
 fun NavController.navigateToFaq(navOptions: NavOptions? = null) {
     navigate(FAQ_ROUTE, navOptions)
+}
+
+fun NavController.navigateToTerms(navOptions: NavOptions? = null) {
+    navigate(TERMS_ROUTE, navOptions)
 }
 
 fun NavController.navigateToWithdraw() {
@@ -91,6 +97,14 @@ fun NavGraphBuilder.withdrawScreen(
             onNavigateBack = onNavigateBack,
             onWithdrawSuccess = onWithdrawSuccess,
         )
+    }
+}
+
+fun NavGraphBuilder.termsScreen(
+    onNavigateBack: () -> Unit,
+) {
+    composable(route = TERMS_ROUTE) {
+        TermsScreen(onNavigateBack = onNavigateBack)
     }
 }
 

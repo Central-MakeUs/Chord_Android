@@ -1,6 +1,7 @@
 package com.team.chord.core.data.datasource.remote
 
 import com.team.chord.core.data.datasource.StrategyDataSource
+import com.team.chord.core.domain.model.strategy.NeedManagement
 import com.team.chord.core.domain.model.strategy.Strategy
 import com.team.chord.core.domain.model.strategy.StrategyDetail
 import com.team.chord.core.network.api.StrategyApi
@@ -20,6 +21,9 @@ class RemoteStrategyDataSource @Inject constructor(
 
     override suspend fun getSavedStrategies(year: Int, month: Int, isCompleted: Boolean): List<Strategy> =
         safeApiCall { strategyApi.getSavedStrategies(year, month, isCompleted) }.map { it.toDomain() }
+
+    override suspend fun getNeedManagement(): NeedManagement =
+        safeApiCall { strategyApi.getNeedManagement() }.toDomain()
 
     override suspend fun getStrategyDetail(strategyId: Long, type: String): StrategyDetail {
         return when (type.uppercase(Locale.ROOT)) {

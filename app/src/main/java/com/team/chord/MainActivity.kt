@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -144,9 +145,11 @@ private fun navigateToTopLevelDestination(
     navController: NavHostController,
     destination: TopLevelDestination,
 ) {
+    if (navController.currentDestination?.route == destination.route) return
+
     val topLevelNavOptions =
         navOptions {
-            popUpTo(HOME_ROUTE) {
+            popUpTo(navController.graph.findStartDestination().id) {
                 saveState = true
             }
             launchSingleTop = true

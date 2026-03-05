@@ -31,7 +31,7 @@ private val StatusBadgeText = Color(0xFF1A9A66)
 @Composable
 fun HomeStatCard(
     title: String,
-    statusLabel: String,
+    statusLabel: String?,
     value: String,
     modifier: Modifier = Modifier,
 ) {
@@ -58,20 +58,22 @@ fun HomeStatCard(
                 ),
                 color = Grayscale600,
             )
-            Text(
-                text = statusLabel,
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 12.sp,
-                ),
-                color = StatusBadgeText,
-                modifier =
-                    Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(StatusBadgeBackground)
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-            )
+            if (!statusLabel.isNullOrBlank()) {
+                Text(
+                    text = statusLabel,
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 12.sp,
+                    ),
+                    color = StatusBadgeText,
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(StatusBadgeBackground)
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                )
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(

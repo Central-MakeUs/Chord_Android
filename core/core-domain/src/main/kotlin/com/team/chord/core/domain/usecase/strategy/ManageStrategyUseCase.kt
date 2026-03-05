@@ -1,5 +1,6 @@
 package com.team.chord.core.domain.usecase.strategy
 
+import com.team.chord.core.domain.model.strategy.NeedManagement
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.strategy.Strategy
 import com.team.chord.core.domain.model.strategy.StrategyDetail
@@ -18,6 +19,13 @@ class GetSavedStrategiesUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(year: Int, month: Int, isCompleted: Boolean): List<Strategy> =
         strategyRepository.getSavedStrategies(year, month, isCompleted)
+}
+
+class GetNeedManagementUseCase @Inject constructor(
+    private val strategyRepository: StrategyRepository,
+) {
+    suspend operator fun invoke(): NeedManagement =
+        strategyRepository.getNeedManagement()
 }
 
 class GetStrategyDetailUseCase @Inject constructor(

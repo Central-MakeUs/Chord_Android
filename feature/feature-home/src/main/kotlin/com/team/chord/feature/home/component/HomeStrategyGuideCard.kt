@@ -2,6 +2,7 @@ package com.team.chord.feature.home.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
@@ -67,17 +69,51 @@ fun HomeStrategyGuideCard(
                 painter = painterResource(id = com.team.chord.core.ui.R.drawable.ic_chevron_right),
                 contentDescription = null,
                 tint = Grayscale500,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(16.dp),
             )
         }
 
-        // Items
-        items.forEachIndexed { index, item ->
-            HorizontalDivider(color = Grayscale300)
+        if (items.isEmpty()) {
             Spacer(modifier = Modifier.height(12.dp))
-            HomeStrategyRow(item = item)
-            if (index != items.lastIndex) {
-                Spacer(modifier = Modifier.height(12.dp))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(208.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Grayscale200)
+                    .then(
+                        if (onHeaderClick != null) {
+                            Modifier.clickable { onHeaderClick() }
+                        } else {
+                            Modifier
+                        },
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "아직 받아본 전략이 없어요",
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.sp,
+                    color = Grayscale500,
+                )
+            }
+        } else {
+            items.forEachIndexed { index, item ->
+                if (index > 0) {
+                    HorizontalDivider(color = Grayscale300)
+                    Spacer(modifier = Modifier.height(12.dp))
+                } else {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                HomeStrategyRow(
+                    item = item,
+                    onClick = onHeaderClick,
+                )
+                if (index != items.lastIndex) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
     }
@@ -86,9 +122,20 @@ fun HomeStrategyGuideCard(
 @Composable
 private fun HomeStrategyRow(
     item: HomeStrategyItem,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                },
+            ),
+    ) {
         Text(
             text = item.menuName,
             fontFamily = PretendardFontFamily,

@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +32,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
+import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
+import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.feature.setting.component.SettingMenuRow
@@ -102,6 +107,7 @@ internal fun SettingScreenContent(
         ChordTopAppBar(
             title = "설정",
             onBackClick = onNavigateBack,
+            backgroundColor = Grayscale200,
         )
 
         Column(
@@ -118,20 +124,40 @@ internal fun SettingScreenContent(
                 onEditClick = onNavigateToStoreEdit,
             )
 
-            SettingMenuRow(
-                title = "FAQ",
-                onClick = onNavigateToFaq,
-            )
-
-            SettingMenuRow(
-                title = "이용약관",
-                onClick = onNavigateToTerms,
-            )
-
-            SettingMenuRow(
-                title = "회원탈퇴",
-                onClick = onNavigateToWithdraw,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = Grayscale100,
+                        shape = RoundedCornerShape(16.dp),
+                    ),
+            ) {
+                SettingMenuRow(
+                    title = "FAQ",
+                    onClick = onNavigateToFaq,
+                    backgroundColor = Color.Transparent,
+                )
+                HorizontalDivider(
+                    color = Grayscale300,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+                SettingMenuRow(
+                    title = "이용약관",
+                    onClick = onNavigateToTerms,
+                    backgroundColor = Color.Transparent,
+                )
+                HorizontalDivider(
+                    color = Grayscale300,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+                SettingMenuRow(
+                    title = "회원탈퇴",
+                    onClick = onNavigateToWithdraw,
+                    backgroundColor = Color.Transparent,
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 

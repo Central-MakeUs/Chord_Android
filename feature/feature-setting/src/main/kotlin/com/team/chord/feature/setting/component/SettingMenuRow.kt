@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -43,11 +44,12 @@ fun SettingMenuRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     subText: String? = null,
+    backgroundColor: Color = Grayscale100,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Grayscale100)
+            .background(backgroundColor)
             .clickable(onClick = onClick)
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,

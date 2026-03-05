@@ -1,7 +1,10 @@
 package com.team.chord.feature.setting.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,9 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.team.chord.core.ui.component.ChordSmallButton
-import com.team.chord.core.ui.component.ChordSmallButtonVariant
 import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
@@ -68,11 +70,30 @@ fun StoreInfoCard(
                     color = Grayscale600,
                 ),
             )
-            ChordSmallButton(
-                text = "수정",
-                onClick = onEditClick,
-                variant = ChordSmallButtonVariant.Secondary,
-            )
+            Box(
+                modifier = Modifier
+                    .width(41.dp)
+                    .height(28.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Grayscale100)
+                    .border(
+                        width = 1.dp,
+                        color = Grayscale300,
+                        shape = RoundedCornerShape(8.dp),
+                    )
+                    .clickable(onClick = onEditClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "수정",
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        color = Grayscale600,
+                    ),
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))

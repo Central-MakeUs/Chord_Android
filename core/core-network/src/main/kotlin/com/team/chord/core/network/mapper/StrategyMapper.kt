@@ -1,5 +1,7 @@
 package com.team.chord.core.network.mapper
 
+import com.team.chord.core.domain.model.strategy.NeedManagement
+import com.team.chord.core.domain.model.strategy.NeedManagementMenu
 import com.team.chord.core.domain.model.strategy.Strategy
 import com.team.chord.core.domain.model.strategy.StrategyDetail
 import com.team.chord.core.domain.model.strategy.StrategyProgressStatus
@@ -7,7 +9,10 @@ import com.team.chord.core.network.dto.strategy.CautionMenuStrategyDetailRespons
 import com.team.chord.core.network.dto.strategy.CompletionPhraseResponseDto
 import com.team.chord.core.network.dto.strategy.DangerMenuStrategyDetailResponseDto
 import com.team.chord.core.network.dto.strategy.HighMarginMenuStrategyDetailResponseDto
+import com.team.chord.core.network.dto.strategy.NeedManagementMenuDto
+import com.team.chord.core.network.dto.strategy.NeedManagementResponseDto
 import com.team.chord.core.network.dto.strategy.StrategyDto
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.util.Locale
@@ -77,6 +82,23 @@ fun CautionMenuStrategyDetailResponseDto.toDomain(): StrategyDetail =
 fun CompletionPhraseResponseDto.toDomainPhrase(): String =
     completionPhrase?.takeIf { it.isNotBlank() } ?: "전략 실행이 완료됐어요"
 
+fun NeedManagementResponseDto.toDomain(): NeedManagement =
+    NeedManagement(
+        strategyDate = strategyDate.toLocalDateOrNull(),
+        menus = menus.orEmpty().map { it.toDomain() },
+    )
+
+fun NeedManagementMenuDto.toDomain(): NeedManagementMenu =
+    NeedManagementMenu(
+        strategyId = strategyId ?: 0L,
+        menuId = menuId ?: 0L,
+        menuName = menuName.orEmpty(),
+        costRate = costRate ?: 0.0,
+        marginRate = marginRate ?: 0.0,
+        marginGradeCode = marginGradeCode.orEmpty(),
+        state = state.toProgressStatus(),
+    )
+
 private fun String?.toProgressStatus(): StrategyProgressStatus {
     val rawStatus = this.orEmpty().uppercase(Locale.ROOT)
     return when (rawStatus) {
@@ -95,6 +117,15 @@ private fun String?.toLocalDateTimeOrNull(): LocalDateTime? {
 
     return runCatching { LocalDateTime.parse(value) }
         .recoverCatching { OffsetDateTime.parse(value).toLocalDateTime() }
+        .getOrNull()
+}
+
+private fun String?.toLocalDateOrNull(): LocalDate? {
+    val value = this?.trim().orEmpty()
+    if (value.isBlank()) return null
+
+    return runCatching { LocalDate.parse(value) }
+        .recoverCatching { OffsetDateTime.parse(value).toLocalDate() }
         .getOrNull()
 }
 

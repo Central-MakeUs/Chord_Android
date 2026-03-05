@@ -25,6 +25,6 @@ data class HomeStrategyItem(
 
 data class HomeStatItem(
     val title: String,
-    val statusLabel: String,
+    val statusLabel: String?,
     val value: String,
 )

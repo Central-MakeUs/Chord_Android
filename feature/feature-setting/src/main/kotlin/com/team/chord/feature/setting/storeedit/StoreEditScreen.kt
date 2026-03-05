@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.team.chord.core.ui.component.ChordCheckboxItem
 import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordTooltipBubble
 import com.team.chord.core.ui.component.ChordTooltipIcon
@@ -42,6 +43,7 @@ import com.team.chord.core.ui.component.ChordTopAppBar
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale800
@@ -132,18 +134,11 @@ internal fun StoreEditScreenContent(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                ChordCheckboxItem(
+                SquareCheckboxRow(
                     checked = uiState.ownerSolo,
                     onCheckedChange = onOwnerSoloChanged,
-                ) {
-                    Text(
-                        text = "사장님 혼자 근무중이신가요?",
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
-                        color = Grayscale900,
-                    )
-                }
+                    text = "사장님 혼자 근무중이신가요?",
+                )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -182,19 +177,12 @@ internal fun StoreEditScreenContent(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                ChordCheckboxItem(
+                SquareCheckboxRow(
                     checked = uiState.includeWeeklyHolidayPay,
                     onCheckedChange = onIncludeWeeklyHolidayPayChanged,
                     enabled = !uiState.ownerSolo,
-                ) {
-                    Text(
-                        text = "주휴수당 포함",
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 16.sp,
-                        color = if (uiState.ownerSolo) Grayscale500 else Grayscale900,
-                    )
-                }
+                    text = "주휴수당 포함",
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -318,6 +306,43 @@ private fun UnderlineTextField(
         HorizontalDivider(
             color = Grayscale300,
             thickness = 1.dp,
+        )
+    }
+}
+
+@Composable
+private fun SquareCheckboxRow(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    text: String,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+            colors = CheckboxDefaults.colors(
+                checkedColor = PrimaryBlue500,
+                uncheckedColor = Grayscale400,
+                checkmarkColor = Grayscale100,
+                disabledCheckedColor = Grayscale400,
+                disabledUncheckedColor = Grayscale300,
+            ),
+            modifier = Modifier.size(24.dp),
+        )
+
+        Text(
+            text = text,
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Medium,
+            fontSize = 16.sp,
+            color = if (enabled) Grayscale900 else Grayscale500,
+            modifier = Modifier.padding(start = 8.dp),
         )
     }
 }

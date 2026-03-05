@@ -4,6 +4,7 @@ import com.team.chord.core.network.dto.strategy.CautionMenuStrategyDetailRespons
 import com.team.chord.core.network.dto.strategy.CompletionPhraseResponseDto
 import com.team.chord.core.network.dto.strategy.DangerMenuStrategyDetailResponseDto
 import com.team.chord.core.network.dto.strategy.HighMarginMenuStrategyDetailResponseDto
+import com.team.chord.core.network.dto.strategy.NeedManagementResponseDto
 import com.team.chord.core.network.dto.strategy.StrategyDto
 import com.team.chord.core.network.model.ApiResponse
 import retrofit2.Response
@@ -26,6 +27,9 @@ interface StrategyApi {
         @Query("month") month: Int,
         @Query("isCompleted") isCompleted: Boolean,
     ): Response<ApiResponse<List<StrategyDto>>>
+
+    @GET("insights/strategies/danger")
+    suspend fun getNeedManagement(): Response<ApiResponse<NeedManagementResponseDto>>
 
     @PATCH("insights/strategies/{strategyId}/start")
     suspend fun startStrategy(

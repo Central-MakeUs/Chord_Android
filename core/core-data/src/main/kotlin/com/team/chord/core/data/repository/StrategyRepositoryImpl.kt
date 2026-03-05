@@ -2,6 +2,7 @@ package com.team.chord.core.data.repository
 
 import com.team.chord.core.data.datasource.StrategyDataSource
 import com.team.chord.core.domain.model.Result
+import com.team.chord.core.domain.model.strategy.NeedManagement
 import com.team.chord.core.domain.model.strategy.Strategy
 import com.team.chord.core.domain.model.strategy.StrategyDetail
 import com.team.chord.core.domain.repository.StrategyRepository
@@ -17,6 +18,9 @@ class StrategyRepositoryImpl @Inject constructor(
 
     override suspend fun getSavedStrategies(year: Int, month: Int, isCompleted: Boolean): List<Strategy> =
         strategyDataSource.getSavedStrategies(year, month, isCompleted)
+
+    override suspend fun getNeedManagement(): NeedManagement =
+        strategyDataSource.getNeedManagement()
 
     override suspend fun getStrategyDetail(strategyId: Long, type: String): StrategyDetail =
         strategyDataSource.getStrategyDetail(strategyId, type)

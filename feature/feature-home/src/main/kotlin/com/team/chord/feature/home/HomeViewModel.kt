@@ -38,7 +38,7 @@ class HomeViewModel
                     stats =
                         listOf(
                             HomeStatItem("평균 원가율", "안정", "27.23%"),
-                            HomeStatItem("평균마진율", "안정", "27.23%"),
+                            HomeStatItem("평균마진율", null, "27.23%"),
                         ),
                     strategyItems = emptyList(),
                 ),
@@ -118,7 +118,7 @@ class HomeViewModel
                 ),
                 HomeStatItem(
                     title = "평균마진율",
-                    statusLabel = statusLabel,
+                    statusLabel = null,
                     value = formatPercent(homeMenus.avgMarginRate),
                 ),
             )

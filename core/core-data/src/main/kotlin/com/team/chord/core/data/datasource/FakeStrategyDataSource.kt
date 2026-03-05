@@ -1,8 +1,11 @@
 package com.team.chord.core.data.datasource
 
+import com.team.chord.core.domain.model.strategy.NeedManagement
+import com.team.chord.core.domain.model.strategy.NeedManagementMenu
 import com.team.chord.core.domain.model.strategy.Strategy
 import com.team.chord.core.domain.model.strategy.StrategyDetail
 import com.team.chord.core.domain.model.strategy.StrategyProgressStatus
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.util.Locale
@@ -41,6 +44,33 @@ class FakeStrategyDataSource @Inject constructor() : StrategyDataSource {
                 .sortedWith(compareByDescending<StrategyRecord> { it.weekOfMonth }.thenBy { it.id })
                 .map { it.toStrategy() }
                 .toList()
+        }
+
+    override suspend fun getNeedManagement(): NeedManagement =
+        synchronized(lock) {
+            val today = LocalDate.now()
+            val weekOfMonth = ((today.dayOfMonth - 1) / 7 + 1).coerceIn(1, MAX_WEEKS_IN_MONTH)
+            val menus = ensureMonthData(today.year, today.monthValue)
+                .asSequence()
+                .filter { it.weekOfMonth == weekOfMonth }
+                .filter { it.type.equals(TYPE_DANGER, ignoreCase = true) }
+                .map { record ->
+                    NeedManagementMenu(
+                        strategyId = record.id,
+                        menuId = record.id,
+                        menuName = record.menuName.orEmpty(),
+                        costRate = record.costRate ?: 0.0,
+                        marginRate = 100.0 - (record.costRate ?: 0.0),
+                        marginGradeCode = "DANGER",
+                        state = record.status,
+                    )
+                }
+                .toList()
+
+            NeedManagement(
+                strategyDate = today,
+                menus = menus,
+            )
         }
 
     override suspend fun getStrategyDetail(strategyId: Long, type: String): StrategyDetail =

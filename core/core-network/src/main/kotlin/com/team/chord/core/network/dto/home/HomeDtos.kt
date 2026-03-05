@@ -27,6 +27,7 @@ data class HomeStrategyBriefDto(
     val strategyId: Long? = null,
     val state: String? = null,
     val type: String? = null,
+    val title: String? = null,
     val summary: String? = null,
     val createdAt: String? = null,
 )
