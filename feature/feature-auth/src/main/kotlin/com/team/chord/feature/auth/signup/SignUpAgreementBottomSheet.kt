@@ -37,6 +37,7 @@ import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import com.team.chord.core.ui.theme.PrimaryBlue500
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -162,13 +163,10 @@ private fun AgreementRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
-                painter =
-                    painterResource(
-                        id = if (checked) CoreUiR.drawable.ic_checkbox else CoreUiR.drawable.ic_un_checkbox,
-                    ),
+                painter = painterResource(id = CoreUiR.drawable.ic_check_rounded),
                 contentDescription = if (checked) "선택됨" else "선택 안됨",
-                modifier = Modifier.size(32.dp),
-                tint = androidx.compose.ui.graphics.Color.Unspecified,
+                modifier = Modifier.size(24.dp),
+                tint = if (checked) PrimaryBlue500 else Grayscale500,
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -185,7 +183,7 @@ private fun AgreementRow(
         if (onDetailClick != null) {
             IconButton(onClick = onDetailClick) {
                 Icon(
-                    painter = painterResource(id = CoreUiR.drawable.ic_chevron_right),
+                    painter = painterResource(id = CoreUiR.drawable.ic_arrow_right),
                     contentDescription = "$text 상세 보기",
                     tint = Grayscale500,
                 )
