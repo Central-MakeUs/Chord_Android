@@ -28,6 +28,7 @@ class SignUpViewModel
             _uiState.update {
                 it.copy(
                     username = username,
+                    errorMessage = null,
                     usernameValidation = validation,
                     passwordValidation = passwordValidation,
                 )
@@ -46,6 +47,7 @@ class SignUpViewModel
             _uiState.update {
                 it.copy(
                     password = password,
+                    errorMessage = null,
                     passwordValidation = validation,
                     passwordConfirmError = confirmError,
                 )
@@ -63,6 +65,7 @@ class SignUpViewModel
             _uiState.update {
                 it.copy(
                     passwordConfirm = passwordConfirm,
+                    errorMessage = null,
                     passwordConfirmError = confirmError,
                 )
             }
@@ -71,28 +74,82 @@ class SignUpViewModel
         fun onSignUpClicked() {
             val currentState = _uiState.value
 
-            if (!currentState.usernameValidation.isValid) return
-            if (!currentState.passwordValidation.isValid) return
-            if (currentState.passwordConfirmError != null) return
-            if (currentState.password != currentState.passwordConfirm) return
-            if (currentState.passwordConfirm.isEmpty()) return
+            if (!currentState.isFormValid) return
+
+            _uiState.update {
+                it.copy(
+                    errorMessage = null,
+                    showAgreementBottomSheet = true,
+                )
+            }
+        }
+
+        fun onAgreementBottomSheetDismissed() {
+            _uiState.update { it.copy(showAgreementBottomSheet = false) }
+        }
+
+        fun onAllAgreementsChanged(checked: Boolean) {
+            _uiState.update {
+                it.copy(
+                    isServiceTermsAgreed = checked,
+                    isPrivacyCollectionAgreed = checked,
+                )
+            }
+        }
+
+        fun onServiceTermsAgreementChanged(checked: Boolean) {
+            _uiState.update { it.copy(isServiceTermsAgreed = checked) }
+        }
+
+        fun onPrivacyCollectionAgreementChanged(checked: Boolean) {
+            _uiState.update { it.copy(isPrivacyCollectionAgreed = checked) }
+        }
+
+        fun onTermsDetailClicked() {
+            _uiState.update { it.copy(navigationTarget = SignUpNavigationTarget.Terms) }
+        }
+
+        fun onPrivacyDetailClicked() {
+            _uiState.update { it.copy(navigationTarget = SignUpNavigationTarget.Privacy) }
+        }
+
+        fun onAgreementConfirmClicked() {
+            val currentState = _uiState.value
+
+            if (!currentState.isFormValid) return
+            if (!currentState.isAgreementConfirmEnabled) return
 
             viewModelScope.launch {
                 _uiState.update { it.copy(isLoading = true) }
 
                 when (val result = authRepository.signUp(currentState.username, currentState.password)) {
-                    is AuthResult.SignUpSuccess -> {
-                        _uiState.update { it.copy(isLoading = false, isSignUpSuccess = true) }
+                    is AuthResult.LoginSuccess -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                showAgreementBottomSheet = false,
+                                navigationTarget = SignUpNavigationTarget.Complete,
+                            )
+                        }
                     }
 
-                    is AuthResult.LoginSuccess -> {
-                        _uiState.update { it.copy(isLoading = false) }
+                    is AuthResult.SignUpSuccess -> {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "가입은 완료됐지만 자동 로그인에 실패했어요. 로그인 후 계속 진행해 주세요.",
+                                showAgreementBottomSheet = false,
+                                navigationTarget = SignUpNavigationTarget.Login,
+                            )
+                        }
                     }
 
                     is AuthResult.UsernameAlreadyExists -> {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
+                                errorMessage = null,
+                                showAgreementBottomSheet = false,
                                 usernameValidation =
                                     it.usernameValidation.copy(
                                         error = result.message,
@@ -106,10 +163,8 @@ class SignUpViewModel
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                usernameValidation =
-                                    it.usernameValidation.copy(
-                                        error = "네트워크 오류가 발생했습니다",
-                                    ),
+                                errorMessage = "네트워크 오류가 발생했습니다",
+                                showAgreementBottomSheet = false,
                             )
                         }
                     }
@@ -118,6 +173,8 @@ class SignUpViewModel
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
+                                errorMessage = null,
+                                showAgreementBottomSheet = false,
                                 usernameValidation =
                                     it.usernameValidation.copy(error = result.message),
                             )
@@ -129,6 +186,8 @@ class SignUpViewModel
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
+                                errorMessage = null,
+                                showAgreementBottomSheet = false,
                                 usernameValidation =
                                     it.usernameValidation.copy(error = errorMsg),
                             )
@@ -138,8 +197,8 @@ class SignUpViewModel
             }
         }
 
-        fun consumeSignUpSuccess() {
-            _uiState.update { it.copy(isSignUpSuccess = false) }
+        fun consumeNavigationTarget() {
+            _uiState.update { it.copy(navigationTarget = null) }
         }
 
         private fun validateUsername(username: String): UsernameValidation {

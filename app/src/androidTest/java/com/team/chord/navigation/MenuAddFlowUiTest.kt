@@ -33,15 +33,12 @@ class MenuAddFlowUiTest {
                     ),
                 ),
                 onNavigateBack = {},
-                onAddAnother = {},
                 onRegisterSuccess = {},
                 onRegisterMenus = { Result.Success(Unit) },
             )
         }
 
         composeRule.onNodeWithText("이대로 등록을 마칠까요?").assertIsDisplayed()
-        composeRule.onNodeWithText("이전").assertIsDisplayed()
-        composeRule.onNodeWithText("추가 등록").assertIsDisplayed()
         composeRule.onNodeWithText("마치기").assertIsDisplayed()
     }
 

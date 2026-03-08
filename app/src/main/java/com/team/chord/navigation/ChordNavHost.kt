@@ -12,15 +12,22 @@ import androidx.navigation.navOptions
 import com.team.chord.feature.aicoach.navigation.AI_COACH_ROUTE
 import com.team.chord.feature.auth.navigation.LOGIN_ROUTE
 import com.team.chord.feature.auth.navigation.SIGNUP_ROUTE
+import com.team.chord.feature.auth.navigation.SIGNUP_PRIVACY_ROUTE
 import com.team.chord.feature.auth.navigation.loginScreen
+import com.team.chord.feature.auth.navigation.isSignUpRoute
 import com.team.chord.feature.auth.navigation.navigateToLogin
 import com.team.chord.feature.auth.navigation.navigateToSignUp
 import com.team.chord.feature.auth.navigation.navigateToSignUpComplete
+import com.team.chord.feature.auth.navigation.navigateToSignUpPrivacy
+import com.team.chord.feature.auth.navigation.navigateToSignUpTerms
 import com.team.chord.feature.auth.navigation.signUpCompleteScreen
+import com.team.chord.feature.auth.navigation.signUpPrivacyScreen
 import com.team.chord.feature.auth.navigation.signUpScreen
+import com.team.chord.feature.auth.navigation.signUpTermsScreen
 import com.team.chord.feature.auth.navigation.SIGNUP_COMPLETE_ROUTE
-import com.team.chord.feature.home.navigation.HOME_ROUTE
+import com.team.chord.feature.auth.navigation.SIGNUP_TERMS_ROUTE
 import com.team.chord.feature.home.navigation.HOME_REFRESH_REQUEST_KEY
+import com.team.chord.feature.home.navigation.HOME_ROUTE
 import com.team.chord.feature.home.navigation.dangerMenuReportScreen
 import com.team.chord.feature.home.navigation.homeScreen
 import com.team.chord.feature.home.navigation.navigateToDangerMenuReport
@@ -93,11 +100,7 @@ fun ChordNavHost(
         val state = navigationState
         if (state is NavigationState.Ready && state.startDestination == StartDestination.LOGIN) {
             val currentRoute = navController.currentDestination?.route
-            if (currentRoute != null &&
-                currentRoute != LOGIN_ROUTE &&
-                currentRoute != SIGNUP_ROUTE &&
-                currentRoute != SIGNUP_COMPLETE_ROUTE
-            ) {
+            if (currentRoute != null && currentRoute != LOGIN_ROUTE && !isSignUpRoute(currentRoute)) {
                 navController.navigateToLogin(
                     navOptions = navOptions {
                         popUpTo(navController.graph.id) { inclusive = true }
@@ -144,17 +147,43 @@ fun ChordNavHost(
                         },
                 )
             },
+            onNavigateToTerms = {
+                navController.navigateToSignUpTerms()
+            },
+            onNavigateToPrivacy = {
+                navController.navigateToSignUpPrivacy()
+            },
+            onNavigateToLoginFallback = {
+                navController.navigateToLogin(
+                    navOptions =
+                        navOptions {
+                            popUpTo(SIGNUP_ROUTE) { inclusive = true }
+                        },
+                )
+            },
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
+
+        signUpTermsScreen(
+            onNavigateBack = {
+                navController.popBackStack()
+            },
+        )
+
+        signUpPrivacyScreen(
             onNavigateBack = {
                 navController.popBackStack()
             },
         )
 
         signUpCompleteScreen(
-            onNavigateToLogin = {
-                navController.navigateToLogin(
+            onNavigateToSetup = {
+                navController.navigateToSetupGraph(
                     navOptions =
                         navOptions {
-                            popUpTo(SIGNUP_COMPLETE_ROUTE) { inclusive = true }
+                            popUpTo(LOGIN_ROUTE) { inclusive = true }
                         },
                 )
             },

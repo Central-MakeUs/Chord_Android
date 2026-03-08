@@ -44,17 +44,24 @@ import com.team.chord.feature.auth.component.AuthTextField
 @Composable
 fun SignUpScreen(
     onSignUpSuccess: () -> Unit,
+    onNavigateToTerms: () -> Unit,
+    onNavigateToPrivacy: () -> Unit,
+    onNavigateToLoginFallback: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SignUpViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState.isSignUpSuccess) {
-        if (uiState.isSignUpSuccess) {
-            viewModel.consumeSignUpSuccess()
-            onSignUpSuccess()
+    LaunchedEffect(uiState.navigationTarget) {
+        when (uiState.navigationTarget) {
+            SignUpNavigationTarget.Terms -> onNavigateToTerms()
+            SignUpNavigationTarget.Privacy -> onNavigateToPrivacy()
+            SignUpNavigationTarget.Complete -> onSignUpSuccess()
+            SignUpNavigationTarget.Login -> onNavigateToLoginFallback()
+            null -> return@LaunchedEffect
         }
+        viewModel.consumeNavigationTarget()
     }
 
     SignUpScreenContent(
@@ -66,6 +73,22 @@ fun SignUpScreen(
         onNavigateBack = onNavigateBack,
         modifier = modifier,
     )
+
+    if (uiState.showAgreementBottomSheet) {
+        SignUpAgreementBottomSheet(
+            allAgreed = uiState.isAllAgreed,
+            serviceTermsAgreed = uiState.isServiceTermsAgreed,
+            privacyCollectionAgreed = uiState.isPrivacyCollectionAgreed,
+            isLoading = uiState.isLoading,
+            onDismiss = viewModel::onAgreementBottomSheetDismissed,
+            onAllAgreedChange = viewModel::onAllAgreementsChanged,
+            onServiceTermsChange = viewModel::onServiceTermsAgreementChanged,
+            onPrivacyCollectionChange = viewModel::onPrivacyCollectionAgreementChanged,
+            onTermsDetailClick = viewModel::onTermsDetailClicked,
+            onPrivacyDetailClick = viewModel::onPrivacyDetailClicked,
+            onConfirmClick = viewModel::onAgreementConfirmClicked,
+        )
+    }
 }
 
 @Composable
@@ -80,14 +103,6 @@ internal fun SignUpScreenContent(
 ) {
     val scrollState = rememberScrollState()
 
-    val isButtonEnabled =
-        !uiState.isLoading &&
-            uiState.usernameValidation.isValid &&
-            uiState.passwordValidation.isValid &&
-            uiState.passwordConfirmError == null &&
-            uiState.password == uiState.passwordConfirm &&
-            uiState.passwordConfirm.isNotEmpty()
-
     Column(
         modifier =
             modifier
@@ -95,13 +110,11 @@ internal fun SignUpScreenContent(
                 .background(Grayscale100)
                 .imePadding(),
     ) {
-        // TopBar
         ChordTopAppBar(
             title = "회원가입",
             onBackClick = onNavigateBack,
         )
 
-        // Scrollable content
         Column(
             modifier =
                 Modifier
@@ -112,7 +125,6 @@ internal fun SignUpScreenContent(
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Username field
             Text(
                 text = "아이디",
                 fontFamily = PretendardFontFamily,
@@ -144,7 +156,6 @@ internal fun SignUpScreenContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Password field
             Text(
                 text = "비밀번호",
                 fontFamily = PretendardFontFamily,
@@ -170,7 +181,6 @@ internal fun SignUpScreenContent(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Password confirm field
             Text(
                 text = "비밀번호 확인",
                 fontFamily = PretendardFontFamily,
@@ -202,10 +212,20 @@ internal fun SignUpScreenContent(
                 )
             }
 
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp,
+                    color = StatusDanger,
+                )
+            }
+
             Spacer(modifier = Modifier.height(48.dp))
         }
 
-        // Bottom fixed button
         ChordLargeButton(
             text = "가입하기",
             onClick = onSignUpClicked,
@@ -213,7 +233,7 @@ internal fun SignUpScreenContent(
                 Modifier
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 32.dp),
-            enabled = isButtonEnabled,
+            enabled = uiState.isFormValid && !uiState.isLoading,
         )
     }
 }

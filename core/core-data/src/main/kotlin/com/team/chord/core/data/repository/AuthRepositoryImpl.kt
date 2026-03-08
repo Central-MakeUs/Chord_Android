@@ -51,7 +51,21 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signUp(loginId: String, password: String): AuthResult {
         return try {
             authDataSource.signUp(loginId, password)
-            AuthResult.SignUpSuccess
+            try {
+                val result = authDataSource.login(loginId, password)
+                setupRepository.setSetupCompleted(result.onboardingCompleted)
+                tokenManager.saveTokens(result.accessToken, result.refreshToken)
+                AuthResult.LoginSuccess(
+                    token =
+                        AuthToken(
+                            accessToken = result.accessToken,
+                            refreshToken = result.refreshToken,
+                        ),
+                    onboardingCompleted = result.onboardingCompleted,
+                )
+            } catch (_: Exception) {
+                AuthResult.SignUpSuccess
+            }
         } catch (e: ApiException) {
             val errors = e.errors
             when {

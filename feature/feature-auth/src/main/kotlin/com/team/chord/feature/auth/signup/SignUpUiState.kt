@@ -5,11 +5,36 @@ data class SignUpUiState(
     val password: String = "",
     val passwordConfirm: String = "",
     val isLoading: Boolean = false,
-    val isSignUpSuccess: Boolean = false,
+    val errorMessage: String? = null,
+    val showAgreementBottomSheet: Boolean = false,
+    val isServiceTermsAgreed: Boolean = false,
+    val isPrivacyCollectionAgreed: Boolean = false,
+    val navigationTarget: SignUpNavigationTarget? = null,
     val usernameValidation: UsernameValidation = UsernameValidation(),
     val passwordValidation: PasswordValidation = PasswordValidation(),
     val passwordConfirmError: String? = null,
-)
+) {
+    val isFormValid: Boolean
+        get() =
+            usernameValidation.isValid &&
+                passwordValidation.isValid &&
+                passwordConfirmError == null &&
+                password == passwordConfirm &&
+                passwordConfirm.isNotEmpty()
+
+    val isAgreementConfirmEnabled: Boolean
+        get() = isServiceTermsAgreed && isPrivacyCollectionAgreed && !isLoading
+
+    val isAllAgreed: Boolean
+        get() = isServiceTermsAgreed && isPrivacyCollectionAgreed
+}
+
+enum class SignUpNavigationTarget {
+    Terms,
+    Privacy,
+    Complete,
+    Login,
+}
 
 data class UsernameValidation(
     val error: String? = null,

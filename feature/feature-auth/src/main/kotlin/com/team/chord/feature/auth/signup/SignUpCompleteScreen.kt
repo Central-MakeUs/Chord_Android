@@ -27,12 +27,12 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SignUpCompleteScreen(
-    onNavigateToLogin: () -> Unit,
+    onNavigateToSetup: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(Unit) {
-        delay(2000L)
-        onNavigateToLogin()
+        delay(1000L)
+        onNavigateToSetup()
     }
 
     Column(
