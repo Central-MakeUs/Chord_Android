@@ -166,7 +166,7 @@ private fun AgreementRow(
                 painter = painterResource(id = CoreUiR.drawable.ic_check_rounded),
                 contentDescription = if (checked) "선택됨" else "선택 안됨",
                 modifier = Modifier.size(24.dp),
-                tint = if (checked) PrimaryBlue500 else Grayscale500,
+                tint = if (checked) PrimaryBlue500 else Grayscale700,
             )
 
             Spacer(modifier = Modifier.width(8.dp))
