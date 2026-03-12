@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release AAB"
+  short_description: "Build signed Android App Bundle"
+  default_prompt: "Use $build-release-aab to bump the Android app version if needed and produce a signed release AAB."

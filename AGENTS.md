@@ -18,5 +18,6 @@
 - `docs/REQUIREMENTS.md` - Product requirements
 
 ### Skills
+- `.agents/skills/build-release-aab/SKILL.md` - Release AAB build workflow guide
 - `.agents/skills/commit/SKILL.md` - Commit workflow guide
 - `.agents/skills/sync-docs/SKILL.md` - Documentation sync workflow guide
