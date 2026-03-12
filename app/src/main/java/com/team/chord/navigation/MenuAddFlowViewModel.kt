@@ -7,6 +7,7 @@ import com.team.chord.core.domain.model.menu.NewRecipeInfo
 import com.team.chord.core.domain.repository.MenuRepository
 import com.team.chord.feature.menu.add.confirm.IngredientSummary
 import com.team.chord.feature.menu.add.confirm.RegisteredMenuSummary
+import com.team.chord.feature.menu.add.ingredientinput.IngredientSourceType
 import com.team.chord.feature.menu.add.ingredientinput.SelectedIngredient
 import com.team.chord.feature.menu.add.menudetail.MenuCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -111,7 +112,7 @@ class MenuAddFlowViewModel @Inject constructor(
         val menus = _registeredMenus.value
         for (menu in menus) {
             val existingRecipes = menu.ingredients
-                .filter { it.id > 0 }
+                .filter { it.sourceType != IngredientSourceType.NEW }
                 .map { ingredient ->
                     MenuRecipe(
                         recipeId = 0L,
@@ -124,7 +125,7 @@ class MenuAddFlowViewModel @Inject constructor(
                     )
                 }
             val newRecipes = menu.ingredients
-                .filter { it.id == 0L }
+                .filter { it.sourceType == IngredientSourceType.NEW }
                 .map { ingredient ->
                     NewRecipeInfo(
                         amount = ingredient.baseQuantity,

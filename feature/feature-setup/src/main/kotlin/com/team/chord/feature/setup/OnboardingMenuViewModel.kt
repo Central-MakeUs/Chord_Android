@@ -5,6 +5,7 @@ import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
 import com.team.chord.core.domain.repository.MenuRepository
+import com.team.chord.feature.setup.ingredientinput.IngredientSourceType
 import com.team.chord.feature.setup.ingredientinput.SelectedIngredient
 import com.team.chord.feature.setup.menuconfirm.IngredientSummary
 import com.team.chord.feature.setup.menuconfirm.RegisteredMenuSummary
@@ -149,7 +150,8 @@ class OnboardingMenuViewModel @Inject constructor(
     /**
      * Register all menus via API.
      * Maps each RegisteredMenu to a createMenu() call on the repository.
-     * Splits ingredients into existing (id > 0) and new (id == 0) recipes.
+     * Splits ingredients into existing and new recipes using sourceType rather than
+     * temporary local ids, because newly typed ingredients can still carry positive ids.
      *
      * @return Result.Success if all menus registered, Result.Error on first failure
      */
@@ -157,7 +159,7 @@ class OnboardingMenuViewModel @Inject constructor(
         val menus = _registeredMenus.value
         for (menu in menus) {
             val existingRecipes = menu.ingredients
-                .filter { it.id > 0 }
+                .filter { it.sourceType != IngredientSourceType.NEW }
                 .map { ingredient ->
                     MenuRecipe(
                         recipeId = 0L,
@@ -170,7 +172,7 @@ class OnboardingMenuViewModel @Inject constructor(
                     )
                 }
             val newRecipes = menu.ingredients
-                .filter { it.id == 0L }
+                .filter { it.sourceType == IngredientSourceType.NEW }
                 .map { ingredient ->
                     NewRecipeInfo(
                         amount = ingredient.baseQuantity,
