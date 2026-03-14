@@ -10,4 +10,5 @@ android {
 dependencies {
     implementation(projects.core.coreCommon)
     implementation(projects.core.coreDomain)
+    testImplementation(libs.junit)
 }

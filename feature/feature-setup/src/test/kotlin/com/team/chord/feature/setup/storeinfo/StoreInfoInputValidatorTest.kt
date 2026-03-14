@@ -28,7 +28,6 @@ class StoreInfoInputValidatorTest {
 
     @Test
     fun `employee count owner solo forces zero`() {
-        assertEquals("0", normalizeEmployeeCountInput("99", ownerSolo = true))
         assertEquals(0, parseEmployeeCount("99", ownerSolo = true))
         assertEquals(0, parseEmployeeCount("", ownerSolo = true))
     }
@@ -46,6 +45,13 @@ class StoreInfoInputValidatorTest {
     @Test
     fun `hourly wage rejects non digits`() {
         assertNull(parseHourlyWage("12a"))
+    }
+
+    @Test
+    fun `hourly wage sanitize trims leading zeros for editing`() {
+        assertEquals("", sanitizeHourlyWageInput(""))
+        assertEquals("0", sanitizeHourlyWageInput("000"))
+        assertEquals("10320", sanitizeHourlyWageInput("0010320"))
     }
 
     @Test

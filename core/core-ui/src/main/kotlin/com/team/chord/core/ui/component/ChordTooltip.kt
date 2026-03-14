@@ -20,9 +20,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.R
@@ -77,15 +82,67 @@ fun ChordTooltipBubble(
 fun ChordTooltipIcon(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    iconRes: Int = R.drawable.ic_tooltip,
+    iconSize: Dp = 10.dp,
+    tint: Color = Grayscale500,
 ) {
     Icon(
-        painter = painterResource(R.drawable.ic_tooltip),
+        painter = painterResource(iconRes),
         contentDescription = "도움말",
         modifier = modifier
-            .size(10.dp)
+            .size(iconSize)
             .clickable { onClick() },
-        tint = Grayscale500,
+        tint = tint,
     )
+}
+
+@Composable
+fun ChordAnchoredTooltipIcon(
+    visible: Boolean,
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    iconRes: Int = R.drawable.ic_tooltip,
+    iconSize: Dp = 10.dp,
+    tint: Color = Grayscale500,
+    tooltipDirection: TooltipDirection = TooltipDirection.Down,
+    tooltipSpacing: Dp = 0.dp,
+) {
+    val spacingPx = with(LocalDensity.current) { tooltipSpacing.roundToPx() }
+
+    Layout(
+        modifier = modifier,
+        content = {
+            if (visible) {
+                ChordTooltipBubble(
+                    text = text,
+                    direction = tooltipDirection,
+                )
+            }
+            ChordTooltipIcon(
+                onClick = onClick,
+                iconRes = iconRes,
+                iconSize = iconSize,
+                tint = tint,
+            )
+        },
+    ) { measurables, constraints ->
+        val iconPlaceable = measurables.last().measure(constraints.copy(minWidth = 0, minHeight = 0))
+        val tooltipPlaceable =
+            if (visible) {
+                measurables.first().measure(Constraints())
+            } else {
+                null
+            }
+
+        layout(iconPlaceable.width, iconPlaceable.height) {
+            tooltipPlaceable?.placeRelative(
+                x = (iconPlaceable.width - tooltipPlaceable.width) / 2,
+                y = -tooltipPlaceable.height - spacingPx,
+            )
+            iconPlaceable.placeRelative(0, 0)
+        }
+    }
 }
 
 /**

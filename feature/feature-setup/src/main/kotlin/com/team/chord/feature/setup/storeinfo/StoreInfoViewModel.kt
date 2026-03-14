@@ -39,7 +39,7 @@ class StoreInfoViewModel
 
             _uiState.update {
                 if (it.ownerSolo) {
-                    it.copy(employeeCountInput = "0")
+                    it
                 } else {
                     it.copy(employeeCountInput = text)
                 }
@@ -47,11 +47,18 @@ class StoreInfoViewModel
         }
 
         fun onIsOwnerSoloChanged(checked: Boolean) {
-            _uiState.update {
+            _uiState.update { state ->
                 if (checked) {
-                    it.copy(ownerSolo = true, employeeCountInput = "0")
+                    state.copy(
+                        ownerSolo = true,
+                        employeeCountInput = "0",
+                        lastNonZeroEmployeeCountInput = state.employeeCountInput.toRestorableEmployeeCountInput(),
+                    )
                 } else {
-                    it.copy(ownerSolo = false)
+                    state.copy(
+                        ownerSolo = false,
+                        employeeCountInput = state.lastNonZeroEmployeeCountInput,
+                    )
                 }
             }
         }
@@ -62,7 +69,7 @@ class StoreInfoViewModel
             }
 
             _uiState.update {
-                it.copy(hourlyWageInput = text)
+                it.copy(hourlyWageInput = sanitizeHourlyWageInput(text))
             }
         }
 
@@ -148,3 +155,6 @@ class StoreInfoViewModel
             }
         }
     }
+
+private fun String.toRestorableEmployeeCountInput(): String =
+    takeIf { parseEmployeeCount(it, ownerSolo = false) != null } ?: ""

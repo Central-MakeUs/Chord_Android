@@ -1,16 +1,5 @@
 package com.team.chord.feature.setup.storeinfo
 
-internal fun normalizeEmployeeCountInput(
-    input: String,
-    ownerSolo: Boolean,
-): String? {
-    if (ownerSolo) {
-        return "0"
-    }
-
-    return normalizeDigitsOnly(input)
-}
-
 internal fun parseEmployeeCount(
     input: String,
     ownerSolo: Boolean,
@@ -24,8 +13,14 @@ internal fun parseEmployeeCount(
     return if (value in 1..99) value else null
 }
 
-internal fun normalizeHourlyWageInput(input: String): String? {
-    return normalizeDigitsOnly(input)
+internal fun sanitizeHourlyWageInput(input: String): String {
+    val digitsOnly = input.filter(Char::isDigit)
+    if (digitsOnly.isEmpty()) {
+        return ""
+    }
+
+    val trimmed = digitsOnly.trimStart('0')
+    return if (trimmed.isEmpty()) "0" else trimmed
 }
 
 internal fun parseHourlyWage(input: String): Int? {
@@ -41,13 +36,6 @@ internal fun isPostStoreNameNextEnabled(
 ): Boolean {
     return parseEmployeeCount(employeeCountInput, ownerSolo) != null &&
         parseHourlyWage(hourlyWageInput) != null
-}
-
-internal fun formatWithComma(value: String): String {
-    val digits = value.filter { it.isDigit() }
-    if (digits.isEmpty()) return ""
-    val number = digits.toLongOrNull() ?: return digits
-    return java.text.NumberFormat.getNumberInstance(java.util.Locale.KOREA).format(number)
 }
 
 private fun normalizeDigitsOnly(input: String): String? {

@@ -1,11 +1,9 @@
 package com.team.chord.feature.setting.storeedit
 
-import java.text.NumberFormat
-import java.util.Locale
-
 data class StoreEditUiState(
     val storeName: String = "",
     val employeeCountInput: String = "",
+    val lastNonZeroEmployeeCountInput: String = "",
     val ownerSolo: Boolean = false,
     val hourlyWageInput: String = "",
     val includeWeeklyHolidayPay: Boolean = false,
@@ -16,9 +14,6 @@ data class StoreEditUiState(
 
     val laborCost: Int?
         get() = parseLaborCost(hourlyWageInput)
-
-    val formattedHourlyWage: String
-        get() = formatWithComma(hourlyWageInput)
 
     val isSubmitEnabled: Boolean
         get() =
@@ -52,10 +47,12 @@ internal fun parseLaborCost(input: String): Int? {
     return if (value in 1..999_999) value else null
 }
 
-internal fun formatWithComma(value: String): String {
-    val digits = value.filter { it.isDigit() }
-    if (digits.isEmpty()) return ""
+internal fun sanitizeHourlyWageInput(input: String): String {
+    val digitsOnly = input.filter(Char::isDigit)
+    if (digitsOnly.isEmpty()) {
+        return ""
+    }
 
-    val number = digits.toLongOrNull() ?: return digits
-    return NumberFormat.getNumberInstance(Locale.KOREA).format(number)
+    val trimmed = digitsOnly.trimStart('0')
+    return if (trimmed.isEmpty()) "0" else trimmed
 }

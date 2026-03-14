@@ -13,28 +13,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import kotlinx.coroutines.delay
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,21 +33,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.ui.R
 import com.team.chord.core.ui.component.ChordCheckboxItem
+import com.team.chord.core.ui.component.ChordAnchoredTooltipIcon
+import com.team.chord.core.ui.component.ChordLabeledUnderlineTextField
 import com.team.chord.core.ui.component.ChordLargeButton
-import com.team.chord.core.ui.component.ChordTooltipBubble
-import com.team.chord.core.ui.component.ChordTooltipIcon
 import com.team.chord.core.ui.component.ChordTopAppBar
+import com.team.chord.core.ui.component.DigitGroupingVisualTransformation
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale300
-import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale700
-import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.core.ui.theme.PretendardFontFamily
+import kotlinx.coroutines.delay
 
 @Composable
 fun StoreInfoScreen(
@@ -114,6 +104,7 @@ internal fun StoreInfoScreenContent(
                     onNavigateToMenuEntry = onNavigateToMenuEntry,
                 )
             }
+
             else -> {
                 Column(
                     modifier = Modifier.fillMaxSize(),
@@ -130,7 +121,6 @@ internal fun StoreInfoScreenContent(
                     ) {
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Title
                         Text(
                             text = when (uiState.screenState) {
                                 StoreInfoScreenState.PostStoreName -> "매장 운영 정보를 알려주세요"
@@ -144,35 +134,36 @@ internal fun StoreInfoScreenContent(
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                    when (uiState.screenState) {
-                        StoreInfoScreenState.StoreNameInput -> {
-                            StoreNameInputContent(
-                                storeName = uiState.storeName,
-                                onStoreNameChanged = onStoreNameChanged,
-                                onStoreNameConfirmed = onStoreNameConfirmed,
-                            )
+                        when (uiState.screenState) {
+                            StoreInfoScreenState.StoreNameInput -> {
+                                StoreNameInputContent(
+                                    storeName = uiState.storeName,
+                                    onStoreNameChanged = onStoreNameChanged,
+                                    onStoreNameConfirmed = onStoreNameConfirmed,
+                                )
+                            }
+
+                            StoreInfoScreenState.PostStoreName -> {
+                                PostStoreNameContent(
+                                    employeeCountInput = uiState.employeeCountInput,
+                                    ownerSolo = uiState.ownerSolo,
+                                    hourlyWageInput = uiState.hourlyWageInput,
+                                    includeWeeklyAllowance = uiState.includeWeeklyAllowance,
+                                    isNextEnabled = uiState.isPostStoreNameNextEnabled,
+                                    onEmployeeCountChanged = onEmployeeCountChanged,
+                                    onIsOwnerSoloChanged = onIsOwnerSoloChanged,
+                                    onHourlyWageChanged = onHourlyWageChanged,
+                                    onIncludeWeeklyAllowanceChanged = onIncludeWeeklyAllowanceChanged,
+                                    onNextClicked = onPostStoreNameNextClicked,
+                                )
+                            }
+
+                            StoreInfoScreenState.Completed -> Unit
                         }
-                        StoreInfoScreenState.PostStoreName -> {
-                            PostStoreNameContent(
-                                employeeCountInput = uiState.employeeCountInput,
-                                ownerSolo = uiState.ownerSolo,
-                                hourlyWageInput = uiState.hourlyWageInput,
-                                includeWeeklyAllowance = uiState.includeWeeklyAllowance,
-                                isNextEnabled = uiState.isPostStoreNameNextEnabled,
-                                onEmployeeCountChanged = onEmployeeCountChanged,
-                                onIsOwnerSoloChanged = onIsOwnerSoloChanged,
-                                onHourlyWageChanged = onHourlyWageChanged,
-                                onIncludeWeeklyAllowanceChanged = onIncludeWeeklyAllowanceChanged,
-                                onNextClicked = onPostStoreNameNextClicked,
-                            )
-                        }
-                        StoreInfoScreenState.Completed -> Unit
-                    }
                     }
                 }
             }
         }
-
     }
 }
 
@@ -183,7 +174,7 @@ private fun StoreNameInputContent(
     onStoreNameConfirmed: () -> Unit,
 ) {
     Column {
-        UnderlineTextField(
+        ChordLabeledUnderlineTextField(
             label = "매장명",
             value = storeName,
             onValueChange = onStoreNameChanged,
@@ -211,27 +202,27 @@ private fun PostStoreNameContent(
     onNextClicked: () -> Unit,
 ) {
     var showWageTooltip by remember { mutableStateOf(false) }
+    val hourlyWageVisualTransformation = remember { DigitGroupingVisualTransformation() }
 
     Column(
         modifier = Modifier.fillMaxSize(),
     ) {
-        // 직원수 field
-        UnderlineTextField(
+        ChordLabeledUnderlineTextField(
             label = "직원수",
-            value = if (ownerSolo) "0" else employeeCountInput,
-            onValueChange = { if (!ownerSolo) onEmployeeCountChanged(it) },
+            value = employeeCountInput,
+            onValueChange = onEmployeeCountChanged,
             placeholder = "사장님을 제외한 직원수 입력",
             unitText = "명",
             keyboardType = KeyboardType.Number,
             enabled = !ownerSolo,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 사장님 혼자 checkbox
         ChordCheckboxItem(
             checked = ownerSolo,
             onCheckedChange = onIsOwnerSoloChanged,
+            checkedIconRes = R.drawable.ic_square_checkbox,
+            uncheckedIconRes = R.drawable.ic_empty_square_checkbox,
+            iconSize = 18.dp,
         ) {
             Text(
                 text = "사장님 혼자 근무중이신가요?",
@@ -242,17 +233,8 @@ private fun PostStoreNameContent(
             )
         }
 
-        if (ownerSolo && hourlyWageInput.isEmpty()) {
-            Spacer(modifier = Modifier.height(4.dp))
-            ChordTooltipBubble(
-                text = "현재 근무중인 직원의 평균 시급을 입력해주세요",
-                direction = TooltipDirection.UpLeft,
-            )
-        }
-
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 인건비 label with tooltip icon
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -264,36 +246,35 @@ private fun PostStoreNameContent(
                 fontSize = 16.sp,
                 color = Grayscale900,
             )
-            ChordTooltipIcon(onClick = { showWageTooltip = !showWageTooltip })
-        }
-        if (showWageTooltip) {
-            ChordTooltipBubble(
+            ChordAnchoredTooltipIcon(
+                visible = showWageTooltip,
                 text = "현재 근무중인 직원의 평균 시급",
-                direction = TooltipDirection.UpLeft,
+                onClick = { showWageTooltip = !showWageTooltip },
+                iconRes = R.drawable.ic_question,
+                iconSize = 16.dp,
+                tint = Color.Unspecified,
+                tooltipDirection = TooltipDirection.Down,
             )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Hourly wage field (no label since we rendered it above)
-        UnderlineTextField(
+        ChordLabeledUnderlineTextField(
             label = "",
-            value = formatWithComma(hourlyWageInput),
-            onValueChange = { newValue ->
-                val digitsOnly = newValue.filter { it.isDigit() }
-                onHourlyWageChanged(digitsOnly)
-            },
+            value = hourlyWageInput,
+            onValueChange = onHourlyWageChanged,
             placeholder = "시급 기준으로 입력",
             unitText = "원",
             keyboardType = KeyboardType.Number,
+            visualTransformation = hourlyWageVisualTransformation,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // 주휴수당 포함 checkbox
         ChordCheckboxItem(
             checked = includeWeeklyAllowance,
             onCheckedChange = onIncludeWeeklyAllowanceChanged,
+            checkedIconRes = R.drawable.ic_square_checkbox,
+            uncheckedIconRes = R.drawable.ic_empty_square_checkbox,
+            iconSize = 18.dp,
         ) {
             Text(
                 text = "주휴수당 포함",
@@ -306,12 +287,10 @@ private fun PostStoreNameContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Reference info card
         ReferenceInfoCard()
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Next button (use built-in disabled styling)
         ChordLargeButton(
             text = "다음",
             onClick = onNextClicked,
@@ -390,7 +369,6 @@ private fun CompletedContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Summary card
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -436,89 +414,3 @@ private fun SummaryRow(
         )
     }
 }
-
-@Composable
-private fun UnderlineTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    unitText: String? = null,
-    keyboardType: KeyboardType = KeyboardType.Unspecified,
-    onImeAction: () -> Unit = {},
-) {
-    var isFocused by remember { mutableStateOf(false) }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        if (label.isNotEmpty()) {
-            Text(
-                text = label,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                color = if (isFocused) PrimaryBlue500 else Grayscale900,
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .onFocusChanged { isFocused = it.isFocused },
-            enabled = enabled,
-            textStyle = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 20.sp,
-                color = Grayscale900,
-            ),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = keyboardType,
-                imeAction = ImeAction.Done,
-            ),
-            keyboardActions = KeyboardActions(onDone = { onImeAction() }),
-            cursorBrush = SolidColor(Grayscale800),
-            decorationBox = { innerTextField ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(modifier = Modifier.weight(1f, fill = false)) {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                fontFamily = PretendardFontFamily,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp,
-                                color = Grayscale500,
-                            )
-                        }
-                        innerTextField()
-                    }
-                    if (value.isNotEmpty() && unitText != null) {
-                        Text(
-                            text = unitText,
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 20.sp,
-                            color = Grayscale900,
-                        )
-                    }
-                }
-            },
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        HorizontalDivider(
-            color = Grayscale300,
-            thickness = 1.dp,
-        )
-    }
-}
-

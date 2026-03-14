@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.ui.R
@@ -28,6 +29,9 @@ fun ChordCheckboxItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    checkedIconRes: Int = R.drawable.ic_checkbox,
+    uncheckedIconRes: Int = R.drawable.ic_un_checkbox,
+    iconSize: Dp = 32.dp,
     content: @Composable () -> Unit,
 ) {
     Row(
@@ -39,10 +43,10 @@ fun ChordCheckboxItem(
     ) {
         Icon(
             painter = painterResource(
-                if (checked) R.drawable.ic_checkbox else R.drawable.ic_un_checkbox
+                if (checked) checkedIconRes else uncheckedIconRes
             ),
             contentDescription = if (checked) "선택됨" else "선택 안됨",
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(iconSize),
             tint = androidx.compose.ui.graphics.Color.Unspecified,
         )
         Spacer(modifier = Modifier.width(8.dp))

@@ -10,13 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,9 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,17 +27,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.team.chord.core.ui.R
+import com.team.chord.core.ui.component.ChordAnchoredTooltipIcon
+import com.team.chord.core.ui.component.ChordCheckboxItem
+import com.team.chord.core.ui.component.ChordLabeledUnderlineTextField
 import com.team.chord.core.ui.component.ChordLargeButton
-import com.team.chord.core.ui.component.ChordTooltipBubble
-import com.team.chord.core.ui.component.ChordTooltipIcon
 import com.team.chord.core.ui.component.ChordTopAppBar
+import com.team.chord.core.ui.component.DigitGroupingVisualTransformation
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
-import com.team.chord.core.ui.theme.Grayscale300
-import com.team.chord.core.ui.theme.Grayscale400
-import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale700
-import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
@@ -94,6 +84,7 @@ internal fun StoreEditScreenContent(
     modifier: Modifier = Modifier,
 ) {
     var showWageTooltip by remember { mutableStateOf(false) }
+    val hourlyWageVisualTransformation = remember { DigitGroupingVisualTransformation() }
 
     Box(
         modifier = modifier
@@ -113,7 +104,7 @@ internal fun StoreEditScreenContent(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                UnderlineTextField(
+                ChordLabeledUnderlineTextField(
                     label = "매장명",
                     value = uiState.storeName,
                     onValueChange = onStoreNameChanged,
@@ -122,9 +113,9 @@ internal fun StoreEditScreenContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                UnderlineTextField(
+                ChordLabeledUnderlineTextField(
                     label = "직원수",
-                    value = if (uiState.ownerSolo) "0" else uiState.employeeCountInput,
+                    value = uiState.employeeCountInput,
                     onValueChange = onEmployeeCountChanged,
                     placeholder = "사장님을 제외한 직원수 입력",
                     unitText = "명",
@@ -132,13 +123,21 @@ internal fun StoreEditScreenContent(
                     enabled = !uiState.ownerSolo,
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                SquareCheckboxRow(
+                ChordCheckboxItem(
                     checked = uiState.ownerSolo,
                     onCheckedChange = onOwnerSoloChanged,
-                    text = "사장님 혼자 근무중이신가요?",
-                )
+                    checkedIconRes = R.drawable.ic_square_checkbox,
+                    uncheckedIconRes = R.drawable.ic_empty_square_checkbox,
+                    iconSize = 18.dp,
+                ) {
+                    Text(
+                        text = "사장님 혼자 근무중이신가요?",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        color = Grayscale900,
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
@@ -153,36 +152,44 @@ internal fun StoreEditScreenContent(
                         fontSize = 16.sp,
                         color = Grayscale900,
                     )
-                    ChordTooltipIcon(onClick = { showWageTooltip = !showWageTooltip })
-                }
-
-                if (showWageTooltip) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    ChordTooltipBubble(
+                    ChordAnchoredTooltipIcon(
+                        visible = showWageTooltip,
                         text = "현재 근무중인 직원의 평균 시급",
-                        direction = TooltipDirection.UpLeft,
+                        onClick = { showWageTooltip = !showWageTooltip },
+                        iconRes = R.drawable.ic_question,
+                        iconSize = 16.dp,
+                        tint = Color.Unspecified,
+                        tooltipDirection = TooltipDirection.Down,
                     )
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                UnderlineTextField(
+                ChordLabeledUnderlineTextField(
                     label = "",
-                    value = uiState.formattedHourlyWage,
-                    onValueChange = { input -> onHourlyWageChanged(input.filter { it.isDigit() }) },
+                    value = uiState.hourlyWageInput,
+                    onValueChange = onHourlyWageChanged,
                     placeholder = "시급 기준으로 입력",
                     unitText = "원",
                     keyboardType = KeyboardType.Number,
+                    visualTransformation = hourlyWageVisualTransformation,
                 )
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                SquareCheckboxRow(
+                ChordCheckboxItem(
                     checked = uiState.includeWeeklyHolidayPay,
                     onCheckedChange = onIncludeWeeklyHolidayPayChanged,
-                    enabled = !uiState.ownerSolo,
-                    text = "주휴수당 포함",
-                )
+                    checkedIconRes = R.drawable.ic_square_checkbox,
+                    uncheckedIconRes = R.drawable.ic_empty_square_checkbox,
+                    iconSize = 18.dp,
+                ) {
+                    Text(
+                        text = "주휴수당 포함",
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        color = Grayscale900,
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -210,7 +217,7 @@ private fun ReferenceInfoCard(
             .fillMaxWidth()
             .background(
                 color = PrimaryBlue100,
-                shape = RoundedCornerShape(16.dp),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
             )
             .padding(16.dp),
     ) {
@@ -228,121 +235,6 @@ private fun ReferenceInfoCard(
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             color = Grayscale700,
-        )
-    }
-}
-
-@Composable
-private fun UnderlineTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    unitText: String? = null,
-    keyboardType: KeyboardType = KeyboardType.Text,
-) {
-    var isFocused by remember { mutableStateOf(false) }
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        if (label.isNotEmpty()) {
-            Text(
-                text = label,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                color = if (isFocused) PrimaryBlue500 else Grayscale900,
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .onFocusChanged { isFocused = it.isFocused },
-            enabled = enabled,
-            textStyle = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 20.sp,
-                color = if (enabled) Grayscale900 else Grayscale500,
-            ),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            cursorBrush = SolidColor(Grayscale800),
-            decorationBox = { innerTextField ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(modifier = Modifier.weight(1f, fill = false)) {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                fontFamily = PretendardFontFamily,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp,
-                                color = Grayscale500,
-                            )
-                        }
-                        innerTextField()
-                    }
-
-                    if (value.isNotEmpty() && unitText != null) {
-                        Text(
-                            text = unitText,
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 20.sp,
-                            color = if (enabled) Grayscale900 else Grayscale500,
-                        )
-                    }
-                }
-            },
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        HorizontalDivider(
-            color = Grayscale300,
-            thickness = 1.dp,
-        )
-    }
-}
-
-@Composable
-private fun SquareCheckboxRow(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    text: String,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            colors = CheckboxDefaults.colors(
-                checkedColor = PrimaryBlue500,
-                uncheckedColor = Grayscale400,
-                checkmarkColor = Grayscale100,
-                disabledCheckedColor = Grayscale400,
-                disabledUncheckedColor = Grayscale300,
-            ),
-            modifier = Modifier.size(24.dp),
-        )
-
-        Text(
-            text = text,
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Medium,
-            fontSize = 16.sp,
-            color = if (enabled) Grayscale900 else Grayscale500,
-            modifier = Modifier.padding(start = 8.dp),
         )
     }
 }

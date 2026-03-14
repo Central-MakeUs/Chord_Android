@@ -36,9 +36,10 @@ class StoreEditViewModel @Inject constructor(
                         it.copy(
                             storeName = store.name,
                             employeeCountInput = store.employees.toString(),
+                            lastNonZeroEmployeeCountInput = if (store.employees > 0) store.employees.toString() else "",
                             ownerSolo = ownerSolo,
                             hourlyWageInput = store.laborCost.toString(),
-                            includeWeeklyHolidayPay = if (ownerSolo) false else store.includeWeeklyHolidayPay,
+                            includeWeeklyHolidayPay = store.includeWeeklyHolidayPay,
                         )
                     }
                 }
@@ -73,12 +74,12 @@ class StoreEditViewModel @Inject constructor(
                 state.copy(
                     ownerSolo = true,
                     employeeCountInput = "0",
-                    includeWeeklyHolidayPay = false,
+                    lastNonZeroEmployeeCountInput = state.employeeCountInput.toRestorableEmployeeCountInput(),
                 )
             } else {
                 state.copy(
                     ownerSolo = false,
-                    employeeCountInput = if (state.employeeCountInput == "0") "" else state.employeeCountInput,
+                    employeeCountInput = state.lastNonZeroEmployeeCountInput,
                 )
             }
         }
@@ -89,17 +90,11 @@ class StoreEditViewModel @Inject constructor(
             return
         }
 
-        _uiState.update { it.copy(hourlyWageInput = text) }
+        _uiState.update { it.copy(hourlyWageInput = sanitizeHourlyWageInput(text)) }
     }
 
     fun onIncludeWeeklyHolidayPayChanged(checked: Boolean) {
-        _uiState.update { state ->
-            if (state.ownerSolo) {
-                state.copy(includeWeeklyHolidayPay = false)
-            } else {
-                state.copy(includeWeeklyHolidayPay = checked)
-            }
-        }
+        _uiState.update { it.copy(includeWeeklyHolidayPay = checked) }
     }
 
     fun onSubmitClicked() {
@@ -116,7 +111,7 @@ class StoreEditViewModel @Inject constructor(
                     employees = employeeCount,
                     laborCost = laborCost,
                     rentCost = null,
-                    includeWeeklyHolidayPay = if (state.ownerSolo) false else state.includeWeeklyHolidayPay,
+                    includeWeeklyHolidayPay = state.includeWeeklyHolidayPay,
                 )
             ) {
                 is Result.Success -> {
@@ -133,3 +128,6 @@ class StoreEditViewModel @Inject constructor(
         _uiState.update { it.copy(submitSuccess = false) }
     }
 }
+
+private fun String.toRestorableEmployeeCountInput(): String =
+    takeIf { parseEmployeeCount(it, ownerSolo = false) != null } ?: ""

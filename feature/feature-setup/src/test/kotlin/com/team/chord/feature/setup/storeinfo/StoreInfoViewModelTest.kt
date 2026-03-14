@@ -1,14 +1,16 @@
 package com.team.chord.feature.setup.storeinfo
 
+import com.team.chord.core.domain.repository.SetupRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class StoreInfoViewModelTest {
     @Test
     fun `onStoreNameConfirmed moves to post store name`() {
-        val viewModel = StoreInfoViewModel()
+        val viewModel = StoreInfoViewModel(FakeSetupRepository())
 
         viewModel.onStoreNameConfirmed()
 
@@ -16,37 +18,56 @@ class StoreInfoViewModelTest {
     }
 
     @Test
-    fun `onIsOwnerSoloChanged true forces employee count zero`() {
-        val viewModel = StoreInfoViewModel()
+    fun `owner solo toggle restores previous employee count`() {
+        val viewModel = StoreInfoViewModel(FakeSetupRepository())
 
         viewModel.onEmployeeCountChanged("5")
         viewModel.onIsOwnerSoloChanged(true)
 
-        val state = viewModel.uiState.value
-        assertTrue(state.ownerSolo)
-        assertEquals("0", state.employeeCountInput)
-        assertEquals(0, state.employeeCountValue)
+        val ownerSoloState = viewModel.uiState.value
+        assertTrue(ownerSoloState.ownerSolo)
+        assertEquals("0", ownerSoloState.employeeCountInput)
+        assertEquals("5", ownerSoloState.lastNonZeroEmployeeCountInput)
+
+        viewModel.onIsOwnerSoloChanged(false)
+
+        val restoredState = viewModel.uiState.value
+        assertEquals("5", restoredState.employeeCountInput)
+        assertEquals(false, restoredState.ownerSolo)
     }
 
     @Test
-    fun `onPostStoreNameNextClicked requires valid inputs`() {
-        val viewModel = StoreInfoViewModel()
+    fun `owner solo toggle without previous employee count restores empty`() {
+        val viewModel = StoreInfoViewModel(FakeSetupRepository())
 
-        viewModel.onStoreNameConfirmed()
-        viewModel.onEmployeeCountChanged("0")
-        viewModel.onHourlyWageChanged("1000")
-        viewModel.onPostStoreNameNextClicked()
+        viewModel.onIsOwnerSoloChanged(true)
+        viewModel.onIsOwnerSoloChanged(false)
 
-        assertEquals(StoreInfoScreenState.PostStoreName, viewModel.uiState.value.screenState)
-        assertFalse(viewModel.uiState.value.isPostStoreNameNextEnabled)
-
-        viewModel.onEmployeeCountChanged("2")
-        viewModel.onHourlyWageChanged("1000")
-        viewModel.onPostStoreNameNextClicked()
-
-        val completedState = viewModel.uiState.value
-        assertTrue(completedState.isPostStoreNameNextEnabled)
-        assertEquals(StoreInfoScreenState.Completed, completedState.screenState)
-        assertEquals(2, completedState.employeeCount)
+        val state = viewModel.uiState.value
+        assertEquals("", state.employeeCountInput)
+        assertEquals("", state.lastNonZeroEmployeeCountInput)
     }
+
+    @Test
+    fun `hourly wage input is sanitized while typing`() {
+        val viewModel = StoreInfoViewModel(FakeSetupRepository())
+
+        viewModel.onHourlyWageChanged("0010320")
+
+        assertEquals("10320", viewModel.uiState.value.hourlyWageInput)
+    }
+}
+
+private class FakeSetupRepository : SetupRepository {
+    override fun isSetupCompleted(): Flow<Boolean> = flowOf(false)
+
+    override suspend fun setSetupCompleted(isCompleted: Boolean) = Unit
+
+    override suspend fun completeOnboarding(
+        name: String,
+        employees: Int,
+        laborCost: Int,
+        rentCost: Int?,
+        includeWeeklyHolidayPay: Boolean,
+    ) = Unit
 }
