@@ -31,6 +31,7 @@ import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue600
+import com.team.chord.core.ui.theme.StatusDanger
 import com.team.chord.feature.auth.component.AuthTextField
 
 @Composable
@@ -112,8 +113,20 @@ internal fun LoginScreenContent(
                     value = uiState.username,
                     onValueChange = onUsernameChanged,
                     placeholder = "아이디를 입력해주세요.",
+                    isError = uiState.usernameError != null,
                     imeAction = ImeAction.Next,
                 )
+
+                if (uiState.usernameError != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = uiState.usernameError,
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = StatusDanger,
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -136,21 +149,22 @@ internal fun LoginScreenContent(
                     onValueChange = onPasswordChanged,
                     placeholder = "비밀번호를 입력해주세요.",
                     isPassword = true,
+                    isError = uiState.passwordError != null || uiState.authError != null,
                     imeAction = ImeAction.Done,
                     onImeAction = onLoginClicked,
                 )
-            }
 
-            if (uiState.errorMessage != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = uiState.errorMessage,
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = PrimaryBlue600,
-                    modifier = Modifier.align(Alignment.Start),
-                )
+                val passwordSectionError = uiState.passwordError ?: uiState.authError
+                if (passwordSectionError != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = passwordSectionError,
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp,
+                        color = StatusDanger,
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
