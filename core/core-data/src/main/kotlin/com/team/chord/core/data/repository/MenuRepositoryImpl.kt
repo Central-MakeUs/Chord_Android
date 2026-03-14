@@ -9,6 +9,7 @@ import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.domain.repository.MenuRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -104,7 +105,7 @@ class MenuRepositoryImpl @Inject constructor(
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? =
         menuDataSource.getTemplateBasic(templateId)
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> =
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> =
         menuDataSource.getTemplateIngredients(templateId)
 
     override suspend fun checkMenuDuplicate(

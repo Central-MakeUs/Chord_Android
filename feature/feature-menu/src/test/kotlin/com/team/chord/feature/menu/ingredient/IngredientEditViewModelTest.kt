@@ -16,6 +16,7 @@ import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.domain.repository.IngredientRepository
 import com.team.chord.core.domain.repository.MenuRepository
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientDetailUseCase
@@ -217,7 +218,7 @@ private class FakeMenuRepository(
 
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? = null
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> = emptyList()
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> = emptyList()
 
     override suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>?): CheckDupResult =
         CheckDupResult(

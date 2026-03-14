@@ -41,6 +41,7 @@ data class IngredientSuggestion(
 
 data class SelectedIngredient(
     val id: Long,
+    val serverIngredientId: Long? = null,
     val name: String,
     val amount: Int,
     val unit: IngredientUnit,
@@ -54,7 +55,7 @@ data class SelectedIngredient(
 )
 
 data class IngredientBottomSheetState(
-    val id: Long? = null,
+    val serverIngredientId: Long? = null,
     val name: String,
     val categoryCode: String = "INGREDIENTS",
     val price: String = "",

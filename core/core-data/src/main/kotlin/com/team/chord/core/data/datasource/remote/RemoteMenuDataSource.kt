@@ -10,6 +10,7 @@ import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuIngredient
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.network.api.MenuApi
 import com.team.chord.core.network.dto.menu.AmountUpdateDto
 import com.team.chord.core.network.dto.menu.CheckDupRequestDto
@@ -185,18 +186,8 @@ class RemoteMenuDataSource @Inject constructor(
         return safeApiCall { menuApi.getTemplateBasic(templateId) }.toDomain()
     }
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> {
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> {
         val recipeTemplates = safeApiCall { menuApi.getTemplateIngredients(templateId) }
-        return recipeTemplates.map { recipe ->
-            MenuRecipe(
-                recipeId = 0,
-                menuId = 0,
-                ingredientId = 0,
-                ingredientName = recipe.ingredientName,
-                amount = recipe.defaultUsageAmount,
-                unitCode = recipe.unitCode,
-                price = recipe.defaultPrice.toInt(),
-            )
-        }
+        return recipeTemplates.map { it.toDomain() }
     }
 }

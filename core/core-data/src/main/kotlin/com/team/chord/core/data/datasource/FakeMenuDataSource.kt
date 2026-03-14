@@ -8,6 +8,7 @@ import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuIngredient
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -136,7 +137,7 @@ class FakeMenuDataSource @Inject constructor() : MenuDataSource {
         return menuTemplates.first { it.templateId == templateId }
     }
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> = emptyList()
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> = emptyList()
 
     private val menuTemplates: List<MenuTemplate> by lazy { createMenuTemplates() }
 

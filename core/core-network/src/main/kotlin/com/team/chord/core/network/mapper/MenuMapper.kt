@@ -6,10 +6,12 @@ import com.team.chord.core.domain.model.menu.MarginGrade
 import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.network.dto.menu.CheckDupResponseDto
 import com.team.chord.core.network.dto.menu.MenuCategoryDto
 import com.team.chord.core.network.dto.menu.MenuDetailDto
 import com.team.chord.core.network.dto.menu.MenuDto
+import com.team.chord.core.network.dto.menu.RecipeTemplateDto
 import com.team.chord.core.network.dto.menu.RecipeDto
 import com.team.chord.core.network.dto.menu.SearchMenusDto
 import com.team.chord.core.network.dto.menu.TemplateBasicDto
@@ -82,6 +84,18 @@ fun TemplateBasicDto.toDomain(): MenuTemplate =
         defaultSellingPrice = defaultSellingPrice.toInt(),
         categoryCode = categoryCode,
         workTime = workTime,
+    )
+
+fun RecipeTemplateDto.toDomain(): TemplateIngredient =
+    TemplateIngredient(
+        ingredientId = ingredientId,
+        ingredientName = ingredientName,
+        usageAmount = defaultUsageAmount,
+        defaultCost = defaultPrice.toInt(),
+        unitPrice = (unitPrice ?: defaultPrice).toInt(),
+        baseQuantity = baseQuantity ?: defaultUsageAmount.toInt(),
+        unitCode = unitCode,
+        ingredientCategoryCode = ingredientCategoryCode ?: "INGREDIENTS",
     )
 
 fun CheckDupResponseDto.toDomain(): CheckDupResult =

@@ -29,10 +29,14 @@ data class TemplateBasicDto(
 
 @Serializable
 data class RecipeTemplateDto(
+    val ingredientId: Long? = null,
     val ingredientName: String,
     val defaultUsageAmount: Double,
     val defaultPrice: Double,
+    val unitPrice: Double? = null,
+    val baseQuantity: Int? = null,
     val unitCode: String,
+    val ingredientCategoryCode: String? = null,
 )
 
 @Serializable

@@ -8,6 +8,7 @@ import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.domain.repository.MenuRepository
 import com.team.chord.feature.setup.ingredientinput.IngredientSourceType
 import com.team.chord.feature.setup.ingredientinput.SelectedIngredient
@@ -40,6 +41,7 @@ class OnboardingMenuViewModelTest {
             listOf(
                 SelectedIngredient(
                     id = 1L,
+                    serverIngredientId = 1L,
                     name = "원두",
                     amount = 30,
                     unit = IngredientUnit.G,
@@ -69,6 +71,94 @@ class OnboardingMenuViewModelTest {
         assertEquals(1, call.recipes?.size)
         assertEquals(1, call.newRecipes?.size)
         assertEquals("새 시럽", call.newRecipes?.first()?.ingredientName)
+    }
+
+    @Test
+    fun registerMenus_sendsTemplateIngredientsWithoutServerIdsAsNewRecipes() = runBlocking {
+        val repository = FakeMenuRepository()
+        val viewModel = OnboardingMenuViewModel(repository)
+
+        viewModel.startNewMenu(
+            name = "아이스 밀크티",
+            isTemplateApplied = true,
+            categoryCode = "BEVERAGE",
+        )
+        viewModel.updateMenuDetail(
+            price = 5500,
+            category = MenuCategory.BEVERAGE,
+            preparationSeconds = 90,
+        )
+        viewModel.addIngredients(
+            listOf(
+                SelectedIngredient(
+                    id = -1L,
+                    serverIngredientId = null,
+                    name = "우유",
+                    amount = 180,
+                    unit = IngredientUnit.ML,
+                    price = 522,
+                    categoryCode = "INGREDIENTS",
+                    sourceType = IngredientSourceType.TEMPLATE,
+                    baseQuantity = 100,
+                    unitPrice = 290,
+                ),
+            ),
+        )
+        viewModel.completeCurrentMenu()
+
+        val result = viewModel.registerMenus()
+
+        assertTrue(result is Result.Success)
+        val call = repository.createMenuCalls.first()
+        assertTrue(call.recipes.isNullOrEmpty())
+        assertEquals(1, call.newRecipes?.size)
+        val newRecipe = call.newRecipes?.first()
+        assertEquals(100, newRecipe?.amount)
+        assertEquals(180, newRecipe?.usageAmount)
+        assertEquals(290, newRecipe?.price)
+        assertEquals("우유", newRecipe?.ingredientName)
+    }
+
+    @Test
+    fun registerMenus_sendsTemplateIngredientsWithServerIdsAsRecipes() = runBlocking {
+        val repository = FakeMenuRepository()
+        val viewModel = OnboardingMenuViewModel(repository)
+
+        viewModel.startNewMenu(
+            name = "아이스 아메리카노",
+            isTemplateApplied = true,
+            categoryCode = "BEVERAGE",
+        )
+        viewModel.updateMenuDetail(
+            price = 4500,
+            category = MenuCategory.BEVERAGE,
+            preparationSeconds = 60,
+        )
+        viewModel.addIngredients(
+            listOf(
+                SelectedIngredient(
+                    id = -1L,
+                    serverIngredientId = 2001L,
+                    name = "원두",
+                    amount = 18,
+                    unit = IngredientUnit.G,
+                    price = 320,
+                    categoryCode = "INGREDIENTS",
+                    sourceType = IngredientSourceType.TEMPLATE,
+                    baseQuantity = 1000,
+                    unitPrice = 18000,
+                ),
+            ),
+        )
+        viewModel.completeCurrentMenu()
+
+        val result = viewModel.registerMenus()
+
+        assertTrue(result is Result.Success)
+        val call = repository.createMenuCalls.first()
+        assertEquals(1, call.recipes?.size)
+        assertEquals(2001L, call.recipes?.first()?.ingredientId)
+        assertTrue(call.newRecipes.isNullOrEmpty())
     }
 }
 
@@ -134,7 +224,7 @@ private class FakeMenuRepository : MenuRepository {
 
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? = null
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> = emptyList()
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> = emptyList()
 
     override suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>?): CheckDupResult {
         return CheckDupResult(

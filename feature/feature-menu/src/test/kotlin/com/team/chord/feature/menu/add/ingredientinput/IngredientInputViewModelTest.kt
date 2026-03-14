@@ -14,6 +14,7 @@ import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.domain.repository.IngredientRepository
 import com.team.chord.core.domain.repository.MenuRepository
 import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
@@ -33,6 +34,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -119,6 +121,40 @@ class IngredientInputViewModelTest {
         assertEquals("선택한 재료를 삭제했어요.", viewModel.uiState.value.completionToastMessage)
     }
 
+    @Test
+    fun `template ingredients preserve metadata when loaded`() = runTest {
+        val viewModel = createViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(
+                    "isTemplateApplied" to true,
+                    "templateId" to 1L,
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        val selectedIngredients = viewModel.uiState.value.selectedIngredients
+        val first = selectedIngredients.first()
+        val second = selectedIngredients.last()
+
+        assertTrue(first.id < 0L)
+        assertNull(first.serverIngredientId)
+        assertEquals(30, first.amount)
+        assertEquals(800, first.price)
+        assertEquals(16000, first.unitPrice)
+        assertEquals(1000, first.baseQuantity)
+        assertEquals("INGREDIENTS", first.categoryCode)
+
+        assertTrue(second.id < 0L)
+        assertEquals(1002L, second.serverIngredientId)
+        assertEquals(250, second.amount)
+        assertEquals(120, second.price)
+        assertEquals(0, second.unitPrice)
+        assertEquals(1000, second.baseQuantity)
+        assertEquals("INGREDIENTS", second.categoryCode)
+    }
+
     private fun createViewModel(
         savedStateHandle: SavedStateHandle,
     ): IngredientInputViewModel {
@@ -185,26 +221,28 @@ private class FakeMenuRepository : MenuRepository {
 
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? = null
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe> {
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> {
         if (templateId != 1L) return emptyList()
         return listOf(
-            MenuRecipe(
-                recipeId = 10L,
-                menuId = 1L,
-                ingredientId = 1001L,
+            TemplateIngredient(
+                ingredientId = null,
                 ingredientName = "원두",
-                amount = 30.0,
+                usageAmount = 30.0,
+                defaultCost = 800,
+                unitPrice = 16000,
+                baseQuantity = 1000,
                 unitCode = "G",
-                price = 800,
+                ingredientCategoryCode = "INGREDIENTS",
             ),
-            MenuRecipe(
-                recipeId = 11L,
-                menuId = 1L,
+            TemplateIngredient(
                 ingredientId = 1002L,
                 ingredientName = "정수물",
-                amount = 250.0,
+                usageAmount = 250.0,
+                defaultCost = 120,
+                unitPrice = 0,
+                baseQuantity = 1000,
                 unitCode = "ML",
-                price = 120,
+                ingredientCategoryCode = "INGREDIENTS",
             ),
         )
     }

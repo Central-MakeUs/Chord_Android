@@ -5,6 +5,7 @@ import com.team.chord.core.domain.model.menu.CheckDupResult
 import com.team.chord.core.domain.model.menu.Menu
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.MenuTemplate
+import com.team.chord.core.domain.model.menu.TemplateIngredient
 import kotlinx.coroutines.flow.Flow
 
 interface MenuDataSource {
@@ -40,7 +41,7 @@ interface MenuDataSource {
     fun getCategories(): Flow<List<Category>>
     fun searchMenuTemplates(query: String): Flow<List<MenuTemplate>>
     suspend fun getTemplateBasic(templateId: Long): MenuTemplate
-    suspend fun getTemplateIngredients(templateId: Long): List<MenuRecipe>
+    suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient>
 }
 
 data class NewRecipeInput(

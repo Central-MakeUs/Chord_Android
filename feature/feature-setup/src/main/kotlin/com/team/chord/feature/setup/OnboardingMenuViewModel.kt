@@ -150,40 +150,15 @@ class OnboardingMenuViewModel @Inject constructor(
     /**
      * Register all menus via API.
      * Maps each RegisteredMenu to a createMenu() call on the repository.
-     * Splits ingredients into existing and new recipes using sourceType rather than
-     * temporary local ids, because newly typed ingredients can still carry positive ids.
+     * Uses serverIngredientId to decide whether an ingredient is already saved on the server.
      *
      * @return Result.Success if all menus registered, Result.Error on first failure
      */
     suspend fun registerMenus(): Result<Unit> {
         val menus = _registeredMenus.value
         for (menu in menus) {
-            val existingRecipes = menu.ingredients
-                .filter { it.sourceType != IngredientSourceType.NEW }
-                .map { ingredient ->
-                    MenuRecipe(
-                        recipeId = 0L,
-                        menuId = 0L,
-                        ingredientId = ingredient.id,
-                        ingredientName = ingredient.name,
-                        amount = ingredient.amount.toDouble(),
-                        unitCode = ingredient.unit.name,
-                        price = ingredient.price,
-                    )
-                }
-            val newRecipes = menu.ingredients
-                .filter { it.sourceType == IngredientSourceType.NEW }
-                .map { ingredient ->
-                    NewRecipeInfo(
-                        amount = ingredient.baseQuantity,
-                        usageAmount = ingredient.amount,
-                        price = ingredient.price,
-                        unitCode = ingredient.unit.name,
-                        ingredientCategoryCode = ingredient.categoryCode,
-                        ingredientName = ingredient.name,
-                        supplier = ingredient.supplier.ifEmpty { null },
-                    )
-                }
+            val existingRecipes = menu.ingredients.mapNotNull { it.toExistingRecipe() }
+            val newRecipes = menu.ingredients.mapNotNull { it.toNewRecipeInfo() }
             val result = menuRepository.createMenu(
                 categoryCode = menu.categoryCode ?: menu.category.name,
                 menuName = menu.name,
@@ -236,3 +211,41 @@ data class RegisteredMenu(
     val ingredients: List<SelectedIngredient>,
     val categoryCode: String? = null,
 )
+
+private fun SelectedIngredient.toExistingRecipe(): MenuRecipe? {
+    val ingredientId = serverIngredientId?.takeIf { it > 0L } ?: return null
+    return MenuRecipe(
+        recipeId = 0L,
+        menuId = 0L,
+        ingredientId = ingredientId,
+        ingredientName = name,
+        amount = amount.toDouble(),
+        unitCode = unit.name,
+        price = price,
+    )
+}
+
+private fun SelectedIngredient.toNewRecipeInfo(): NewRecipeInfo? {
+    val ingredientId = serverIngredientId
+    return when {
+        sourceType == IngredientSourceType.NEW -> NewRecipeInfo(
+            amount = baseQuantity,
+            usageAmount = amount,
+            price = price,
+            unitCode = unit.name,
+            ingredientCategoryCode = categoryCode,
+            ingredientName = name,
+            supplier = supplier.ifEmpty { null },
+        )
+        sourceType == IngredientSourceType.TEMPLATE && (ingredientId == null || ingredientId <= 0L) -> NewRecipeInfo(
+            amount = baseQuantity,
+            usageAmount = amount,
+            price = unitPrice,
+            unitCode = unit.name,
+            ingredientCategoryCode = categoryCode,
+            ingredientName = name,
+            supplier = supplier.ifEmpty { null },
+        )
+        else -> null
+    }
+}

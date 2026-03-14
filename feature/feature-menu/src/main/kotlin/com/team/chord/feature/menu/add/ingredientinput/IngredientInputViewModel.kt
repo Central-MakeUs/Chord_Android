@@ -36,6 +36,7 @@ class IngredientInputViewModel @Inject constructor(
     val uiState: StateFlow<IngredientInputUiState> = _uiState.asStateFlow()
 
     private var searchJob: Job? = null
+    private var nextLocalIngredientId = -1L
 
     private val isTemplateApplied: Boolean = savedStateHandle.get<Boolean>("isTemplateApplied") ?: false
     private val templateId: Long = savedStateHandle.get<Long>("templateId") ?: 0L
@@ -50,18 +51,19 @@ class IngredientInputViewModel @Inject constructor(
     private fun loadTemplateIngredients() {
         viewModelScope.launch {
             try {
-                val recipes = getTemplateIngredientsUseCase(templateId)
-                val selectedIngredients = recipes.map { recipe ->
+                val templateIngredients = getTemplateIngredientsUseCase(templateId)
+                val selectedIngredients = templateIngredients.map { ingredient ->
                     SelectedIngredient(
-                        id = recipe.ingredientId,
-                        name = recipe.ingredientName,
-                        amount = recipe.amount.toInt(),
-                        unit = recipe.unitCode.toIngredientUnit(),
-                        price = recipe.price,
+                        id = consumeNextLocalIngredientId(),
+                        serverIngredientId = ingredient.ingredientId,
+                        name = ingredient.ingredientName,
+                        amount = ingredient.usageAmount.toInt(),
+                        unit = ingredient.unitCode.toIngredientUnit(),
+                        price = ingredient.defaultCost,
+                        categoryCode = ingredient.ingredientCategoryCode,
                         sourceType = IngredientSourceType.TEMPLATE,
-                        templateRecipeId = recipe.recipeId,
-                        baseQuantity = recipe.amount.toInt(),
-                        unitPrice = recipe.price,
+                        baseQuantity = ingredient.baseQuantity,
+                        unitPrice = ingredient.unitPrice,
                     )
                 }
                 _uiState.update { it.copy(selectedIngredients = selectedIngredients) }
@@ -125,7 +127,7 @@ class IngredientInputViewModel @Inject constructor(
     fun onSuggestionClicked(suggestion: IngredientSuggestion) {
         val bottomSheetState = when (suggestion.sourceType) {
             IngredientSourceType.SAVED -> IngredientBottomSheetState(
-                id = suggestion.ingredientId,
+                serverIngredientId = suggestion.ingredientId,
                 name = suggestion.name,
                 sourceType = IngredientSourceType.SAVED,
                 categoryCode = suggestion.categoryCode ?: "INGREDIENTS",
@@ -135,7 +137,7 @@ class IngredientInputViewModel @Inject constructor(
                 supplier = suggestion.supplier ?: "-",
             )
             IngredientSourceType.TEMPLATE -> IngredientBottomSheetState(
-                id = suggestion.ingredientId,
+                serverIngredientId = suggestion.ingredientId,
                 name = suggestion.name,
                 sourceType = IngredientSourceType.TEMPLATE,
                 categoryCode = suggestion.categoryCode ?: "INGREDIENTS",
@@ -144,7 +146,6 @@ class IngredientInputViewModel @Inject constructor(
                 unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
             )
             IngredientSourceType.NEW -> IngredientBottomSheetState(
-                id = suggestion.ingredientId,
                 name = suggestion.name,
                 sourceType = IngredientSourceType.NEW,
             )
@@ -163,7 +164,6 @@ class IngredientInputViewModel @Inject constructor(
         if (ingredientName.isEmpty()) return
 
         val bottomSheetState = IngredientBottomSheetState(
-            id = null,
             name = ingredientName,
             sourceType = IngredientSourceType.NEW,
         )
@@ -180,7 +180,7 @@ class IngredientInputViewModel @Inject constructor(
         if (_uiState.value.isDeleteMode) return
 
         val bottomSheetState = IngredientBottomSheetState(
-            id = ingredient.id,
+            serverIngredientId = ingredient.serverIngredientId,
             name = ingredient.name,
             sourceType = ingredient.sourceType,
             categoryCode = ingredient.categoryCode,
@@ -291,7 +291,8 @@ class IngredientInputViewModel @Inject constructor(
             } else {
                 addSelectedIngredient(
                     SelectedIngredient(
-                        id = bottomSheetState.id ?: 0L,
+                        id = consumeNextLocalIngredientId(),
+                        serverIngredientId = bottomSheetState.serverIngredientId,
                         name = bottomSheetState.name,
                         amount = bottomSheetState.amount.toIntOrNull() ?: 0,
                         unit = bottomSheetState.unit,
@@ -337,7 +338,8 @@ class IngredientInputViewModel @Inject constructor(
                 is Result.Success -> {
                     addSelectedIngredient(
                         SelectedIngredient(
-                            id = createResult.data.id,
+                            id = consumeNextLocalIngredientId(),
+                            serverIngredientId = createResult.data.id,
                             name = bottomSheetState.name,
                             amount = bottomSheetState.amount.toIntOrNull() ?: 0,
                             unit = bottomSheetState.unit,
@@ -464,6 +466,12 @@ class IngredientInputViewModel @Inject constructor(
     }
 
     fun getSelectedIngredients(): List<SelectedIngredient> = _uiState.value.selectedIngredients
+
+    private fun consumeNextLocalIngredientId(): Long {
+        val localId = nextLocalIngredientId
+        nextLocalIngredientId -= 1
+        return localId
+    }
 
     companion object {
         private const val SEARCH_DEBOUNCE_MS = 300L
