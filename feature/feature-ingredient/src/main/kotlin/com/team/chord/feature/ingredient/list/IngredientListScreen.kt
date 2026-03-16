@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -37,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,9 +49,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.component.ChordBottomSheet
+import com.team.chord.core.ui.component.ChordLabeledUnderlineTextField
 import com.team.chord.core.ui.component.ChordLargeButton
-import com.team.chord.core.ui.component.ChordTextField
 import com.team.chord.core.ui.component.ChordToast
+import com.team.chord.core.ui.component.ChordTooltipBubble
+import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
@@ -57,6 +62,7 @@ import com.team.chord.core.ui.theme.Grayscale600
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
+import com.team.chord.core.ui.theme.StatusDanger
 import com.team.chord.feature.ingredient.component.IngredientAddBottomSheet
 import com.team.chord.feature.ingredient.component.IngredientFilterChip
 import com.team.chord.feature.ingredient.component.IngredientListItem
@@ -156,6 +162,7 @@ internal fun IngredientListScreenContent(
             }
         },
         containerColor = Grayscale200,
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0, 0, 0, 0),
     ) { paddingValues ->
         Column(
             modifier = modifier
@@ -267,11 +274,26 @@ internal fun IngredientListScreenContent(
                 onDismissRequest = onDismissAddNameSheet,
                 title = "추가하실 재료명을 입력해주세요",
                 content = {
-                    ChordTextField(
-                        value = uiState.addIngredientName,
-                        onValueChange = onAddNameChange,
-                        placeholder = "재료명",
-                    )
+                    Column {
+                        ChordLabeledUnderlineTextField(
+                            label = "재료명",
+                            value = uiState.addIngredientName,
+                            onValueChange = onAddNameChange,
+                            placeholder = "재료명 입력",
+                        )
+                        if (uiState.isAddIngredientNameDuplicate) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
+                                ChordTooltipBubble(
+                                    text = "동일한 재료명이 존재해요\n이대로 진행할까요?",
+                                    direction = TooltipDirection.UpLeft,
+                                )
+                            }
+                        }
+                    }
                 },
                 confirmButton = {
                     ChordLargeButton(
@@ -357,7 +379,7 @@ private fun IngredientListHeader(
         modifier = modifier
             .fillMaxWidth()
             .background(Grayscale200)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -402,29 +424,50 @@ private fun IngredientListHeader(
                 DropdownMenu(
                     expanded = showMoreMenu,
                     onDismissRequest = onDismissMoreMenu,
+                    modifier = Modifier
+                        .width(77.dp)
+                        .shadow(
+                            elevation = 10.dp,
+                            shape = RoundedCornerShape(8.dp),
+                            ambientColor = Color(0x0F2E2E39),
+                            spotColor = Color(0x0F2E2E39),
+                        ),
+                    shape = RoundedCornerShape(8.dp),
+                    containerColor = Grayscale100,
+                    tonalElevation = 0.dp,
+                    shadowElevation = 0.dp,
                 ) {
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = "추가",
-                                fontFamily = PretendardFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp,
-                            )
-                        },
-                        onClick = onAddClick,
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = "삭제",
-                                fontFamily = PretendardFontFamily,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 14.sp,
-                            )
-                        },
-                        onClick = onDeleteClick,
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onAddClick)
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "추가",
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = Grayscale900,
+                        )
+                    }
+                    HorizontalDivider(color = Grayscale300, thickness = 1.dp)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onDeleteClick)
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "삭제",
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 16.sp,
+                            color = StatusDanger,
+                        )
+                    }
                 }
             }
         }
@@ -440,7 +483,7 @@ private fun DeleteModeHeader(
         modifier = modifier
             .fillMaxWidth()
             .background(Grayscale200)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
+            .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(

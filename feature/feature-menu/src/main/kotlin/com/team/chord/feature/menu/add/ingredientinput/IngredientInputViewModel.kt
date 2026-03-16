@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.IngredientUnit
-import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
 import com.team.chord.core.domain.usecase.ingredient.CheckIngredientDuplicateUseCase
 import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
 import com.team.chord.core.domain.usecase.menu.GetTemplateIngredientsUseCase
@@ -29,7 +28,6 @@ class IngredientInputViewModel @Inject constructor(
     private val searchIngredientUseCase: SearchIngredientUseCase,
     private val getTemplateIngredientsUseCase: GetTemplateIngredientsUseCase,
     private val checkIngredientDuplicateUseCase: CheckIngredientDuplicateUseCase,
-    private val addIngredientToListUseCase: AddIngredientToListUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(IngredientInputUiState())
@@ -134,7 +132,7 @@ class IngredientInputViewModel @Inject constructor(
                 price = suggestion.unitPrice?.toString() ?: "",
                 purchaseAmount = suggestion.baseQuantity?.toString() ?: "",
                 unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
-                supplier = suggestion.supplier ?: "-",
+                supplier = suggestion.supplier.orEmpty(),
             )
             IngredientSourceType.TEMPLATE -> IngredientBottomSheetState(
                 serverIngredientId = suggestion.ingredientId,
@@ -228,17 +226,19 @@ class IngredientInputViewModel @Inject constructor(
     }
 
     fun onBottomSheetPurchaseAmountChanged(purchaseAmount: String) {
+        val filteredAmount = purchaseAmount.filter { it.isDigit() }
         _uiState.update { state ->
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(purchaseAmount = purchaseAmount),
+                bottomSheetIngredient = state.bottomSheetIngredient?.copy(purchaseAmount = filteredAmount),
             )
         }
     }
 
     fun onBottomSheetAmountChanged(amount: String) {
+        val filteredAmount = amount.filter { it.isDigit() }
         _uiState.update { state ->
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(amount = amount),
+                bottomSheetIngredient = state.bottomSheetIngredient?.copy(amount = filteredAmount),
             )
         }
     }
@@ -272,6 +272,9 @@ class IngredientInputViewModel @Inject constructor(
                             supplier = bottomSheetState.supplier,
                             categoryCode = bottomSheetState.categoryCode,
                             price = bottomSheetState.price.toIntOrNull() ?: ingredient.price,
+                            unit = bottomSheetState.unit,
+                            baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: ingredient.baseQuantity,
+                            unitPrice = bottomSheetState.price.toIntOrNull() ?: ingredient.unitPrice,
                         )
                     } else {
                         ingredient
@@ -287,7 +290,7 @@ class IngredientInputViewModel @Inject constructor(
             }
         } else {
             if (bottomSheetState.sourceType == IngredientSourceType.NEW) {
-                createAndAddNewIngredient(bottomSheetState)
+                addNewIngredientDraft(bottomSheetState)
             } else {
                 addSelectedIngredient(
                     SelectedIngredient(
@@ -308,7 +311,7 @@ class IngredientInputViewModel @Inject constructor(
         }
     }
 
-    private fun createAndAddNewIngredient(bottomSheetState: IngredientBottomSheetState) {
+    private fun addNewIngredientDraft(bottomSheetState: IngredientBottomSheetState) {
         viewModelScope.launch {
             when (checkIngredientDuplicateUseCase(bottomSheetState.name)) {
                 is Result.Error -> {
@@ -324,46 +327,20 @@ class IngredientInputViewModel @Inject constructor(
                 is Result.Success,
                 is Result.Loading -> Unit
             }
-
-            val createResult = addIngredientToListUseCase(
-                categoryCode = bottomSheetState.categoryCode,
-                ingredientName = bottomSheetState.name,
-                unitCode = bottomSheetState.unit.name,
-                price = bottomSheetState.price.toIntOrNull() ?: 0,
-                amount = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
-                supplier = bottomSheetState.supplier.takeIf { it.isNotBlank() },
+            addSelectedIngredient(
+                SelectedIngredient(
+                    id = consumeNextLocalIngredientId(),
+                    name = bottomSheetState.name,
+                    amount = bottomSheetState.amount.toIntOrNull() ?: 0,
+                    unit = bottomSheetState.unit,
+                    price = bottomSheetState.price.toIntOrNull() ?: 0,
+                    categoryCode = bottomSheetState.categoryCode,
+                    supplier = bottomSheetState.supplier,
+                    sourceType = IngredientSourceType.NEW,
+                    baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
+                    unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
+                ),
             )
-
-            when (createResult) {
-                is Result.Success -> {
-                    addSelectedIngredient(
-                        SelectedIngredient(
-                            id = consumeNextLocalIngredientId(),
-                            serverIngredientId = createResult.data.id,
-                            name = bottomSheetState.name,
-                            amount = bottomSheetState.amount.toIntOrNull() ?: 0,
-                            unit = bottomSheetState.unit,
-                            price = bottomSheetState.price.toIntOrNull() ?: 0,
-                            categoryCode = bottomSheetState.categoryCode,
-                            supplier = bottomSheetState.supplier,
-                            sourceType = IngredientSourceType.SAVED,
-                            baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
-                            unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
-                        ),
-                    )
-                }
-
-                is Result.Error -> {
-                    _uiState.update {
-                        it.copy(
-                            showCompletionToast = true,
-                            completionToastMessage = "재료 저장에 실패했어요. 다시 시도해주세요.",
-                        )
-                    }
-                }
-
-                is Result.Loading -> Unit
-            }
         }
     }
 

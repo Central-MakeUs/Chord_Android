@@ -16,6 +16,7 @@ data class IngredientListUiState(
     val showAddNameSheet: Boolean = false,
     val showAddDetailSheet: Boolean = false,
     val addIngredientName: String = "",
+    val isAddIngredientNameDuplicate: Boolean = false,
     // Toast
     val showToast: Boolean = false,
     val toastMessage: String = "",

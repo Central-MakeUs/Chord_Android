@@ -72,27 +72,27 @@ data class IngredientBottomSheetState(
     val editingIngredientId: Long? = null,
 ) {
     val isPriceEditable: Boolean
-        get() = sourceType == IngredientSourceType.NEW
+        get() = true
 
     val isPurchaseAmountEditable: Boolean
-        get() = sourceType == IngredientSourceType.NEW
+        get() = true
 
     val isUnitEditable: Boolean
-        get() = sourceType == IngredientSourceType.NEW
+        get() = true
 
     val isCategoryEditable: Boolean
-        get() = sourceType == IngredientSourceType.NEW
+        get() = true
 
     val isSupplierEditable: Boolean
-        get() = sourceType == IngredientSourceType.NEW || sourceType == IngredientSourceType.TEMPLATE
+        get() = true
 
     val isAddEnabled: Boolean
-        get() = when (sourceType) {
-            IngredientSourceType.NEW -> price.isNotBlank() && purchaseAmount.isNotBlank() && purchaseAmount.toIntOrNull() != null && amount.isNotBlank() && amount.toIntOrNull() != null
-            IngredientSourceType.TEMPLATE,
-            IngredientSourceType.SAVED -> amount.isNotBlank() && amount.toIntOrNull() != null
-        }
+        get() = price.isNotBlank() &&
+            purchaseAmount.isNotBlank() &&
+            purchaseAmount.toIntOrNull() != null &&
+            amount.isNotBlank() &&
+            amount.toIntOrNull() != null
 
     val confirmButtonText: String
-        get() = if (isEditMode) "저장하기" else "추가하기"
+        get() = if (isEditMode) "저장하기" else "재료 추가"
 }

@@ -56,7 +56,6 @@ import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
 import com.team.chord.feature.ingredient.component.IngredientEditBottomSheet
 import com.team.chord.feature.ingredient.component.PriceHistoryItem
-import com.team.chord.feature.ingredient.component.SupplierEditBottomSheet
 import com.team.chord.feature.ingredient.component.UsedMenuCard
 import java.text.NumberFormat
 import java.util.Locale
@@ -102,8 +101,7 @@ internal fun IngredientDetailScreenContent(
     modifier: Modifier = Modifier,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var showPriceEditSheet by remember { mutableStateOf(false) }
-    var showSupplierEditSheet by remember { mutableStateOf(false) }
+    var showEditSheet by remember { mutableStateOf(false) }
 
     // Edit form states
     var editPrice by remember { mutableStateOf("") }
@@ -160,18 +158,14 @@ internal fun IngredientDetailScreenContent(
                 )
                 IngredientDetailContent(
                     ingredientDetail = uiState.ingredientDetail,
-                    onPriceEditClick = {
+                    onEditClick = {
                         // Initialize edit states from current values
                         editPrice = uiState.ingredientDetail.price.toString()
                         editAmount = uiState.ingredientDetail.unitAmount.toString()
                         editUnit = uiState.ingredientDetail.unit
                         editFilter = uiState.ingredientDetail.category
-                        showPriceEditSheet = true
-                    },
-                    onSupplierEditClick = {
-                        // Initialize edit state from current value
                         editSupplier = uiState.ingredientDetail.supplier
-                        showSupplierEditSheet = true
+                        showEditSheet = true
                     },
                     onDeleteClick = { showDeleteDialog = true },
                 )
@@ -193,39 +187,27 @@ internal fun IngredientDetailScreenContent(
         )
     }
 
-    // Price edit BottomSheet
-    if (showPriceEditSheet && uiState is IngredientDetailUiState.Success) {
+    if (showEditSheet && uiState is IngredientDetailUiState.Success) {
         IngredientEditBottomSheet(
             ingredientName = uiState.ingredientDetail.name,
             selectedFilter = editFilter,
             price = editPrice,
             amount = editAmount,
             selectedUnit = editUnit,
+            supplier = editSupplier,
             onFilterSelect = { editFilter = it },
             onPriceChange = { editPrice = it },
             onAmountChange = { editAmount = it },
             onUnitSelect = { editUnit = it },
+            onSupplierChange = { editSupplier = it },
             onConfirm = {
                 val priceInt = editPrice.replace(",", "").toIntOrNull() ?: 0
                 val amountInt = editAmount.toIntOrNull() ?: 0
                 onUpdatePriceInfo(editFilter, priceInt, amountInt, editUnit)
-                showPriceEditSheet = false
-            },
-            onDismiss = { showPriceEditSheet = false },
-        )
-    }
-
-    // Supplier edit BottomSheet
-    if (showSupplierEditSheet && uiState is IngredientDetailUiState.Success) {
-        SupplierEditBottomSheet(
-            supplierName = editSupplier,
-            onSupplierNameChange = { editSupplier = it },
-            onClear = { editSupplier = "" },
-            onConfirm = {
                 onUpdateSupplier(editSupplier)
-                showSupplierEditSheet = false
+                showEditSheet = false
             },
-            onDismiss = { showSupplierEditSheet = false },
+            onDismiss = { showEditSheet = false },
         )
     }
 }
@@ -282,8 +264,7 @@ private fun IngredientDetailHeader(
 @Composable
 private fun IngredientDetailContent(
     ingredientDetail: IngredientDetailUi,
-    onPriceEditClick: () -> Unit,
-    onSupplierEditClick: () -> Unit,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -348,7 +329,7 @@ private fun IngredientDetailContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onPriceEditClick() },
+                    .clickable { onEditClick() },
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -373,7 +354,7 @@ private fun IngredientDetailContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onSupplierEditClick() },
+                    .clickable { onEditClick() },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

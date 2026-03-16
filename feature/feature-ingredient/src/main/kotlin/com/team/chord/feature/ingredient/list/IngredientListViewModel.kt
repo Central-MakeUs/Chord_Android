@@ -5,13 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
+import com.team.chord.core.domain.usecase.ingredient.CheckIngredientDuplicateUseCase
 import com.team.chord.core.domain.usecase.ingredient.DeleteIngredientUseCase
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,6 +27,7 @@ import javax.inject.Inject
 class IngredientListViewModel @Inject constructor(
     private val getIngredientListUseCase: GetIngredientListUseCase,
     private val addIngredientToListUseCase: AddIngredientToListUseCase,
+    private val checkIngredientDuplicateUseCase: CheckIngredientDuplicateUseCase,
     private val deleteIngredientUseCase: DeleteIngredientUseCase,
 ) : ViewModel() {
 
@@ -32,6 +36,7 @@ class IngredientListViewModel @Inject constructor(
 
     private var ingredientsByFilter: Map<IngredientFilter, List<IngredientListItemUi>> = emptyMap()
     private var loadJob: kotlinx.coroutines.Job? = null
+    private var duplicateCheckJob: Job? = null
 
     init {
         loadData()
@@ -130,23 +135,73 @@ class IngredientListViewModel @Inject constructor(
     // region 추가 플로우
 
     fun onAddClick() {
-        _uiState.update { it.copy(showAddNameSheet = true, showMoreMenu = false) }
+        duplicateCheckJob?.cancel()
+        _uiState.update {
+            it.copy(
+                showAddNameSheet = true,
+                showMoreMenu = false,
+                addIngredientName = "",
+                isAddIngredientNameDuplicate = false,
+            )
+        }
     }
 
     fun onAddNameChange(name: String) {
-        _uiState.update { it.copy(addIngredientName = name) }
+        _uiState.update {
+            it.copy(
+                addIngredientName = name,
+                isAddIngredientNameDuplicate = false,
+            )
+        }
+
+        duplicateCheckJob?.cancel()
+
+        if (name.isBlank()) return
+
+        duplicateCheckJob = viewModelScope.launch {
+            delay(DUPLICATE_CHECK_DEBOUNCE_MS)
+            val currentName = _uiState.value.addIngredientName.trim()
+            if (currentName != name.trim() || currentName.isBlank()) return@launch
+
+            val isDuplicate = checkIngredientDuplicateUseCase(currentName) is Result.Error
+            _uiState.update { state ->
+                if (state.addIngredientName.trim() == currentName) {
+                    state.copy(isAddIngredientNameDuplicate = isDuplicate)
+                } else {
+                    state
+                }
+            }
+        }
     }
 
     fun onAddNameConfirm() {
-        _uiState.update { it.copy(showAddNameSheet = false, showAddDetailSheet = true) }
+        duplicateCheckJob?.cancel()
+        _uiState.update {
+            it.copy(
+                showAddNameSheet = false,
+                showAddDetailSheet = true,
+            )
+        }
     }
 
     fun onDismissAddNameSheet() {
-        _uiState.update { it.copy(showAddNameSheet = false, addIngredientName = "") }
+        duplicateCheckJob?.cancel()
+        _uiState.update {
+            it.copy(
+                showAddNameSheet = false,
+                addIngredientName = "",
+                isAddIngredientNameDuplicate = false,
+            )
+        }
     }
 
     fun onDismissAddDetailSheet() {
-        _uiState.update { it.copy(showAddDetailSheet = false) }
+        _uiState.update {
+            it.copy(
+                showAddDetailSheet = false,
+                isAddIngredientNameDuplicate = false,
+            )
+        }
     }
 
     fun onAddIngredient(
@@ -170,11 +225,19 @@ class IngredientListViewModel @Inject constructor(
                     it.copy(
                         showAddDetailSheet = false,
                         addIngredientName = "",
+                        isAddIngredientNameDuplicate = false,
                         showToast = true,
                         toastMessage = "재료가 추가되었어요",
                     )
                 }
                 loadData(isRefresh = true)
+            } else if (result is Result.Error) {
+                _uiState.update {
+                    it.copy(
+                        showToast = true,
+                        toastMessage = result.exception.message ?: "재료 추가에 실패했어요",
+                    )
+                }
             }
         }
     }
@@ -243,5 +306,9 @@ class IngredientListViewModel @Inject constructor(
             filters.flatMap { ingredientsByFilter[it].orEmpty() }
         }
         return items.distinctBy { it.id }
+    }
+
+    companion object {
+        private const val DUPLICATE_CHECK_DEBOUNCE_MS = 250L
     }
 }

@@ -12,37 +12,26 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +51,8 @@ import com.team.chord.core.ui.component.ChordLargeButton
 import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.component.ChordTooltipBubble
+import com.team.chord.core.ui.component.IngredientEditorBottomSheet
+import com.team.chord.core.ui.component.IngredientEditorCategoryOption
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
@@ -299,16 +290,36 @@ internal fun IngredientInputScreenContent(
         }
 
         if (uiState.showBottomSheet && uiState.bottomSheetIngredient != null) {
-            IngredientBottomSheet(
-                state = uiState.bottomSheetIngredient,
-                onDismiss = onBottomSheetDismissed,
+            IngredientEditorBottomSheet(
+                title = uiState.bottomSheetIngredient.name,
+                categoryCode = uiState.bottomSheetIngredient.categoryCode,
+                categoryOptions = ingredientCategoryOptions,
                 onCategoryChanged = onBottomSheetCategoryChanged,
+                price = uiState.bottomSheetIngredient.price,
                 onPriceChanged = onBottomSheetPriceChanged,
+                pricePlaceholder = uiState.bottomSheetIngredient.suggestedPrice?.let(::formatPricePlaceholder)
+                    ?: "구매한 가격 입력",
+                purchaseAmount = uiState.bottomSheetIngredient.purchaseAmount,
                 onPurchaseAmountChanged = onBottomSheetPurchaseAmountChanged,
+                purchaseAmountPlaceholder = uiState.bottomSheetIngredient.suggestedPurchaseAmount?.toString()
+                    ?: "구매한 용량 입력",
+                amount = uiState.bottomSheetIngredient.amount,
                 onAmountChanged = onBottomSheetAmountChanged,
+                amountPlaceholder = uiState.bottomSheetIngredient.suggestedAmount?.toString()
+                    ?: "제조시 사용되는 용량 입력",
+                unit = uiState.bottomSheetIngredient.unit,
                 onUnitChanged = onBottomSheetUnitChanged,
+                supplier = uiState.bottomSheetIngredient.supplier,
                 onSupplierChanged = onBottomSheetSupplierChanged,
+                confirmText = uiState.bottomSheetIngredient.confirmButtonText,
+                confirmEnabled = uiState.bottomSheetIngredient.isAddEnabled,
+                onDismiss = onBottomSheetDismissed,
                 onConfirm = onConfirmIngredient,
+                isCategoryEditable = uiState.bottomSheetIngredient.isCategoryEditable,
+                isPriceEditable = uiState.bottomSheetIngredient.isPriceEditable,
+                isPurchaseAmountEditable = uiState.bottomSheetIngredient.isPurchaseAmountEditable,
+                isUnitEditable = uiState.bottomSheetIngredient.isUnitEditable,
+                isSupplierEditable = uiState.bottomSheetIngredient.isSupplierEditable,
             )
         }
 
@@ -597,394 +608,6 @@ private fun IngredientSelectableListItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun IngredientBottomSheet(
-    state: IngredientBottomSheetState,
-    onDismiss: () -> Unit,
-    onCategoryChanged: (String) -> Unit,
-    onPriceChanged: (String) -> Unit,
-    onPurchaseAmountChanged: (String) -> Unit,
-    onAmountChanged: (String) -> Unit,
-    onUnitChanged: (IngredientUnit) -> Unit,
-    onSupplierChanged: (String) -> Unit,
-    onConfirm: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        modifier = modifier,
-        containerColor = Grayscale100,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        dragHandle = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .background(
-                            color = Grayscale400,
-                            shape = RoundedCornerShape(2.dp),
-                        ),
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-        },
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp)
-                .windowInsetsPadding(WindowInsets.navigationBars),
-        ) {
-            Text(
-                text = state.name,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = Grayscale900,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                ingredientCategoryOptions.forEach { (code, displayName) ->
-                    CategoryChip(
-                        text = displayName,
-                        isSelected = state.categoryCode == code,
-                        onClick = {
-                            if (state.isCategoryEditable) {
-                                onCategoryChanged(code)
-                            }
-                        },
-                        enabled = state.isCategoryEditable,
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FieldLabel(text = "가격")
-            Spacer(modifier = Modifier.height(8.dp))
-            if (state.isPriceEditable) {
-                BottomSheetTextField(
-                    value = if (state.price.isNotEmpty()) {
-                        numberFormat.format(state.price.toLongOrNull() ?: 0)
-                    } else {
-                        ""
-                    },
-                    onValueChange = onPriceChanged,
-                    placeholder = state.suggestedPrice?.let {
-                        "${numberFormat.format(it)}원"
-                    } ?: "가격을 입력해주세요",
-                    suffix = "원",
-                    keyboardType = KeyboardType.Number,
-                )
-            } else {
-                ReadOnlyField(
-                    value = if (state.price.isNotEmpty()) {
-                        "${numberFormat.format(state.price.toLongOrNull() ?: 0)}원"
-                    } else {
-                        "-"
-                    },
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FieldLabel(text = "구매 용량")
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    if (state.isPurchaseAmountEditable) {
-                        BottomSheetTextField(
-                            value = state.purchaseAmount,
-                            onValueChange = onPurchaseAmountChanged,
-                            placeholder = state.suggestedPurchaseAmount?.toString() ?: "구매 용량을 입력해주세요",
-                            keyboardType = KeyboardType.Number,
-                        )
-                    } else {
-                        ReadOnlyField(
-                            value = state.purchaseAmount.ifEmpty { "-" },
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                if (state.isUnitEditable) {
-                    UnitDropdown(
-                        selectedUnit = state.unit,
-                        onUnitSelected = onUnitChanged,
-                    )
-                } else {
-                    Text(
-                        text = state.unit.displayName,
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 16.sp,
-                        color = Grayscale900,
-                        modifier = Modifier.padding(8.dp),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FieldLabel(text = "재료 사용량")
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    BottomSheetTextField(
-                        value = state.amount,
-                        onValueChange = onAmountChanged,
-                        placeholder = state.suggestedAmount?.toString() ?: "사용량을 입력해주세요",
-                        keyboardType = KeyboardType.Number,
-                    )
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                if (state.isUnitEditable) {
-                    UnitDropdown(
-                        selectedUnit = state.unit,
-                        onUnitSelected = onUnitChanged,
-                    )
-                } else {
-                    Text(
-                        text = state.unit.displayName,
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 16.sp,
-                        color = Grayscale900,
-                        modifier = Modifier.padding(8.dp),
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            FieldLabel(text = "공급업체")
-            Spacer(modifier = Modifier.height(8.dp))
-            if (state.isSupplierEditable) {
-                BottomSheetTextField(
-                    value = state.supplier,
-                    onValueChange = onSupplierChanged,
-                    placeholder = "공급업체명을 알려주세요",
-                )
-            } else {
-                ReadOnlyField(
-                    value = state.supplier.ifEmpty { "-" },
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            ChordLargeButton(
-                text = state.confirmButtonText,
-                onClick = onConfirm,
-                enabled = state.isAddEnabled,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ReadOnlyField(
-    value: String,
-    modifier: Modifier = Modifier,
-    suffix: String? = null,
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = value,
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                    color = Grayscale800,
-                ),
-            )
-            if (suffix != null) {
-                Text(
-                    text = suffix,
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 14.sp,
-                        color = Grayscale500,
-                    ),
-                    modifier = Modifier.padding(start = 4.dp),
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(color = Grayscale300, thickness = 1.dp)
-    }
-}
-
-@Composable
-private fun CategoryChip(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    enabled: Boolean = true,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .border(
-                width = 1.dp,
-                color = if (isSelected) Grayscale900 else Grayscale300,
-                shape = RoundedCornerShape(8.dp),
-            )
-            .then(if (enabled) Modifier.clickable(onClick = onClick) else Modifier)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        Text(
-            text = text,
-            fontFamily = PretendardFontFamily,
-            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-            fontSize = 14.sp,
-            color = if (isSelected) Grayscale900 else Grayscale500,
-        )
-    }
-}
-
-@Composable
-private fun BottomSheetTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-    suffix: String? = null,
-    keyboardType: KeyboardType = KeyboardType.Text,
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                modifier = Modifier.weight(1f),
-                textStyle = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                    color = Grayscale900,
-                ),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-                cursorBrush = SolidColor(Grayscale800),
-                decorationBox = { innerTextField ->
-                    Box {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                style = TextStyle(
-                                    fontFamily = PretendardFontFamily,
-                                    fontWeight = FontWeight.Normal,
-                                    fontSize = 16.sp,
-                                    color = PrimaryBlue500,
-                                ),
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-            )
-            if (suffix != null && value.isNotEmpty()) {
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = suffix,
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 16.sp,
-                    color = Grayscale900,
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        HorizontalDivider(color = Grayscale300, thickness = 1.dp)
-    }
-}
-
-@Composable
-private fun UnitDropdown(
-    selectedUnit: IngredientUnit,
-    onUnitSelected: (IngredientUnit) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .clickable { expanded = true }
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = selectedUnit.displayName,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                color = Grayscale900,
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = "단위 선택",
-                modifier = Modifier.size(20.dp),
-                tint = Grayscale500,
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            listOf(IngredientUnit.G, IngredientUnit.ML, IngredientUnit.EA).forEach { unit ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = unit.displayName,
-                            fontFamily = PretendardFontFamily,
-                            fontWeight = if (unit == selectedUnit) FontWeight.SemiBold else FontWeight.Normal,
-                            fontSize = 16.sp,
-                            color = Grayscale900,
-                        )
-                    },
-                    onClick = {
-                        onUnitSelected(unit)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
 @Composable
 private fun BottomNavigationButtons(
     primaryButtonText: String,
@@ -1018,8 +641,8 @@ private fun BottomNavigationButtons(
 }
 
 private val ingredientCategoryOptions = listOf(
-    "INGREDIENTS" to "식재료",
-    "MATERIALS" to "운영재료",
+    IngredientEditorCategoryOption(code = "INGREDIENTS", label = "식재료"),
+    IngredientEditorCategoryOption(code = "MATERIALS", label = "운영 재료"),
 )
 
 @Composable
@@ -1036,3 +659,6 @@ private fun FieldLabel(
         modifier = modifier,
     )
 }
+
+private fun formatPricePlaceholder(price: Int): String =
+    "${NumberFormat.getNumberInstance(Locale.KOREA).format(price)}원"

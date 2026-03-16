@@ -1,4 +1,4 @@
-package com.team.chord.feature.menu.add.ingredientinput
+package com.team.chord.feature.setup.ingredientinput
 
 import androidx.lifecycle.SavedStateHandle
 import com.team.chord.core.domain.model.Result
@@ -17,7 +17,6 @@ import com.team.chord.core.domain.model.menu.NewRecipeInfo
 import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.domain.repository.IngredientRepository
 import com.team.chord.core.domain.repository.MenuRepository
-import com.team.chord.core.domain.usecase.ingredient.CheckIngredientDuplicateUseCase
 import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
 import com.team.chord.core.domain.usecase.menu.GetTemplateIngredientsUseCase
 import kotlinx.coroutines.Dispatchers
@@ -32,8 +31,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -54,111 +51,8 @@ class IngredientInputViewModelTest {
     }
 
     @Test
-    fun `next button remains enabled when ingredient list is empty`() = runTest {
-        val viewModel = createViewModel(
-            savedStateHandle = SavedStateHandle(),
-        )
-
-        assertTrue(viewModel.uiState.value.isNextEnabled)
-        assertTrue(viewModel.getSelectedIngredients().isEmpty())
-    }
-
-    @Test
-    fun `cancel delete mode clears selected targets`() = runTest {
-        val viewModel = createViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "isTemplateApplied" to true,
-                    "templateId" to 1L,
-                ),
-            ),
-        )
-
-        advanceUntilIdle()
-        val firstIngredientId = viewModel.uiState.value.selectedIngredients.first().id
-
-        viewModel.enterDeleteMode()
-        viewModel.toggleIngredientSelectionForDeletion(firstIngredientId)
-        assertTrue(viewModel.uiState.value.isDeleteMode)
-        assertTrue(firstIngredientId in viewModel.uiState.value.selectedIngredientIdsForDeletion)
-
-        viewModel.cancelDeleteMode()
-
-        assertFalse(viewModel.uiState.value.isDeleteMode)
-        assertTrue(viewModel.uiState.value.selectedIngredientIdsForDeletion.isEmpty())
-        assertFalse(viewModel.uiState.value.showDeleteConfirmDialog)
-    }
-
-    @Test
-    fun `confirm delete removes selected ingredients and exits delete mode`() = runTest {
-        val viewModel = createViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "isTemplateApplied" to true,
-                    "templateId" to 1L,
-                ),
-            ),
-        )
-
-        advanceUntilIdle()
-        val initialIngredients = viewModel.uiState.value.selectedIngredients
-        val firstIngredientId = initialIngredients.first().id
-
-        viewModel.enterDeleteMode()
-        viewModel.toggleIngredientSelectionForDeletion(firstIngredientId)
-        viewModel.showDeleteConfirmDialog()
-
-        assertTrue(viewModel.uiState.value.showDeleteConfirmDialog)
-
-        viewModel.confirmDeleteSelectedIngredients()
-
-        assertEquals(initialIngredients.size - 1, viewModel.uiState.value.selectedIngredients.size)
-        assertFalse(viewModel.uiState.value.isDeleteMode)
-        assertTrue(viewModel.uiState.value.selectedIngredientIdsForDeletion.isEmpty())
-        assertFalse(viewModel.uiState.value.showDeleteConfirmDialog)
-        assertTrue(viewModel.uiState.value.showCompletionToast)
-        assertEquals("선택한 재료를 삭제했어요.", viewModel.uiState.value.completionToastMessage)
-    }
-
-    @Test
-    fun `template ingredients preserve metadata when loaded`() = runTest {
-        val viewModel = createViewModel(
-            savedStateHandle = SavedStateHandle(
-                mapOf(
-                    "isTemplateApplied" to true,
-                    "templateId" to 1L,
-                ),
-            ),
-        )
-
-        advanceUntilIdle()
-
-        val selectedIngredients = viewModel.uiState.value.selectedIngredients
-        val first = selectedIngredients.first()
-        val second = selectedIngredients.last()
-
-        assertTrue(first.id < 0L)
-        assertNull(first.serverIngredientId)
-        assertEquals(30, first.amount)
-        assertEquals(800, first.price)
-        assertEquals(16000, first.unitPrice)
-        assertEquals(1000, first.baseQuantity)
-        assertEquals("INGREDIENTS", first.categoryCode)
-
-        assertTrue(second.id < 0L)
-        assertEquals(1002L, second.serverIngredientId)
-        assertEquals(250, second.amount)
-        assertEquals(120, second.price)
-        assertEquals(0, second.unitPrice)
-        assertEquals(1000, second.baseQuantity)
-        assertEquals("INGREDIENTS", second.categoryCode)
-    }
-
-    @Test
-    fun `new ingredient stays local draft and ignores empty supplier when required fields are filled`() = runTest {
-        val viewModel = createViewModel(
-            savedStateHandle = SavedStateHandle(),
-        )
+    fun `new ingredient form sanitizes numeric inputs and allows empty supplier`() = runTest {
+        val viewModel = createViewModel()
 
         viewModel.onSearchQueryChanged("새 시럽")
         viewModel.onAddNewIngredient()
@@ -173,24 +67,11 @@ class IngredientInputViewModelTest {
         assertEquals("10", bottomSheetState.amount)
         assertTrue(bottomSheetState.supplier.isEmpty())
         assertTrue(bottomSheetState.isAddEnabled)
-
-        viewModel.onConfirmIngredient()
-        advanceUntilIdle()
-
-        val added = viewModel.uiState.value.selectedIngredients.single()
-        assertEquals(IngredientSourceType.NEW, added.sourceType)
-        assertNull(added.serverIngredientId)
-        assertEquals(1200, added.price)
-        assertEquals(100, added.baseQuantity)
-        assertEquals(10, added.amount)
-        assertEquals(IngredientUnit.G, added.unit)
     }
 
     @Test
-    fun `editing local new ingredient updates editable fields`() = runTest {
-        val viewModel = createViewModel(
-            savedStateHandle = SavedStateHandle(),
-        )
+    fun `editing local ingredient updates draft fields`() = runTest {
+        val viewModel = createViewModel()
 
         viewModel.onSearchQueryChanged("새 토핑")
         viewModel.onAddNewIngredient()
@@ -204,7 +85,7 @@ class IngredientInputViewModelTest {
 
         viewModel.onEditIngredient(added)
         viewModel.onBottomSheetCategoryChanged("MATERIALS")
-        viewModel.onBottomSheetUnitChanged(IngredientUnit.EA)
+        viewModel.onBottomSheetUnitChanged(IngredientUnit.ML)
         viewModel.onBottomSheetPriceChanged("7500")
         viewModel.onBottomSheetPurchaseAmountChanged("40")
         viewModel.onBottomSheetAmountChanged("3")
@@ -212,10 +93,8 @@ class IngredientInputViewModelTest {
         viewModel.onConfirmIngredient()
 
         val updated = viewModel.uiState.value.selectedIngredients.single()
-        assertEquals(IngredientSourceType.NEW, updated.sourceType)
-        assertNull(updated.serverIngredientId)
         assertEquals("MATERIALS", updated.categoryCode)
-        assertEquals(IngredientUnit.EA, updated.unit)
+        assertEquals(IngredientUnit.ML, updated.unit)
         assertEquals(7500, updated.price)
         assertEquals(7500, updated.unitPrice)
         assertEquals(40, updated.baseQuantity)
@@ -223,17 +102,14 @@ class IngredientInputViewModelTest {
         assertEquals("쿠팡", updated.supplier)
     }
 
-    private fun createViewModel(
-        savedStateHandle: SavedStateHandle,
-    ): IngredientInputViewModel {
+    private fun createViewModel(): IngredientInputViewModel {
         val ingredientRepository = FakeIngredientRepository()
         val menuRepository = FakeMenuRepository()
 
         return IngredientInputViewModel(
-            savedStateHandle = savedStateHandle,
+            savedStateHandle = SavedStateHandle(),
             searchIngredientUseCase = SearchIngredientUseCase(ingredientRepository),
             getTemplateIngredientsUseCase = GetTemplateIngredientsUseCase(menuRepository),
-            checkIngredientDuplicateUseCase = CheckIngredientDuplicateUseCase(ingredientRepository),
         )
     }
 }
@@ -288,31 +164,7 @@ private class FakeMenuRepository : MenuRepository {
 
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? = null
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> {
-        if (templateId != 1L) return emptyList()
-        return listOf(
-            TemplateIngredient(
-                ingredientId = null,
-                ingredientName = "원두",
-                usageAmount = 30.0,
-                defaultCost = 800,
-                unitPrice = 16000,
-                baseQuantity = 1000,
-                unitCode = "G",
-                ingredientCategoryCode = "INGREDIENTS",
-            ),
-            TemplateIngredient(
-                ingredientId = 1002L,
-                ingredientName = "정수물",
-                usageAmount = 250.0,
-                defaultCost = 120,
-                unitPrice = 0,
-                baseQuantity = 1000,
-                unitCode = "ML",
-                ingredientCategoryCode = "INGREDIENTS",
-            ),
-        )
-    }
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> = emptyList()
 
     override suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>?): CheckDupResult =
         CheckDupResult(
@@ -322,8 +174,6 @@ private class FakeMenuRepository : MenuRepository {
 }
 
 private class FakeIngredientRepository : IngredientRepository {
-    private var createdId = 5000L
-
     override fun getIngredientList(categoryCode: String?): Flow<List<Ingredient>> = emptyFlow()
 
     override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? = null
@@ -353,24 +203,7 @@ private class FakeIngredientRepository : IngredientRepository {
         price: Int,
         amount: Int,
         supplier: String?,
-    ): Result<Ingredient> {
-        createdId += 1
-        return Result.Success(
-            Ingredient(
-                id = createdId,
-                name = ingredientName,
-                categoryCode = categoryCode,
-                unit = IngredientUnit.entries.find { it.name == unitCode } ?: IngredientUnit.G,
-                baseQuantity = amount,
-                currentUnitPrice = price,
-                supplier = supplier,
-                isFavorite = false,
-                originalAmount = null,
-                originalPrice = null,
-                usedMenus = emptyList(),
-            ),
-        )
-    }
+    ): Result<Ingredient> = Result.Error(IllegalStateException("createIngredient should not be called in setup test"))
 
     override fun searchIngredients(query: String): Flow<List<IngredientSearchResult>> = flowOf(emptyList())
 

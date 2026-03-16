@@ -5,3 +5,8 @@ plugins {
 android {
     namespace = "com.team.chord.feature.ingredient"
 }
+
+dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+}

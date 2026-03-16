@@ -130,7 +130,7 @@ class IngredientInputViewModel @Inject constructor(
                 price = suggestion.unitPrice?.toString() ?: "",
                 purchaseAmount = suggestion.baseQuantity?.toString() ?: "",
                 unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
-                supplier = suggestion.supplier ?: "-",
+                supplier = suggestion.supplier.orEmpty(),
             )
             IngredientSourceType.TEMPLATE -> IngredientBottomSheetState(
                 serverIngredientId = suggestion.ingredientId,
@@ -222,17 +222,19 @@ class IngredientInputViewModel @Inject constructor(
     }
 
     fun onBottomSheetPurchaseAmountChanged(purchaseAmount: String) {
+        val filteredAmount = purchaseAmount.filter { it.isDigit() }
         _uiState.update { state ->
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(purchaseAmount = purchaseAmount),
+                bottomSheetIngredient = state.bottomSheetIngredient?.copy(purchaseAmount = filteredAmount),
             )
         }
     }
 
     fun onBottomSheetAmountChanged(amount: String) {
+        val filteredAmount = amount.filter { it.isDigit() }
         _uiState.update { state ->
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(amount = amount),
+                bottomSheetIngredient = state.bottomSheetIngredient?.copy(amount = filteredAmount),
             )
         }
     }
@@ -267,6 +269,9 @@ class IngredientInputViewModel @Inject constructor(
                             supplier = bottomSheetState.supplier,
                             categoryCode = bottomSheetState.categoryCode,
                             price = bottomSheetState.price.toIntOrNull() ?: ingredient.price,
+                            unit = bottomSheetState.unit,
+                            baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: ingredient.baseQuantity,
+                            unitPrice = bottomSheetState.price.toIntOrNull() ?: ingredient.unitPrice,
                         )
                     } else {
                         ingredient
