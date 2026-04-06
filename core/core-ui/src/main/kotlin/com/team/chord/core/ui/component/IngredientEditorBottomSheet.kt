@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,6 +58,7 @@ import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale400
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale800
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
@@ -67,6 +69,21 @@ import kotlin.math.min
 data class IngredientEditorCategoryOption(
     val code: String,
     val label: String,
+)
+
+enum class IngredientEditorBottomSheetVariant {
+    FullForm,
+    UsageWithInfo,
+}
+
+data class IngredientEditorInfoCard(
+    val title: String = "재료 정보",
+    val rows: List<IngredientEditorInfoRow>,
+)
+
+data class IngredientEditorInfoRow(
+    val label: String,
+    val value: String,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,6 +116,11 @@ fun IngredientEditorBottomSheet(
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
     contentHeightFraction: Float? = null,
+    contentHorizontalPadding: Dp = 20.dp,
+    contentTopPadding: Dp = 0.dp,
+    showDragHandle: Boolean = true,
+    variant: IngredientEditorBottomSheetVariant = IngredientEditorBottomSheetVariant.FullForm,
+    infoCard: IngredientEditorInfoCard? = null,
     isCategoryEditable: Boolean = true,
     isPriceEditable: Boolean = true,
     isPurchaseAmountEditable: Boolean = true,
@@ -113,23 +135,27 @@ fun IngredientEditorBottomSheet(
         modifier = modifier,
         containerColor = Grayscale100,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-        dragHandle = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .width(40.dp)
-                        .height(4.dp)
-                        .background(
-                            color = Grayscale400,
-                            shape = RoundedCornerShape(2.dp),
-                        ),
-                )
-                Spacer(modifier = Modifier.height(20.dp))
+        dragHandle = if (showDragHandle) {
+            {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(40.dp)
+                            .height(4.dp)
+                            .background(
+                                color = Grayscale400,
+                                shape = RoundedCornerShape(2.dp),
+                            ),
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
+        } else {
+            null
         },
     ) {
         Column(
@@ -142,7 +168,8 @@ fun IngredientEditorBottomSheet(
                     },
                 )
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = contentHorizontalPadding)
+                .padding(top = contentTopPadding)
                 .padding(bottom = 32.dp)
                 .windowInsetsPadding(WindowInsets.navigationBars),
             verticalArrangement = if (contentHeightFraction != null) Arrangement.Bottom else Arrangement.Top,
@@ -157,83 +184,110 @@ fun IngredientEditorBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                categoryOptions.forEach { option ->
-                    IngredientCategoryChip(
-                        text = option.label,
-                        isSelected = categoryCode == option.code,
-                        enabled = isCategoryEditable,
-                        onClick = { onCategoryChanged(option.code) },
+            when (variant) {
+                IngredientEditorBottomSheetVariant.FullForm -> {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        categoryOptions.forEach { option ->
+                            IngredientCategoryChip(
+                                text = option.label,
+                                isSelected = categoryCode == option.code,
+                                enabled = isCategoryEditable,
+                                onClick = { onCategoryChanged(option.code) },
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    IngredientEditorFieldLabel(text = "가격")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    IngredientEditorUnderlineField(
+                        value = price,
+                        onValueChange = onPriceChanged,
+                        placeholder = pricePlaceholder,
+                        keyboardType = KeyboardType.Number,
+                        visualTransformation = SuffixAppendingVisualTransformation(
+                            base = DigitGroupingVisualTransformation(),
+                            suffix = "원",
+                        ),
+                        enabled = isPriceEditable,
+                        readOnlyValue = price.takeIf { it.isNotEmpty() }?.let { "${formatDigits(it)}원" } ?: "-",
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    IngredientEditorFieldLabel(text = purchaseAmountLabel)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    IngredientEditorUnderlineField(
+                        value = purchaseAmount,
+                        onValueChange = onPurchaseAmountChanged,
+                        placeholder = purchaseAmountPlaceholder,
+                        keyboardType = KeyboardType.Number,
+                        enabled = isPurchaseAmountEditable,
+                        readOnlyValue = purchaseAmount.ifEmpty { "-" },
+                        trailingContent = {
+                            PurchaseUnitSelector(
+                                selectedUnit = unit,
+                                onUnitSelected = onUnitChanged,
+                                enabled = isUnitEditable,
+                            )
+                        },
+                    )
+
+                    if (showUsageField) {
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        IngredientEditorFieldLabel(text = usageLabel)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        IngredientEditorUnderlineField(
+                            value = amount,
+                            onValueChange = onAmountChanged,
+                            placeholder = amountPlaceholder,
+                            keyboardType = KeyboardType.Number,
+                            visualTransformation = SuffixAppendingVisualTransformation(
+                                base = VisualTransformation.None,
+                                suffix = unit.displayName,
+                            ),
+                            readOnlyValue = amount.takeIf { it.isNotEmpty() }?.let { "$it${unit.displayName}" } ?: "-",
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    IngredientEditorFieldLabel(text = supplierLabel)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    IngredientEditorUnderlineField(
+                        value = supplier,
+                        onValueChange = onSupplierChanged,
+                        placeholder = "공급업체명 입력",
+                        enabled = isSupplierEditable,
+                        readOnlyValue = supplier.ifEmpty { "-" },
                     )
                 }
+
+                IngredientEditorBottomSheetVariant.UsageWithInfo -> {
+                    if (showUsageField) {
+                        IngredientEditorFieldLabel(text = usageLabel)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        IngredientEditorUnderlineField(
+                            value = amount,
+                            onValueChange = onAmountChanged,
+                            placeholder = amountPlaceholder,
+                            keyboardType = KeyboardType.Number,
+                            visualTransformation = SuffixAppendingVisualTransformation(
+                                base = VisualTransformation.None,
+                                suffix = unit.displayName,
+                            ),
+                            readOnlyValue = amount.takeIf { it.isNotEmpty() }?.let { "$it${unit.displayName}" } ?: "-",
+                        )
+                    }
+
+                    infoCard?.let {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        IngredientEditorInfoCardSection(infoCard = it)
+                    }
+                }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            IngredientEditorFieldLabel(text = "가격")
-            Spacer(modifier = Modifier.height(8.dp))
-            IngredientEditorUnderlineField(
-                value = price,
-                onValueChange = onPriceChanged,
-                placeholder = pricePlaceholder,
-                keyboardType = KeyboardType.Number,
-                visualTransformation = SuffixAppendingVisualTransformation(
-                    base = DigitGroupingVisualTransformation(),
-                    suffix = "원",
-                ),
-                enabled = isPriceEditable,
-                readOnlyValue = price.takeIf { it.isNotEmpty() }?.let { "${formatDigits(it)}원" } ?: "-",
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            IngredientEditorFieldLabel(text = purchaseAmountLabel)
-            Spacer(modifier = Modifier.height(8.dp))
-            IngredientEditorUnderlineField(
-                value = purchaseAmount,
-                onValueChange = onPurchaseAmountChanged,
-                placeholder = purchaseAmountPlaceholder,
-                keyboardType = KeyboardType.Number,
-                enabled = isPurchaseAmountEditable,
-                readOnlyValue = purchaseAmount.ifEmpty { "-" },
-                trailingContent = {
-                    PurchaseUnitSelector(
-                        selectedUnit = unit,
-                        onUnitSelected = onUnitChanged,
-                        enabled = isUnitEditable,
-                    )
-                },
-            )
-
-            if (showUsageField) {
-                Spacer(modifier = Modifier.height(24.dp))
-
-                IngredientEditorFieldLabel(text = usageLabel)
-                Spacer(modifier = Modifier.height(8.dp))
-                IngredientEditorUnderlineField(
-                    value = amount,
-                    onValueChange = onAmountChanged,
-                    placeholder = amountPlaceholder,
-                    keyboardType = KeyboardType.Number,
-                    visualTransformation = SuffixAppendingVisualTransformation(
-                        base = VisualTransformation.None,
-                        suffix = unit.displayName,
-                    ),
-                    readOnlyValue = amount.takeIf { it.isNotEmpty() }?.let { "$it${unit.displayName}" } ?: "-",
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            IngredientEditorFieldLabel(text = supplierLabel)
-            Spacer(modifier = Modifier.height(8.dp))
-            IngredientEditorUnderlineField(
-                value = supplier,
-                onValueChange = onSupplierChanged,
-                placeholder = "공급업체명 입력",
-                enabled = isSupplierEditable,
-                readOnlyValue = supplier.ifEmpty { "-" },
-            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -242,6 +296,65 @@ fun IngredientEditorBottomSheet(
                 onClick = onConfirm,
                 enabled = confirmEnabled,
             )
+        }
+    }
+}
+
+@Composable
+private fun IngredientEditorInfoCardSection(
+    infoCard: IngredientEditorInfoCard,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Grayscale200)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Text(
+            text = infoCard.title,
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 16.sp,
+            color = Grayscale700,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        infoCard.rows.forEachIndexed { index, row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = row.label,
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Grayscale500,
+                    modifier = Modifier.width(55.dp),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(18.dp)
+                        .background(Grayscale300),
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = row.value,
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Grayscale700,
+                )
+            }
+
+            if (index < infoCard.rows.lastIndex) {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
         }
     }
 }
@@ -338,6 +451,7 @@ private fun IngredientEditorUnderlineField(
                 trailingContent()
             }
         }
+
         Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider(color = Grayscale300, thickness = 1.dp)
     }

@@ -133,6 +133,7 @@ class IngredientInputViewModel @Inject constructor(
                 purchaseAmount = suggestion.baseQuantity?.toString() ?: "",
                 unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
                 supplier = suggestion.supplier.orEmpty(),
+                unitPrice = suggestion.unitPrice ?: 0,
             )
             IngredientSourceType.TEMPLATE -> IngredientBottomSheetState(
                 serverIngredientId = suggestion.ingredientId,
@@ -142,6 +143,8 @@ class IngredientInputViewModel @Inject constructor(
                 price = suggestion.unitPrice?.toString() ?: "",
                 purchaseAmount = suggestion.baseQuantity?.toString() ?: "",
                 unit = suggestion.unitCode?.toIngredientUnit() ?: IngredientUnit.G,
+                supplier = suggestion.supplier.orEmpty(),
+                unitPrice = suggestion.unitPrice ?: 0,
             )
             IngredientSourceType.NEW -> IngredientBottomSheetState(
                 name = suggestion.name,
@@ -187,6 +190,7 @@ class IngredientInputViewModel @Inject constructor(
             amount = ingredient.amount.toString(),
             unit = ingredient.unit,
             supplier = ingredient.supplier,
+            unitPrice = ingredient.unitPrice,
             isEditMode = true,
             editingIngredientId = ingredient.id,
         )
@@ -210,8 +214,10 @@ class IngredientInputViewModel @Inject constructor(
 
     fun onBottomSheetCategoryChanged(categoryCode: String) {
         _uiState.update { state ->
+            val bottomSheetIngredient = state.bottomSheetIngredient ?: return@update state
+            if (!bottomSheetIngredient.isCategoryEditable) return@update state
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(categoryCode = categoryCode),
+                bottomSheetIngredient = bottomSheetIngredient.copy(categoryCode = categoryCode),
             )
         }
     }
@@ -219,8 +225,10 @@ class IngredientInputViewModel @Inject constructor(
     fun onBottomSheetPriceChanged(price: String) {
         val filteredPrice = price.filter { it.isDigit() }
         _uiState.update { state ->
+            val bottomSheetIngredient = state.bottomSheetIngredient ?: return@update state
+            if (!bottomSheetIngredient.isPriceEditable) return@update state
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(price = filteredPrice),
+                bottomSheetIngredient = bottomSheetIngredient.copy(price = filteredPrice),
             )
         }
     }
@@ -228,8 +236,10 @@ class IngredientInputViewModel @Inject constructor(
     fun onBottomSheetPurchaseAmountChanged(purchaseAmount: String) {
         val filteredAmount = purchaseAmount.filter { it.isDigit() }
         _uiState.update { state ->
+            val bottomSheetIngredient = state.bottomSheetIngredient ?: return@update state
+            if (!bottomSheetIngredient.isPurchaseAmountEditable) return@update state
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(purchaseAmount = filteredAmount),
+                bottomSheetIngredient = bottomSheetIngredient.copy(purchaseAmount = filteredAmount),
             )
         }
     }
@@ -245,16 +255,20 @@ class IngredientInputViewModel @Inject constructor(
 
     fun onBottomSheetUnitChanged(unit: IngredientUnit) {
         _uiState.update { state ->
+            val bottomSheetIngredient = state.bottomSheetIngredient ?: return@update state
+            if (!bottomSheetIngredient.isUnitEditable) return@update state
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(unit = unit),
+                bottomSheetIngredient = bottomSheetIngredient.copy(unit = unit),
             )
         }
     }
 
     fun onBottomSheetSupplierChanged(supplier: String) {
         _uiState.update { state ->
+            val bottomSheetIngredient = state.bottomSheetIngredient ?: return@update state
+            if (!bottomSheetIngredient.isSupplierEditable) return@update state
             state.copy(
-                bottomSheetIngredient = state.bottomSheetIngredient?.copy(supplier = supplier),
+                bottomSheetIngredient = bottomSheetIngredient.copy(supplier = supplier),
             )
         }
     }
@@ -267,15 +281,21 @@ class IngredientInputViewModel @Inject constructor(
             _uiState.update { state ->
                 val updatedIngredients = state.selectedIngredients.map { ingredient ->
                     if (ingredient.id == bottomSheetState.editingIngredientId) {
-                        ingredient.copy(
-                            amount = bottomSheetState.amount.toIntOrNull() ?: ingredient.amount,
-                            supplier = bottomSheetState.supplier,
-                            categoryCode = bottomSheetState.categoryCode,
-                            price = bottomSheetState.price.toIntOrNull() ?: ingredient.price,
-                            unit = bottomSheetState.unit,
-                            baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: ingredient.baseQuantity,
-                            unitPrice = bottomSheetState.price.toIntOrNull() ?: ingredient.unitPrice,
-                        )
+                        if (bottomSheetState.isExistingIngredientLayout) {
+                            ingredient.copy(
+                                amount = bottomSheetState.amount.toIntOrNull() ?: ingredient.amount,
+                            )
+                        } else {
+                            ingredient.copy(
+                                amount = bottomSheetState.amount.toIntOrNull() ?: ingredient.amount,
+                                supplier = bottomSheetState.supplier,
+                                categoryCode = bottomSheetState.categoryCode,
+                                price = bottomSheetState.price.toIntOrNull() ?: ingredient.price,
+                                unit = bottomSheetState.unit,
+                                baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: ingredient.baseQuantity,
+                                unitPrice = bottomSheetState.price.toIntOrNull() ?: ingredient.unitPrice,
+                            )
+                        }
                     } else {
                         ingredient
                     }
@@ -304,7 +324,11 @@ class IngredientInputViewModel @Inject constructor(
                         supplier = bottomSheetState.supplier,
                         sourceType = bottomSheetState.sourceType,
                         baseQuantity = bottomSheetState.purchaseAmount.toIntOrNull() ?: 0,
-                        unitPrice = bottomSheetState.price.toIntOrNull() ?: 0,
+                        unitPrice = if (bottomSheetState.isExistingIngredientLayout) {
+                            bottomSheetState.unitPrice
+                        } else {
+                            bottomSheetState.price.toIntOrNull() ?: 0
+                        },
                     )
                 )
             }

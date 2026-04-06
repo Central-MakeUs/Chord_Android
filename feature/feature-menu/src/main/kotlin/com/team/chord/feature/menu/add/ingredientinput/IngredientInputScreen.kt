@@ -52,7 +52,10 @@ import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.component.ChordTooltipBubble
 import com.team.chord.core.ui.component.IngredientEditorBottomSheet
+import com.team.chord.core.ui.component.IngredientEditorBottomSheetVariant
 import com.team.chord.core.ui.component.IngredientEditorCategoryOption
+import com.team.chord.core.ui.component.IngredientEditorInfoCard
+import com.team.chord.core.ui.component.IngredientEditorInfoRow
 import com.team.chord.core.ui.component.TooltipDirection
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
@@ -290,36 +293,49 @@ internal fun IngredientInputScreenContent(
         }
 
         if (uiState.showBottomSheet && uiState.bottomSheetIngredient != null) {
+            val bottomSheetIngredient = requireNotNull(uiState.bottomSheetIngredient)
             IngredientEditorBottomSheet(
-                title = uiState.bottomSheetIngredient.name,
-                categoryCode = uiState.bottomSheetIngredient.categoryCode,
+                title = bottomSheetIngredient.name,
+                categoryCode = bottomSheetIngredient.categoryCode,
                 categoryOptions = ingredientCategoryOptions,
                 onCategoryChanged = onBottomSheetCategoryChanged,
-                price = uiState.bottomSheetIngredient.price,
+                price = bottomSheetIngredient.price,
                 onPriceChanged = onBottomSheetPriceChanged,
-                pricePlaceholder = uiState.bottomSheetIngredient.suggestedPrice?.let(::formatPricePlaceholder)
+                pricePlaceholder = bottomSheetIngredient.suggestedPrice?.let(::formatPricePlaceholder)
                     ?: "구매한 가격 입력",
-                purchaseAmount = uiState.bottomSheetIngredient.purchaseAmount,
+                purchaseAmount = bottomSheetIngredient.purchaseAmount,
                 onPurchaseAmountChanged = onBottomSheetPurchaseAmountChanged,
-                purchaseAmountPlaceholder = uiState.bottomSheetIngredient.suggestedPurchaseAmount?.toString()
+                purchaseAmountPlaceholder = bottomSheetIngredient.suggestedPurchaseAmount?.toString()
                     ?: "구매한 용량 입력",
-                amount = uiState.bottomSheetIngredient.amount,
+                usageLabel = bottomSheetIngredient.usageLabel,
+                amount = bottomSheetIngredient.amount,
                 onAmountChanged = onBottomSheetAmountChanged,
-                amountPlaceholder = uiState.bottomSheetIngredient.suggestedAmount?.toString()
+                amountPlaceholder = bottomSheetIngredient.suggestedAmount?.toString()
                     ?: "제조시 사용되는 용량 입력",
-                unit = uiState.bottomSheetIngredient.unit,
+                unit = bottomSheetIngredient.unit,
                 onUnitChanged = onBottomSheetUnitChanged,
-                supplier = uiState.bottomSheetIngredient.supplier,
+                supplier = bottomSheetIngredient.supplier,
                 onSupplierChanged = onBottomSheetSupplierChanged,
-                confirmText = uiState.bottomSheetIngredient.confirmButtonText,
-                confirmEnabled = uiState.bottomSheetIngredient.isAddEnabled,
+                confirmText = bottomSheetIngredient.confirmButtonText,
+                confirmEnabled = bottomSheetIngredient.isAddEnabled,
                 onDismiss = onBottomSheetDismissed,
                 onConfirm = onConfirmIngredient,
-                isCategoryEditable = uiState.bottomSheetIngredient.isCategoryEditable,
-                isPriceEditable = uiState.bottomSheetIngredient.isPriceEditable,
-                isPurchaseAmountEditable = uiState.bottomSheetIngredient.isPurchaseAmountEditable,
-                isUnitEditable = uiState.bottomSheetIngredient.isUnitEditable,
-                isSupplierEditable = uiState.bottomSheetIngredient.isSupplierEditable,
+                contentHorizontalPadding = if (bottomSheetIngredient.isExistingIngredientLayout) 26.dp else 20.dp,
+                contentTopPadding = 40.dp,
+                showDragHandle = false,
+                variant = if (bottomSheetIngredient.isExistingIngredientLayout) {
+                    IngredientEditorBottomSheetVariant.UsageWithInfo
+                } else {
+                    IngredientEditorBottomSheetVariant.FullForm
+                },
+                infoCard = bottomSheetIngredient
+                    .takeIf { it.isExistingIngredientLayout }
+                    ?.toIngredientEditorInfoCard(),
+                isCategoryEditable = bottomSheetIngredient.isCategoryEditable,
+                isPriceEditable = bottomSheetIngredient.isPriceEditable,
+                isPurchaseAmountEditable = bottomSheetIngredient.isPurchaseAmountEditable,
+                isUnitEditable = bottomSheetIngredient.isUnitEditable,
+                isSupplierEditable = bottomSheetIngredient.isSupplierEditable,
             )
         }
 
@@ -662,3 +678,11 @@ private fun FieldLabel(
 
 private fun formatPricePlaceholder(price: Int): String =
     "${NumberFormat.getNumberInstance(Locale.KOREA).format(price)}원"
+
+private fun IngredientBottomSheetState.toIngredientEditorInfoCard(): IngredientEditorInfoCard =
+    IngredientEditorInfoCard(
+        rows = listOf(
+            IngredientEditorInfoRow(label = "단가", value = unitPriceText),
+            IngredientEditorInfoRow(label = "공급업체", value = supplierText),
+        ),
+    )

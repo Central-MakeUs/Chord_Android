@@ -223,6 +223,69 @@ class IngredientInputViewModelTest {
         assertEquals("쿠팡", updated.supplier)
     }
 
+    @Test
+    fun `existing ingredient edit modal locks non-usage fields`() = runTest {
+        val viewModel = createViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(
+                    "isTemplateApplied" to true,
+                    "templateId" to 1L,
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        viewModel.onEditIngredient(viewModel.uiState.value.selectedIngredients.first())
+
+        val bottomSheetState = viewModel.uiState.value.bottomSheetIngredient
+        requireNotNull(bottomSheetState)
+
+        assertTrue(bottomSheetState.isExistingIngredientLayout)
+        assertFalse(bottomSheetState.isCategoryEditable)
+        assertFalse(bottomSheetState.isPriceEditable)
+        assertFalse(bottomSheetState.isPurchaseAmountEditable)
+        assertFalse(bottomSheetState.isUnitEditable)
+        assertFalse(bottomSheetState.isSupplierEditable)
+        assertEquals("사용량", bottomSheetState.usageLabel)
+        assertEquals("1000g당 16,000원", bottomSheetState.unitPriceText)
+        assertEquals("-", bottomSheetState.supplierText)
+    }
+
+    @Test
+    fun `editing existing ingredient only updates usage amount`() = runTest {
+        val viewModel = createViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(
+                    "isTemplateApplied" to true,
+                    "templateId" to 1L,
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        val original = viewModel.uiState.value.selectedIngredients.first()
+
+        viewModel.onEditIngredient(original)
+        viewModel.onBottomSheetCategoryChanged("MATERIALS")
+        viewModel.onBottomSheetPriceChanged("9999")
+        viewModel.onBottomSheetPurchaseAmountChanged("500")
+        viewModel.onBottomSheetUnitChanged(IngredientUnit.EA)
+        viewModel.onBottomSheetSupplierChanged("새 공급처")
+        viewModel.onBottomSheetAmountChanged("45")
+        viewModel.onConfirmIngredient()
+
+        val updated = viewModel.uiState.value.selectedIngredients.first()
+        assertEquals(45, updated.amount)
+        assertEquals(original.categoryCode, updated.categoryCode)
+        assertEquals(original.price, updated.price)
+        assertEquals(original.baseQuantity, updated.baseQuantity)
+        assertEquals(original.unit, updated.unit)
+        assertEquals(original.supplier, updated.supplier)
+        assertEquals(original.unitPrice, updated.unitPrice)
+    }
+
     private fun createViewModel(
         savedStateHandle: SavedStateHandle,
     ): IngredientInputViewModel {

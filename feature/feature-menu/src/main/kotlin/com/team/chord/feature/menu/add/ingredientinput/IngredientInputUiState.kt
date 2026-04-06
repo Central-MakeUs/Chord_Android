@@ -1,6 +1,8 @@
 package com.team.chord.feature.menu.add.ingredientinput
 
 import com.team.chord.core.domain.model.menu.IngredientUnit
+import java.text.NumberFormat
+import java.util.Locale
 
 enum class IngredientSourceType {
     NEW,
@@ -64,6 +66,7 @@ data class IngredientBottomSheetState(
     val unit: IngredientUnit = IngredientUnit.G,
     val supplier: String = "",
     val sourceType: IngredientSourceType = IngredientSourceType.NEW,
+    val unitPrice: Int = 0,
     val suggestedPrice: Int? = null,
     val suggestedPurchaseAmount: Int? = null,
     val suggestedAmount: Int? = null,
@@ -71,28 +74,49 @@ data class IngredientBottomSheetState(
     val isEditMode: Boolean = false,
     val editingIngredientId: Long? = null,
 ) {
+    val isExistingIngredientLayout: Boolean
+        get() = sourceType != IngredientSourceType.NEW
+
     val isPriceEditable: Boolean
-        get() = true
+        get() = !isExistingIngredientLayout
 
     val isPurchaseAmountEditable: Boolean
-        get() = true
+        get() = !isExistingIngredientLayout
 
     val isUnitEditable: Boolean
-        get() = true
+        get() = !isExistingIngredientLayout
 
     val isCategoryEditable: Boolean
-        get() = true
+        get() = !isExistingIngredientLayout
 
     val isSupplierEditable: Boolean
-        get() = true
+        get() = !isExistingIngredientLayout
+
+    val usageLabel: String
+        get() = if (isExistingIngredientLayout) "사용량" else "재료 사용량"
+
+    val unitPriceText: String
+        get() = purchaseAmount.toIntOrNull()
+            ?.let { "${purchaseAmount}${unit.displayName}당 ${formatPrice(unitPrice)}원" }
+            ?: "-"
+
+    val supplierText: String
+        get() = supplier.ifEmpty { "-" }
 
     val isAddEnabled: Boolean
-        get() = price.isNotBlank() &&
-            purchaseAmount.isNotBlank() &&
-            purchaseAmount.toIntOrNull() != null &&
-            amount.isNotBlank() &&
-            amount.toIntOrNull() != null
+        get() = if (isExistingIngredientLayout) {
+            amount.isNotBlank() && amount.toIntOrNull() != null
+        } else {
+            price.isNotBlank() &&
+                purchaseAmount.isNotBlank() &&
+                purchaseAmount.toIntOrNull() != null &&
+                amount.isNotBlank() &&
+                amount.toIntOrNull() != null
+        }
 
     val confirmButtonText: String
         get() = if (isEditMode) "저장하기" else "재료 추가"
 }
+
+private fun formatPrice(value: Int): String =
+    NumberFormat.getNumberInstance(Locale.KOREA).format(value)
