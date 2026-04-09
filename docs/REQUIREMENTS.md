@@ -1296,4 +1296,43 @@ MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm
 
 ---
 
-*Last Updated: 2026-01-20 (FR-014 메뉴 등록 온보딩 구현 - MenuSuggestionScreen, MenuSearchScreen, MenuDetailScreen, IngredientInputScreen, MenuConfirmScreen)*
+## 15. 크로스 기능 UI 패리티 + 기능 QA 배치
+
+### Status
+`In Progress`
+
+### Overview
+온보딩, 메뉴 등록, 재료 관리, 설정, 메뉴 상세, AI 전략 화면 전반에 걸친 QA 배치를 하나의 묶음으로 관리한다. 이 항목은 `.omx/plans/prd-cross-feature-ui-parity.md`의 실행 기준을 제품 요구사항 문서 관점에서 요약한 것이며, 구현 범위는 사용자가 제기한 16개 증상만 포함한다.
+
+### Scope
+- 온보딩 매장 정보 화면의 CTA 노출/가시성
+- 메뉴 등록 2개 플로우(`feature-setup`, `feature-menu/add`)에서 공통으로 발생하는 라우트 디코딩, 템플릿 제조시간, 재료 추가 UX 문제
+- 재료 목록/검색/상세/공급처 수정 흐름의 기능 및 Figma 패리티
+- 설정 화면 알림 토글 노출 여부와 상태 근거 확인
+- 메뉴 상세 화면의 배지, 툴팁, 원가/제조시간/재료 요약 레이아웃 정합성
+- AI 전략 탭/상세/완료/이력의 문구, 배치, 상태 반영, 완료 문구 포맷팅
+
+### Functional Requirements
+| ID | Requirement | Priority | Status | Acceptance Criteria |
+|----|-------------|----------|--------|---------------------|
+| FR-015-001 | 16개 QA 항목을 구현 또는 차단 사유와 함께 분류 | High | `In Progress` | 각 항목이 `Implemented` 또는 `Blocked by Figma/API conflict`로 명시된다 |
+| FR-015-002 | 메뉴 등록 중복 플로우의 공통 결함을 동일하게 수정 | High | `In Progress` | 공백 포함 메뉴명, 템플릿 제조시간, 재료 추가 UX가 두 플로우에서 동일하게 동작한다 |
+| FR-015-003 | 재료 관리 화면의 단일 선택/단가 표기/토스트/공급처 편집 흐름 정합성 확보 | High | `In Progress` | 목록·검색·상세 화면이 Figma 및 API 데이터 구조와 모순 없이 동작한다 |
+| FR-015-004 | 설정/메뉴 상세/AI 전략 화면의 시각적 패리티 확보 | High | `In Progress` | 지정된 Figma 노드 기준으로 누락 요소, 문구, 상태 배치가 맞춰진다 |
+| FR-015-005 | 결정적 로직에 대한 회귀 검증 추가 | High | `In Progress` | 라우트 디코딩, 템플릿 제조시간, 재료 필터, 전략 상태 전이가 테스트로 보호된다 |
+
+### Review Findings
+- 메뉴 등록은 서로 다른 진입점이지만 `menuName` route argument와 템플릿 상태 복원 방식이 중복되어 동일 결함이 재발할 가능성이 높다.
+- 메뉴 드래프트 모델의 기본 제조시간이 `90초`로 고정되어 있어 템플릿 기반 초기화가 누락되면 `1분 30초`로 잘못 보일 수 있다.
+- 재료 목록은 현재 다중 카테고리 선택을 허용하고, 검색 결과는 항상 `+` 액션을 노출해 QA 기대치와 어긋날 가능성이 있다.
+- 설정 알림 토글은 Figma 요구사항이 있으나 제공된 OpenAPI에는 선호도 조회/저장 API가 없어 로컬 상태 근거를 먼저 확인해야 한다.
+- AI 전략 화면은 추천/저장 전략을 분리 로딩하고 일부 문구/설명/완료 문구 포맷팅이 API 응답보다 타입 기반 파생값에 의존하고 있어 상태 반영 결함 가능성이 있다.
+
+### Verification Notes
+- 기능 수정 시 두 메뉴 등록 플로우를 함께 회귀 검증한다.
+- 결정적 로직은 단위/뷰모델 테스트로 보호하고, 시각적 차이는 지정된 Figma 노드 기준 수동 검증으로 남긴다.
+- Figma와 API가 충돌하면 추측 구현 대신 충돌 근거를 기록하고 항목을 보류한다.
+
+---
+
+*Last Updated: 2026-04-10 (FR-015 크로스 기능 UI 패리티 QA 배치 요구사항 문서화)*
