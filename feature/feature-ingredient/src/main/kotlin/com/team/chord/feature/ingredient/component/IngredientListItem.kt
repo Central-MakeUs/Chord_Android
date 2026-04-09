@@ -26,6 +26,8 @@ import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue500
+import java.text.NumberFormat
+import java.util.Locale
 import com.team.chord.core.ui.R as CoreUiR
 
 @Composable
@@ -39,6 +41,8 @@ fun IngredientListItem(
     isSelected: Boolean = false,
     onCheckedChange: (() -> Unit)? = null,
 ) {
+    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -82,7 +86,7 @@ fun IngredientListItem(
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
-                text = "${price}원",
+                text = "${numberFormat.format(price)}원",
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp,

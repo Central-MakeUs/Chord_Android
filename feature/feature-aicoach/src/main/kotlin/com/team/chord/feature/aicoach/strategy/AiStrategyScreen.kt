@@ -135,7 +135,7 @@ internal fun AiStrategyScreenContent(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
             ) {
                 Text(
-                    text = "이번주 추천 전략",
+                    text = "이번주 전략",
                     fontFamily = PretendardFontFamily,
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,

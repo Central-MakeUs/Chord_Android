@@ -32,11 +32,12 @@ const val SETUP_COMPLETE_ROUTE = "setup_complete"
 private const val ARG_MENU_NAME = "menuName"
 private const val ARG_IS_TEMPLATE_APPLIED = "isTemplateApplied"
 private const val ARG_TEMPLATE_PRICE = "templatePrice"
+private const val ARG_TEMPLATE_WORK_TIME = "templateWorkTime"
 private const val ARG_TEMPLATE_ID = "templateId"
 
 // Full route patterns with arguments
 private const val MENU_DETAIL_ROUTE_PATTERN =
-    "$MENU_DETAIL_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_PRICE={$ARG_TEMPLATE_PRICE}"
+    "$MENU_DETAIL_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_PRICE={$ARG_TEMPLATE_PRICE}&$ARG_TEMPLATE_WORK_TIME={$ARG_TEMPLATE_WORK_TIME}"
 private const val INGREDIENT_INPUT_ROUTE_PATTERN =
     "$INGREDIENT_INPUT_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_ID={$ARG_TEMPLATE_ID}"
 
@@ -82,14 +83,20 @@ fun NavController.navigateToMenuDetail(
     menuName: String,
     isTemplateApplied: Boolean,
     templatePrice: Int? = null,
+    templateWorkTime: Int? = null,
     navOptions: NavOptions? = null,
 ) {
     val route = buildString {
         append("$MENU_DETAIL_ROUTE/")
         append(menuName.encodeForNavigation())
         append("/$isTemplateApplied")
-        if (templatePrice != null) {
-            append("?$ARG_TEMPLATE_PRICE=$templatePrice")
+        val queryParams = buildList {
+            templatePrice?.let { add("$ARG_TEMPLATE_PRICE=$it") }
+            templateWorkTime?.let { add("$ARG_TEMPLATE_WORK_TIME=$it") }
+        }
+        if (queryParams.isNotEmpty()) {
+            append("?")
+            append(queryParams.joinToString("&"))
         }
     }
     navigate(route, navOptions)
@@ -195,6 +202,7 @@ fun NavGraphBuilder.setupGraph(
                         name = template.menuName,
                         isTemplateApplied = true,
                         templatePrice = template.defaultSellingPrice,
+                        templateWorkSeconds = template.workTime,
                         templateId = template.templateId,
                         categoryCode = template.categoryCode,
                     )
@@ -202,6 +210,7 @@ fun NavGraphBuilder.setupGraph(
                         menuName = template.menuName,
                         isTemplateApplied = true,
                         templatePrice = template.defaultSellingPrice,
+                        templateWorkTime = template.workTime,
                     )
                 },
                 onNavigateToDetailWithoutTemplate = { menuName ->
@@ -231,6 +240,10 @@ fun NavGraphBuilder.setupGraph(
                     type = NavType.BoolType
                 },
                 navArgument(ARG_TEMPLATE_PRICE) {
+                    type = NavType.IntType
+                    defaultValue = 0
+                },
+                navArgument(ARG_TEMPLATE_WORK_TIME) {
                     type = NavType.IntType
                     defaultValue = 0
                 },

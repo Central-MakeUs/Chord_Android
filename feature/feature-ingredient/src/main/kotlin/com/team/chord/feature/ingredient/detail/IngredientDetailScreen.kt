@@ -22,6 +22,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.component.ChordOutlinedButton
+import com.team.chord.core.ui.component.ChordToast
 import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
@@ -54,10 +58,11 @@ import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
+import com.team.chord.feature.ingredient.component.SupplierEditBottomSheet
+import com.team.chord.feature.ingredient.formatIngredientPriceText
 import com.team.chord.feature.ingredient.component.IngredientEditBottomSheet
 import com.team.chord.feature.ingredient.component.PriceHistoryItem
 import com.team.chord.feature.ingredient.component.UsedMenuCard
-import java.text.NumberFormat
 import java.util.Locale
 import com.team.chord.core.ui.R as CoreUiR
 
@@ -84,8 +89,9 @@ fun IngredientDetailScreen(
         onNavigateBack = { onNavigateBack(viewModel.hasChanges()) },
         onFavoriteToggle = viewModel::onFavoriteToggle,
         onDelete = viewModel::onDelete,
-        onUpdatePriceInfo = viewModel::onUpdatePriceInfo,
+        onUpdateIngredientDetail = viewModel::onUpdateIngredientDetail,
         onUpdateSupplier = viewModel::onUpdateSupplier,
+        onToastShown = viewModel::consumeToastMessage,
         modifier = modifier,
     )
 }
@@ -96,12 +102,15 @@ internal fun IngredientDetailScreenContent(
     onNavigateBack: () -> Unit,
     onFavoriteToggle: () -> Unit,
     onDelete: () -> Unit,
-    onUpdatePriceInfo: (IngredientFilter, Int, Int, IngredientUnit) -> Unit,
+    onUpdateIngredientDetail: (IngredientFilter, Int, Int, IngredientUnit, String) -> Unit,
     onUpdateSupplier: (String) -> Unit,
+    onToastShown: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
+    var showSupplierSheet by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Edit form states
     var editPrice by remember { mutableStateOf("") }
@@ -110,65 +119,91 @@ internal fun IngredientDetailScreenContent(
     var editFilter by remember { mutableStateOf(IngredientFilter.FOOD_INGREDIENT) }
     var editSupplier by remember { mutableStateOf("") }
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Grayscale100),
-    ) {
-        when (uiState) {
-            is IngredientDetailUiState.Loading -> {
-                IngredientDetailHeader(
-                    isFavorite = false,
-                    onNavigateBack = onNavigateBack,
-                    onFavoriteToggle = {},
-                )
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = PrimaryBlue500)
-                }
-            }
+    LaunchedEffect(uiState) {
+        val message = (uiState as? IngredientDetailUiState.Success)?.toastMessage ?: return@LaunchedEffect
+        snackbarHostState.showSnackbar(
+            message = message,
+            duration = SnackbarDuration.Short,
+        )
+        onToastShown()
+    }
 
-            is IngredientDetailUiState.Error -> {
-                IngredientDetailHeader(
-                    isFavorite = false,
-                    onNavigateBack = onNavigateBack,
-                    onFavoriteToggle = {},
+    androidx.compose.material3.Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Grayscale100,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState) { data ->
+                ChordToast(
+                    text = data.visuals.message,
+                    leadingIcon = CoreUiR.drawable.ic_check,
                 )
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = uiState.message,
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 16.sp,
-                        color = Grayscale600,
+            }
+        },
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Grayscale100)
+                .padding(paddingValues),
+        ) {
+            when (uiState) {
+                is IngredientDetailUiState.Loading -> {
+                    IngredientDetailHeader(
+                        isFavorite = false,
+                        onNavigateBack = onNavigateBack,
+                        onFavoriteToggle = {},
+                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator(color = PrimaryBlue500)
+                    }
+                }
+
+                is IngredientDetailUiState.Error -> {
+                    IngredientDetailHeader(
+                        isFavorite = false,
+                        onNavigateBack = onNavigateBack,
+                        onFavoriteToggle = {},
+                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = uiState.message,
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 16.sp,
+                            color = Grayscale600,
+                        )
+                    }
+                }
+
+                is IngredientDetailUiState.Success -> {
+                    IngredientDetailHeader(
+                        isFavorite = uiState.ingredientDetail.isFavorite,
+                        onNavigateBack = onNavigateBack,
+                        onFavoriteToggle = onFavoriteToggle,
+                    )
+                    IngredientDetailContent(
+                        ingredientDetail = uiState.ingredientDetail,
+                        onEditClick = {
+                            editPrice = uiState.ingredientDetail.price.toString()
+                            editAmount = uiState.ingredientDetail.unitAmount.toString()
+                            editUnit = uiState.ingredientDetail.unit
+                            editFilter = uiState.ingredientDetail.category
+                            editSupplier = uiState.ingredientDetail.supplier
+                            showEditSheet = true
+                        },
+                        onSupplierClick = {
+                            editSupplier = uiState.ingredientDetail.supplier
+                            showSupplierSheet = true
+                        },
+                        onDeleteClick = { showDeleteDialog = true },
                     )
                 }
-            }
-
-            is IngredientDetailUiState.Success -> {
-                IngredientDetailHeader(
-                    isFavorite = uiState.ingredientDetail.isFavorite,
-                    onNavigateBack = onNavigateBack,
-                    onFavoriteToggle = onFavoriteToggle,
-                )
-                IngredientDetailContent(
-                    ingredientDetail = uiState.ingredientDetail,
-                    onEditClick = {
-                        // Initialize edit states from current values
-                        editPrice = uiState.ingredientDetail.price.toString()
-                        editAmount = uiState.ingredientDetail.unitAmount.toString()
-                        editUnit = uiState.ingredientDetail.unit
-                        editFilter = uiState.ingredientDetail.category
-                        editSupplier = uiState.ingredientDetail.supplier
-                        showEditSheet = true
-                    },
-                    onDeleteClick = { showDeleteDialog = true },
-                )
             }
         }
     }
@@ -203,11 +238,23 @@ internal fun IngredientDetailScreenContent(
             onConfirm = {
                 val priceInt = editPrice.replace(",", "").toIntOrNull() ?: 0
                 val amountInt = editAmount.toIntOrNull() ?: 0
-                onUpdatePriceInfo(editFilter, priceInt, amountInt, editUnit)
-                onUpdateSupplier(editSupplier)
+                onUpdateIngredientDetail(editFilter, priceInt, amountInt, editUnit, editSupplier)
                 showEditSheet = false
             },
             onDismiss = { showEditSheet = false },
+        )
+    }
+
+    if (showSupplierSheet) {
+        SupplierEditBottomSheet(
+            supplierName = editSupplier,
+            onSupplierNameChange = { editSupplier = it },
+            onClear = { editSupplier = "" },
+            onConfirm = {
+                onUpdateSupplier(editSupplier)
+                showSupplierSheet = false
+            },
+            onDismiss = { showSupplierSheet = false },
         )
     }
 }
@@ -265,10 +312,10 @@ private fun IngredientDetailHeader(
 private fun IngredientDetailContent(
     ingredientDetail: IngredientDetailUi,
     onEditClick: () -> Unit,
+    onSupplierClick: () -> Unit,
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
     val scrollState = rememberScrollState()
 
     Column(
@@ -333,10 +380,14 @@ private fun IngredientDetailContent(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "${numberFormat.format(ingredientDetail.price)}원 ${ingredientDetail.unitAmount}${ingredientDetail.unit.displayName}",
+                    text = formatIngredientPriceText(
+                        price = ingredientDetail.price,
+                        unitAmount = ingredientDetail.unitAmount,
+                        unit = ingredientDetail.unit,
+                    ),
                     fontFamily = PretendardFontFamily,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     color = Grayscale900,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
@@ -354,7 +405,7 @@ private fun IngredientDetailContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onEditClick() },
+                    .clickable { onSupplierClick() },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
@@ -501,8 +552,9 @@ private fun IngredientDetailScreenPreview() {
         onNavigateBack = {},
         onFavoriteToggle = {},
         onDelete = {},
-        onUpdatePriceInfo = { _, _, _, _ -> },
+        onUpdateIngredientDetail = { _, _, _, _, _ -> },
         onUpdateSupplier = {},
+        onToastShown = {},
     )
 }
 
@@ -514,7 +566,8 @@ private fun IngredientDetailScreenLoadingPreview() {
         onNavigateBack = {},
         onFavoriteToggle = {},
         onDelete = {},
-        onUpdatePriceInfo = { _, _, _, _ -> },
+        onUpdateIngredientDetail = { _, _, _, _, _ -> },
         onUpdateSupplier = {},
+        onToastShown = {},
     )
 }

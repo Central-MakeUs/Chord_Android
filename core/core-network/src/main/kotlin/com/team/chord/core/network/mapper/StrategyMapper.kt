@@ -80,7 +80,10 @@ fun CautionMenuStrategyDetailResponseDto.toDomain(): StrategyDetail =
     )
 
 fun CompletionPhraseResponseDto.toDomainPhrase(): String =
-    completionPhrase?.takeIf { it.isNotBlank() } ?: "전략 실행이 완료됐어요"
+    completionPhrase
+        ?.sanitizeCompletionPhrase()
+        ?.takeIf { it.isNotBlank() }
+        ?: "전략 실행이 완료됐어요"
 
 fun NeedManagementResponseDto.toDomain(): NeedManagement =
     NeedManagement(
@@ -140,4 +143,11 @@ private fun buildMenuCostHeadline(menuName: String?, costRate: Double?): String 
     } else {
         "${normalizedMenuName}의 원가율 ${percentText}"
     }
+}
+
+private fun String.sanitizeCompletionPhrase(): String? {
+    val normalized = trim()
+    if (normalized.isBlank()) return null
+    if ("%p" in normalized) return null
+    return normalized
 }

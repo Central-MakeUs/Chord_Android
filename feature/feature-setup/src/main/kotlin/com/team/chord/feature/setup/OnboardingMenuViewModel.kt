@@ -53,6 +53,7 @@ class OnboardingMenuViewModel @Inject constructor(
         name: String,
         isTemplateApplied: Boolean,
         templatePrice: Int? = null,
+        templateWorkSeconds: Int? = null,
         templateId: Long? = null,
         categoryCode: String? = null,
     ) {
@@ -60,6 +61,7 @@ class OnboardingMenuViewModel @Inject constructor(
             MenuDraft(
                 name = name,
                 price = templatePrice ?: 0,
+                preparationTimeSeconds = templateWorkSeconds ?: DEFAULT_PREPARATION_TIME_SECONDS,
                 isTemplateApplied = isTemplateApplied,
                 templateId = templateId,
                 categoryCode = categoryCode,
@@ -249,3 +251,5 @@ private fun SelectedIngredient.toNewRecipeInfo(): NewRecipeInfo? {
         else -> null
     }
 }
+
+private const val DEFAULT_PREPARATION_TIME_SECONDS = 90

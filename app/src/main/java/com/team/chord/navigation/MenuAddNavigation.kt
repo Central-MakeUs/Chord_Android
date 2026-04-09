@@ -28,10 +28,11 @@ private const val MENU_ADD_COMPLETE_ROUTE = "menu_add_complete"
 private const val ARG_MENU_NAME = "menuName"
 private const val ARG_IS_TEMPLATE_APPLIED = "isTemplateApplied"
 private const val ARG_TEMPLATE_PRICE = "templatePrice"
+private const val ARG_TEMPLATE_WORK_TIME = "templateWorkTime"
 private const val ARG_TEMPLATE_ID = "templateId"
 
 private const val MENU_ADD_DETAIL_ROUTE_PATTERN =
-    "$MENU_ADD_DETAIL_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_PRICE={$ARG_TEMPLATE_PRICE}"
+    "$MENU_ADD_DETAIL_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_PRICE={$ARG_TEMPLATE_PRICE}&$ARG_TEMPLATE_WORK_TIME={$ARG_TEMPLATE_WORK_TIME}"
 private const val MENU_ADD_INGREDIENT_INPUT_ROUTE_PATTERN =
     "$MENU_ADD_INGREDIENT_INPUT_ROUTE/{$ARG_MENU_NAME}/{$ARG_IS_TEMPLATE_APPLIED}?$ARG_TEMPLATE_ID={$ARG_TEMPLATE_ID}"
 
@@ -79,6 +80,7 @@ fun NavGraphBuilder.menuAddGraph(
                         name = template.menuName,
                         isTemplateApplied = true,
                         templatePrice = template.defaultSellingPrice,
+                        templateWorkSeconds = template.workTime,
                         templateId = template.templateId,
                         categoryCode = template.categoryCode,
                     )
@@ -87,6 +89,7 @@ fun NavGraphBuilder.menuAddGraph(
                         append(template.menuName.encodeForNavigation())
                         append("/true")
                         append("?$ARG_TEMPLATE_PRICE=${template.defaultSellingPrice}")
+                        append("&$ARG_TEMPLATE_WORK_TIME=${template.workTime}")
                     }
                     navController.navigate(route)
                 },
@@ -112,6 +115,10 @@ fun NavGraphBuilder.menuAddGraph(
                 navArgument(ARG_MENU_NAME) { type = NavType.StringType },
                 navArgument(ARG_IS_TEMPLATE_APPLIED) { type = NavType.BoolType },
                 navArgument(ARG_TEMPLATE_PRICE) {
+                    type = NavType.IntType
+                    defaultValue = 0
+                },
+                navArgument(ARG_TEMPLATE_WORK_TIME) {
                     type = NavType.IntType
                     defaultValue = 0
                 },

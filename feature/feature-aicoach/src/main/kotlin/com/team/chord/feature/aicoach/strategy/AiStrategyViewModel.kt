@@ -157,7 +157,7 @@ private fun Strategy.toRecommendedUi(): RecommendedStrategyUi =
             StrategyProgressStatus.NOT_STARTED -> StrategyState.NOT_STARTED
         },
         title = title,
-        description = type.toStrategyDescription(),
+        description = description.ifBlank { title },
         type = type,
     )
 
@@ -166,13 +166,6 @@ private fun Strategy.toHistoryUi(): StrategyHistoryItemUi =
         id = id,
         weekLabel = weekLabel ?: "전략 히스토리",
         title = title,
-        description = type.toStrategyDescription(),
+        description = description.ifBlank { title },
         type = type,
     )
-
-private fun String.toStrategyDescription(): String =
-    when (uppercase(Locale.ROOT)) {
-        "DANGER" -> "원가를 위험 메뉴 확인"
-        "HIGH_MARGIN" -> "우리 카페 고마진 메뉴 확인"
-        else -> "원가율 주의 메뉴 확인"
-    }

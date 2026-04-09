@@ -156,7 +156,6 @@ private fun SearchResultsSection(
         ) { result ->
             SearchResultItem(
                 name = result.name,
-                isAdded = result.isAdded,
                 onAddClick = { onResultClick(result.id) },
             )
         }

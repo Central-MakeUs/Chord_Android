@@ -8,6 +8,7 @@ sealed interface IngredientDetailUiState {
 
     data class Success(
         val ingredientDetail: IngredientDetailUi,
+        val toastMessage: String? = null,
     ) : IngredientDetailUiState
 
     data class Error(

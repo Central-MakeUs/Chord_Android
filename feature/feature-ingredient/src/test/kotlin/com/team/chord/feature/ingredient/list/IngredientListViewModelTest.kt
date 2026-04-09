@@ -3,6 +3,7 @@ package com.team.chord.feature.ingredient.list
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.ingredient.Ingredient
 import com.team.chord.core.domain.model.ingredient.IngredientCategory
+import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.ingredient.IngredientSearchResult
 import com.team.chord.core.domain.model.ingredient.PriceHistoryItem
 import com.team.chord.core.domain.model.ingredient.RecentSearch
@@ -22,6 +23,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -67,6 +69,19 @@ class IngredientListViewModelTest {
 
         assertFalse(viewModel.uiState.value.isAddIngredientNameDuplicate)
         assertTrue(viewModel.uiState.value.addIngredientName.isEmpty())
+    }
+
+    @Test
+    fun `filter toggle keeps a single active category`() = runTest {
+        val viewModel = createViewModel(FakeIngredientRepository())
+
+        advanceUntilIdle()
+        viewModel.onFilterToggle(IngredientFilter.FOOD_INGREDIENT)
+        assertTrue(viewModel.uiState.value.activeFilters.contains(IngredientFilter.FOOD_INGREDIENT))
+
+        viewModel.onFilterToggle(IngredientFilter.OPERATIONAL_SUPPLY)
+
+        assertEquals(setOf(IngredientFilter.OPERATIONAL_SUPPLY), viewModel.uiState.value.activeFilters)
     }
 
     private fun createViewModel(repository: FakeIngredientRepository): IngredientListViewModel =

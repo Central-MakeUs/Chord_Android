@@ -3,6 +3,8 @@ package com.team.chord.feature.setup.menudetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,15 +20,20 @@ class MenuDetailViewModel @Inject constructor(
     val uiState: StateFlow<MenuDetailUiState> = _uiState.asStateFlow()
 
     init {
-        val menuName = savedStateHandle.get<String>("menuName") ?: ""
+        val menuName = savedStateHandle.get<String>("menuName").decodeMenuName()
         val isTemplateApplied = savedStateHandle.get<Boolean>("isTemplateApplied") ?: false
         val templatePrice = savedStateHandle.get<Int>("templatePrice") ?: 0
+        val templateWorkTime = savedStateHandle.get<Int>("templateWorkTime") ?: 0
+        val preparationMinutes = if (isTemplateApplied && templateWorkTime > 0) templateWorkTime / 60 else 1
+        val preparationSeconds = if (isTemplateApplied && templateWorkTime > 0) templateWorkTime % 60 else 30
 
         _uiState.update {
             it.copy(
                 menuName = menuName,
                 isTemplateApplied = isTemplateApplied,
                 price = if (isTemplateApplied && templatePrice > 0) templatePrice.toString() else "",
+                preparationMinutes = preparationMinutes,
+                preparationSeconds = preparationSeconds,
             ).updateNextEnabled()
         }
     }
@@ -90,3 +97,6 @@ class MenuDetailViewModel @Inject constructor(
         _uiState.update { it.copy(showCategoryPicker = false) }
     }
 }
+
+private fun String?.decodeMenuName(): String =
+    this?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.name()) }.orEmpty()

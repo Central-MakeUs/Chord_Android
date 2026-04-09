@@ -38,6 +38,13 @@ class IngredientDetailViewModel @Inject constructor(
 
     fun hasChanges(): Boolean = hasChanges
 
+    fun consumeToastMessage() {
+        val currentState = _uiState.value
+        if (currentState is IngredientDetailUiState.Success && currentState.toastMessage != null) {
+            _uiState.value = currentState.copy(toastMessage = null)
+        }
+    }
+
     fun onFavoriteToggle() {
         viewModelScope.launch {
             val currentState = _uiState.value
@@ -87,49 +94,71 @@ class IngredientDetailViewModel @Inject constructor(
         }
     }
 
-    fun onUpdatePriceInfo(
+    fun onUpdateIngredientDetail(
         category: IngredientFilter,
         price: Int,
         unitAmount: Int,
         unit: IngredientUnit,
+        supplier: String,
     ) {
         viewModelScope.launch {
             val currentState = _uiState.value
             if (currentState !is IngredientDetailUiState.Success) return@launch
 
             val categoryCode = category.toCategoryCode()
-            when (updateIngredientUseCase.updateIngredient(
+            val ingredientResult = updateIngredientUseCase.updateIngredient(
                 ingredientId = ingredientId,
                 categoryCode = categoryCode,
                 price = price,
                 amount = unitAmount,
                 unitCode = unit.name,
-            )) {
-                is Result.Success -> {
-                    hasChanges = true
-                    _uiState.value = currentState.copy(
-                        ingredientDetail = currentState.ingredientDetail.copy(
-                            category = category,
-                            price = price,
-                            unitAmount = unitAmount,
-                            unit = unit,
-                        ),
-                    )
-                }
-                is Result.Error -> {
-                    // Keep current state, optionally show error
-                }
-                is Result.Loading -> {
-                    // No-op
-                }
+            )
+            if (ingredientResult !is Result.Success) return@launch
+
+            val supplierResult = if (currentState.ingredientDetail.supplier != supplier) {
+                updateIngredientUseCase.updateSupplier(ingredientId, supplier)
+            } else {
+                Result.Success(Unit)
             }
+            if (supplierResult !is Result.Success) return@launch
+
+            hasChanges = true
+            _uiState.value = currentState.copy(
+                ingredientDetail = currentState.ingredientDetail.copy(
+                    category = category,
+                    price = price,
+                    unitAmount = unitAmount,
+                    unit = unit,
+                    supplier = supplier,
+                ),
+                toastMessage = "재료 정보가 수정됐어요",
+            )
         }
+    }
+
+    fun onUpdatePriceInfo(
+        category: IngredientFilter,
+        price: Int,
+        unitAmount: Int,
+        unit: IngredientUnit,
+    ) {
+        val currentState = _uiState.value
+        if (currentState !is IngredientDetailUiState.Success) return
+
+        onUpdateIngredientDetail(
+            category = category,
+            price = price,
+            unitAmount = unitAmount,
+            unit = unit,
+            supplier = currentState.ingredientDetail.supplier,
+        )
     }
 
     fun onUpdateSupplier(supplier: String) {
         viewModelScope.launch {
             val currentState = _uiState.value
             if (currentState !is IngredientDetailUiState.Success) return@launch
+            if (currentState.ingredientDetail.supplier == supplier) return@launch
 
             when (updateIngredientUseCase.updateSupplier(ingredientId, supplier)) {
                 is Result.Success -> {
@@ -138,6 +167,7 @@ class IngredientDetailViewModel @Inject constructor(
                         ingredientDetail = currentState.ingredientDetail.copy(
                             supplier = supplier,
                         ),
+                        toastMessage = "공급업체가 수정됐어요",
                     )
                 }
                 is Result.Error -> {

@@ -8,6 +8,7 @@ import com.team.chord.core.domain.usecase.ingredient.AddIngredientToListUseCase
 import com.team.chord.core.domain.usecase.ingredient.CheckIngredientDuplicateUseCase
 import com.team.chord.core.domain.usecase.ingredient.DeleteIngredientUseCase
 import com.team.chord.core.domain.usecase.ingredient.GetIngredientListUseCase
+import com.team.chord.feature.ingredient.formatIngredientUnitLabel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -49,9 +50,9 @@ class IngredientListViewModel @Inject constructor(
     fun onFilterToggle(filter: IngredientFilter) {
         val currentFilters = _uiState.value.activeFilters
         val newFilters = if (currentFilters.contains(filter)) {
-            currentFilters - filter
+            emptySet()
         } else {
-            currentFilters + filter
+            setOf(filter)
         }
         _uiState.update {
             it.copy(
@@ -275,7 +276,10 @@ class IngredientListViewModel @Inject constructor(
                             id = ingredient.id,
                             name = ingredient.name,
                             price = ingredient.currentUnitPrice,
-                            usage = "사용량 ${ingredient.baseQuantity}${ingredient.unit.displayName}",
+                            usage = formatIngredientUnitLabel(
+                                unitAmount = ingredient.baseQuantity,
+                                unit = ingredient.unit,
+                            ),
                         )
                     }
                 }

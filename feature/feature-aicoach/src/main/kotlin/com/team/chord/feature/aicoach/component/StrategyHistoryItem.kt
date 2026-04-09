@@ -53,7 +53,7 @@ fun StrategyHistoryItem(
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             color = Grayscale600,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }
