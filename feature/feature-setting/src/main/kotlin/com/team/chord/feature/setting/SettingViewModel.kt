@@ -57,6 +57,10 @@ class SettingViewModel
             _uiState.update { it.copy(showLogoutDialog = true) }
         }
 
+        fun onNotificationsEnabledChanged(enabled: Boolean) {
+            _uiState.update { it.copy(notificationsEnabled = enabled) }
+        }
+
         fun onDismissLogoutDialog() {
             _uiState.update { it.copy(showLogoutDialog = false) }
         }

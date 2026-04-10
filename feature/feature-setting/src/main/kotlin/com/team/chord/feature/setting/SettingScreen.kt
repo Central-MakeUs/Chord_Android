@@ -38,6 +38,7 @@ import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.PretendardFontFamily
 import com.team.chord.feature.setting.component.SettingMenuRow
+import com.team.chord.feature.setting.component.SettingToggleRow
 import com.team.chord.feature.setting.component.StoreInfoCard
 
 @Composable
@@ -79,6 +80,7 @@ fun SettingScreen(
         onNavigateToFaq = onNavigateToFaq,
         onNavigateToTerms = onNavigateToTerms,
         onNavigateToWithdraw = onNavigateToWithdraw,
+        onNotificationsEnabledChanged = viewModel::onNotificationsEnabledChanged,
         onShowLogoutDialog = viewModel::onShowLogoutDialog,
         onDismissLogoutDialog = viewModel::onDismissLogoutDialog,
         onConfirmLogout = viewModel::onLogout,
@@ -94,6 +96,7 @@ internal fun SettingScreenContent(
     onNavigateToFaq: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToWithdraw: () -> Unit,
+    onNotificationsEnabledChanged: (Boolean) -> Unit,
     onShowLogoutDialog: () -> Unit,
     onDismissLogoutDialog: () -> Unit,
     onConfirmLogout: () -> Unit,
@@ -122,6 +125,18 @@ internal fun SettingScreenContent(
                 employeeCount = uiState.employeeCount,
                 laborCost = uiState.laborCost,
                 onEditClick = onNavigateToStoreEdit,
+            )
+
+            SettingToggleRow(
+                title = "알림",
+                checked = uiState.notificationsEnabled,
+                onCheckedChange = onNotificationsEnabledChanged,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = Grayscale100,
+                        shape = RoundedCornerShape(16.dp),
+                    ),
             )
 
             Column(
@@ -196,6 +211,7 @@ private fun SettingScreenContentPreview() {
         onNavigateToFaq = {},
         onNavigateToTerms = {},
         onNavigateToWithdraw = {},
+        onNotificationsEnabledChanged = {},
         onShowLogoutDialog = {},
         onDismissLogoutDialog = {},
         onConfirmLogout = {},
@@ -212,6 +228,7 @@ private fun SettingScreenContentWithDialogPreview() {
         onNavigateToFaq = {},
         onNavigateToTerms = {},
         onNavigateToWithdraw = {},
+        onNotificationsEnabledChanged = {},
         onShowLogoutDialog = {},
         onDismissLogoutDialog = {},
         onConfirmLogout = {},
