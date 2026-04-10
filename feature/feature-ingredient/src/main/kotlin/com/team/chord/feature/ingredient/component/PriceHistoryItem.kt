@@ -1,31 +1,31 @@
 package com.team.chord.feature.ingredient.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.team.chord.core.ui.theme.Grayscale400
-import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale100
+import com.team.chord.core.ui.theme.Grayscale300
+import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.core.ui.theme.PrimaryBlue500
-import java.text.NumberFormat
-import java.util.Locale
+import com.team.chord.core.ui.theme.PrimaryBlue100
+import com.team.chord.feature.ingredient.formatIngredientHistoryPriceText
 
 @Composable
 fun PriceHistoryItem(
@@ -37,60 +37,59 @@ fun PriceHistoryItem(
     isLast: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
-
     Row(
-        modifier = modifier.height(72.dp),
-        verticalAlignment = Alignment.Top,
+        modifier = modifier.padding(bottom = if (isLast) 0.dp else 32.dp),
     ) {
-        // Timeline indicator
-        Column(
-            modifier = Modifier
-                .width(24.dp)
-                .fillMaxHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            // Circle indicator
+        Column {
             Box(
                 modifier = Modifier
-                    .padding(top = 4.dp)
-                    .size(12.dp)
+                    .size(15.dp)
                     .background(
-                        color = if (isFirst) PrimaryBlue500 else Grayscale400,
+                        color = if (isFirst) PrimaryBlue100.copy(alpha = 0.4f) else Grayscale100,
+                        shape = CircleShape,
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = Grayscale300,
                         shape = CircleShape,
                     ),
             )
 
-            // Vertical line (not shown for last item)
             if (!isLast) {
                 Box(
                     modifier = Modifier
-                        .width(2.dp)
-                        .weight(1f)
-                        .background(Grayscale400),
+                        .padding(start = 7.dp)
+                        .width(1.dp)
+                        .height(49.dp)
+                        .background(Grayscale300),
                 )
             }
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
-        // Date and price content
         Column {
             Text(
                 text = date,
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Grayscale600,
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "${numberFormat.format(price)}원/${unitAmount}${unitDisplayName}",
-                fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
+                lineHeight = 26.sp,
+                color = Grayscale500,
+            )
+
+            Spacer(modifier = Modifier.height(if (isFirst) 6.dp else 4.dp))
+
+            Text(
+                text = formatIngredientHistoryPriceText(
+                    price = price,
+                    unitAmount = unitAmount,
+                    unitDisplayName = unitDisplayName,
+                ),
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                lineHeight = 26.sp,
                 color = Grayscale900,
             )
         }

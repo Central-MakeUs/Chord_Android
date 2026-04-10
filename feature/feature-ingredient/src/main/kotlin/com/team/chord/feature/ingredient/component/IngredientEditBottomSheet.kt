@@ -3,6 +3,7 @@ package com.team.chord.feature.ingredient.component
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.component.IngredientEditorBottomSheet
@@ -15,12 +16,10 @@ fun IngredientEditBottomSheet(
     price: String,
     amount: String,
     selectedUnit: IngredientUnit,
-    supplier: String,
     onFilterSelect: (IngredientFilter) -> Unit,
     onPriceChange: (String) -> Unit,
     onAmountChange: (String) -> Unit,
     onUnitSelect: (IngredientUnit) -> Unit,
-    onSupplierChange: (String) -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
@@ -45,13 +44,15 @@ fun IngredientEditBottomSheet(
         amountPlaceholder = "",
         unit = selectedUnit,
         onUnitChanged = onUnitSelect,
-        supplierLabel = "공급업체 (선택)",
-        supplier = supplier,
-        onSupplierChanged = onSupplierChange,
-        confirmText = "저장하기",
+        supplier = "",
+        onSupplierChanged = {},
+        confirmText = "수정",
         confirmEnabled = price.isNotBlank() && amount.isNotBlank(),
         onDismiss = onDismiss,
         onConfirm = onConfirm,
+        showDragHandle = false,
+        showSupplierField = false,
+        titleFontSize = 22.sp,
         modifier = modifier,
     )
 }
@@ -73,12 +74,10 @@ private fun IngredientEditBottomSheetPreview() {
         price = "5000",
         amount = "100",
         selectedUnit = IngredientUnit.G,
-        supplier = "쿠팡",
         onFilterSelect = {},
         onPriceChange = {},
         onAmountChange = {},
         onUnitSelect = {},
-        onSupplierChange = {},
         onConfirm = {},
         onDismiss = {},
     )

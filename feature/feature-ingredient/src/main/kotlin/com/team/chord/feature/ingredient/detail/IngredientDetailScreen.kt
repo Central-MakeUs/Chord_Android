@@ -3,25 +3,27 @@ package com.team.chord.feature.ingredient.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,10 +36,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,17 +57,17 @@ import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
 import com.team.chord.core.ui.theme.Grayscale400
+import com.team.chord.core.ui.theme.Grayscale500
 import com.team.chord.core.ui.theme.Grayscale600
+import com.team.chord.core.ui.theme.Grayscale700
 import com.team.chord.core.ui.theme.Grayscale900
 import com.team.chord.core.ui.theme.PretendardFontFamily
-import com.team.chord.core.ui.theme.PrimaryBlue100
 import com.team.chord.core.ui.theme.PrimaryBlue500
-import com.team.chord.feature.ingredient.component.SupplierEditBottomSheet
-import com.team.chord.feature.ingredient.formatIngredientPriceText
 import com.team.chord.feature.ingredient.component.IngredientEditBottomSheet
 import com.team.chord.feature.ingredient.component.PriceHistoryItem
+import com.team.chord.feature.ingredient.component.SupplierEditBottomSheet
 import com.team.chord.feature.ingredient.component.UsedMenuCard
-import java.util.Locale
+import com.team.chord.feature.ingredient.formatIngredientPriceText
 import com.team.chord.core.ui.R as CoreUiR
 
 @Composable
@@ -74,7 +78,6 @@ fun IngredientDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Handle deletion completion
     LaunchedEffect(uiState) {
         if (uiState is IngredientDetailUiState.Success) {
             val detail = (uiState as IngredientDetailUiState.Success).ingredientDetail
@@ -89,7 +92,7 @@ fun IngredientDetailScreen(
         onNavigateBack = { onNavigateBack(viewModel.hasChanges()) },
         onFavoriteToggle = viewModel::onFavoriteToggle,
         onDelete = viewModel::onDelete,
-        onUpdateIngredientDetail = viewModel::onUpdateIngredientDetail,
+        onUpdatePriceInfo = viewModel::onUpdatePriceInfo,
         onUpdateSupplier = viewModel::onUpdateSupplier,
         onToastShown = viewModel::consumeToastMessage,
         modifier = modifier,
@@ -102,7 +105,7 @@ internal fun IngredientDetailScreenContent(
     onNavigateBack: () -> Unit,
     onFavoriteToggle: () -> Unit,
     onDelete: () -> Unit,
-    onUpdateIngredientDetail: (IngredientFilter, Int, Int, IngredientUnit, String) -> Unit,
+    onUpdatePriceInfo: (IngredientFilter, Int, Int, IngredientUnit) -> Unit,
     onUpdateSupplier: (String) -> Unit,
     onToastShown: () -> Unit,
     modifier: Modifier = Modifier,
@@ -112,12 +115,11 @@ internal fun IngredientDetailScreenContent(
     var showSupplierSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Edit form states
     var editPrice by remember { mutableStateOf("") }
     var editAmount by remember { mutableStateOf("") }
     var editUnit by remember { mutableStateOf(IngredientUnit.G) }
     var editFilter by remember { mutableStateOf(IngredientFilter.FOOD_INGREDIENT) }
-    var editSupplier by remember { mutableStateOf("") }
+    var supplierName by remember { mutableStateOf("") }
 
     LaunchedEffect(uiState) {
         val message = (uiState as? IngredientDetailUiState.Success)?.toastMessage ?: return@LaunchedEffect
@@ -128,9 +130,10 @@ internal fun IngredientDetailScreenContent(
         onToastShown()
     }
 
-    androidx.compose.material3.Scaffold(
+    Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Grayscale100,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState) { data ->
                 ChordToast(
@@ -174,7 +177,7 @@ internal fun IngredientDetailScreenContent(
                         Text(
                             text = uiState.message,
                             fontFamily = PretendardFontFamily,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight.Medium,
                             fontSize = 16.sp,
                             color = Grayscale600,
                         )
@@ -182,23 +185,24 @@ internal fun IngredientDetailScreenContent(
                 }
 
                 is IngredientDetailUiState.Success -> {
+                    val ingredientDetail = uiState.ingredientDetail
+
                     IngredientDetailHeader(
-                        isFavorite = uiState.ingredientDetail.isFavorite,
+                        isFavorite = ingredientDetail.isFavorite,
                         onNavigateBack = onNavigateBack,
                         onFavoriteToggle = onFavoriteToggle,
                     )
                     IngredientDetailContent(
-                        ingredientDetail = uiState.ingredientDetail,
+                        ingredientDetail = ingredientDetail,
                         onEditClick = {
                             editPrice = uiState.ingredientDetail.price.toString()
                             editAmount = uiState.ingredientDetail.unitAmount.toString()
                             editUnit = uiState.ingredientDetail.unit
                             editFilter = uiState.ingredientDetail.category
-                            editSupplier = uiState.ingredientDetail.supplier
                             showEditSheet = true
                         },
                         onSupplierClick = {
-                            editSupplier = uiState.ingredientDetail.supplier
+                            supplierName = uiState.ingredientDetail.supplier
                             showSupplierSheet = true
                         },
                         onDeleteClick = { showDeleteDialog = true },
@@ -208,7 +212,6 @@ internal fun IngredientDetailScreenContent(
         }
     }
 
-    // Delete confirmation dialog
     if (showDeleteDialog) {
         ChordTwoButtonDialog(
             title = "재료를 삭제할까요?",
@@ -229,16 +232,14 @@ internal fun IngredientDetailScreenContent(
             price = editPrice,
             amount = editAmount,
             selectedUnit = editUnit,
-            supplier = editSupplier,
             onFilterSelect = { editFilter = it },
             onPriceChange = { editPrice = it },
             onAmountChange = { editAmount = it },
             onUnitSelect = { editUnit = it },
-            onSupplierChange = { editSupplier = it },
             onConfirm = {
                 val priceInt = editPrice.replace(",", "").toIntOrNull() ?: 0
                 val amountInt = editAmount.toIntOrNull() ?: 0
-                onUpdateIngredientDetail(editFilter, priceInt, amountInt, editUnit, editSupplier)
+                onUpdatePriceInfo(editFilter, priceInt, amountInt, editUnit)
                 showEditSheet = false
             },
             onDismiss = { showEditSheet = false },
@@ -247,11 +248,11 @@ internal fun IngredientDetailScreenContent(
 
     if (showSupplierSheet) {
         SupplierEditBottomSheet(
-            supplierName = editSupplier,
-            onSupplierNameChange = { editSupplier = it },
-            onClear = { editSupplier = "" },
+            supplierName = supplierName,
+            onSupplierNameChange = { supplierName = it },
+            onClear = { supplierName = "" },
             onConfirm = {
-                onUpdateSupplier(editSupplier)
+                onUpdateSupplier(supplierName)
                 showSupplierSheet = false
             },
             onDismiss = { showSupplierSheet = false },
@@ -269,16 +270,15 @@ private fun IngredientDetailHeader(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(48.dp)
+            .height(56.dp)
             .background(Grayscale100)
             .padding(horizontal = 20.dp),
     ) {
-        // Back button (left)
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .size(24.dp)
-                .clickable { onNavigateBack() },
+                .clickable(onClick = onNavigateBack),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
@@ -288,17 +288,16 @@ private fun IngredientDetailHeader(
             )
         }
 
-        // Favorite star (right)
         Box(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
-                .size(24.dp)
-                .clickable { onFavoriteToggle() },
+                .size(32.dp)
+                .clickable(onClick = onFavoriteToggle),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(
-                    if (isFavorite) CoreUiR.drawable.ic_star_filled else CoreUiR.drawable.ic_star_outline
+                    if (isFavorite) CoreUiR.drawable.ic_star_filled else CoreUiR.drawable.ic_star_outline,
                 ),
                 contentDescription = if (isFavorite) "즐겨찾기 해제" else "즐겨찾기",
                 tint = if (isFavorite) PrimaryBlue500 else Grayscale400,
@@ -307,7 +306,6 @@ private fun IngredientDetailHeader(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun IngredientDetailContent(
     ingredientDetail: IngredientDetailUi,
@@ -321,62 +319,104 @@ private fun IngredientDetailContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp),
+            .verticalScroll(scrollState),
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Ingredient info box with category, name, price, and supplier
+        IngredientInfoCard(
+            ingredientDetail = ingredientDetail,
+            onEditClick = onEditClick,
+            onSupplierClick = onSupplierClick,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        UsedMenuSection(
+            usedMenus = ingredientDetail.usedMenus,
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+                .background(Grayscale200),
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        PriceHistorySection(
+            priceHistory = ingredientDetail.priceHistory,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        ChordOutlinedButton(
+            text = "재료 삭제",
+            onClick = onDeleteClick,
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun IngredientInfoCard(
+    ingredientDetail: IngredientDetailUi,
+    onEditClick: () -> Unit,
+    onSupplierClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val cardShape = RoundedCornerShape(16.dp)
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        PrimaryBlue100.copy(alpha = 0.5f),
+                        Grayscale100,
+                    ),
+                ),
+                shape = cardShape,
+            )
+            .border(
+                width = 1.5.dp,
+                color = Grayscale300,
+                shape = cardShape,
+            ),
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    color = Grayscale100,
-                    shape = RoundedCornerShape(12.dp),
-                )
-                .border(
-                    width = 1.dp,
-                    color = Grayscale300,
-                    shape = RoundedCornerShape(12.dp),
-                )
-                .padding(16.dp),
+                .padding(24.dp),
         ) {
-            // Category tag
-            Box(
-                modifier = Modifier
-                    .background(
-                        color = PrimaryBlue100,
-                        shape = RoundedCornerShape(6.dp),
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    text = ingredientDetail.category.displayName,
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = PrimaryBlue500,
-                )
-            }
+            Text(
+                text = ingredientDetail.category.displayName,
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                color = Grayscale500,
+            )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Ingredient name
             Text(
                 text = ingredientDetail.name,
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Grayscale600,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Grayscale900,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Price row with arrow
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onEditClick() },
+                modifier = Modifier.clickable(onClick = onEditClick),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
@@ -387,138 +427,355 @@ private fun IngredientDetailContent(
                     ),
                     fontFamily = PretendardFontFamily,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 24.sp,
+                    fontSize = 22.sp,
                     color = Grayscale900,
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     painter = painterResource(CoreUiR.drawable.ic_edit),
-                    contentDescription = "가격 수정",
+                    contentDescription = "재료 정보 수정",
                     modifier = Modifier.size(20.dp),
-                    tint = Grayscale600,
+                    tint = Grayscale500,
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 24.dp),
+            thickness = 1.dp,
+            color = Grayscale300,
+        )
 
-            // Supplier row (inside the same card)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSupplierClick() },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onSupplierClick)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "공급업체",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Grayscale500,
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = ingredientDetail.supplier.ifBlank { "-" },
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
+                color = Grayscale700,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Spacer(modifier = Modifier.width(4.dp))
+
+            Icon(
+                painter = painterResource(CoreUiR.drawable.ic_chevron_right),
+                contentDescription = "공급업체 수정",
+                modifier = Modifier.size(16.dp),
+                tint = Grayscale500,
+            )
+        }
+    }
+}
+
+@Composable
+private fun UsedMenuSection(
+    usedMenus: List<UsedMenuUi>,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = buildAnnotatedString {
+                append("사용 중인 메뉴 ")
+                withStyle(SpanStyle(color = PrimaryBlue500)) {
+                    append(usedMenus.size.toString())
+                }
+            },
+            modifier = Modifier.padding(horizontal = 20.dp),
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp,
+            color = Grayscale900,
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        if (usedMenus.isNotEmpty()) {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 20.dp),
             ) {
-                Text(
-                    text = "공급업체",
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    color = Grayscale600,
-                )
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = ingredientDetail.supplier,
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp,
-                        color = Grayscale900,
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        painter = painterResource(CoreUiR.drawable.ic_chevron_right),
-                        contentDescription = "공급업체 수정",
-                        modifier = Modifier.size(16.dp),
-                        tint = Grayscale600,
+                items(
+                    items = usedMenus,
+                    key = { it.id },
+                ) { menu ->
+                    UsedMenuCard(
+                        menuName = menu.name,
+                        usageAmount = menu.usageAmount,
+                        modifier = Modifier.padding(end = 8.dp),
                     )
                 }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Used menus section
+@Composable
+private fun PriceHistorySection(
+    priceHistory: List<PriceHistoryUi>,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = buildAnnotatedString {
-                append("메뉴 ")
-                withStyle(SpanStyle(color = PrimaryBlue500)) {
-                    append("${ingredientDetail.usedMenus.size}")
-                }
-                append("개에")
-            },
+            text = "변동 이력",
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             color = Grayscale900,
         )
+
+        if (priceHistory.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            priceHistory.forEachIndexed { index, history ->
+                PriceHistoryItem(
+                    date = history.date,
+                    price = history.price,
+                    unitAmount = history.unitAmount,
+                    unitDisplayName = history.unitDisplayName,
+                    isFirst = index == 0,
+                    isLast = index == priceHistory.lastIndex,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun IngredientInfoCard(
+    ingredientDetail: IngredientDetailUi,
+    onEditClick: () -> Unit,
+    onSupplierClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                color = Grayscale100,
+                shape = RoundedCornerShape(20.dp),
+            )
+            .border(
+                width = 1.dp,
+                color = Grayscale300,
+                shape = RoundedCornerShape(20.dp),
+            )
+            .padding(horizontal = 20.dp, vertical = 20.dp),
+    ) {
         Text(
-            text = "사용되고 있어요",
+            text = ingredientDetail.category.displayName,
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 14.sp,
+            color = Grayscale600,
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = ingredientDetail.name,
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
+            fontSize = 18.sp,
             color = Grayscale900,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Used menu cards
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+        Row(
+            modifier = Modifier
+                .clickable(onClick = onEditClick),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            ingredientDetail.usedMenus.forEach { menu ->
-                UsedMenuCard(
-                    menuName = menu.name,
-                    usageAmount = menu.usageAmount,
-                )
-            }
+            Text(
+                text = formatIngredientDetailPriceText(
+                    price = ingredientDetail.price,
+                    unitAmount = ingredientDetail.unitAmount,
+                    unit = ingredientDetail.unit,
+                ),
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 18.sp,
+                color = Grayscale900,
+            )
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            Icon(
+                painter = painterResource(CoreUiR.drawable.ic_edit),
+                contentDescription = "재료 수정",
+                modifier = Modifier.size(18.dp),
+                tint = Grayscale500,
+            )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        // Divider
         HorizontalDivider(
             color = Grayscale200,
             thickness = 1.dp,
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
-        // Price history section
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onSupplierClick),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "공급업체",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 16.sp,
+                color = Grayscale600,
+            )
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = ingredientDetail.supplier.ifBlank { "-" },
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 16.sp,
+                    color = Grayscale900,
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Icon(
+                    painter = painterResource(CoreUiR.drawable.ic_chevron_right),
+                    contentDescription = "공급업체 수정",
+                    modifier = Modifier.size(16.dp),
+                    tint = Grayscale500,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UsedMenuSection(
+    usedMenus: List<UsedMenuUi>,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Text(
+            text = buildAnnotatedString {
+                append("사용 중인 메뉴 ")
+                withStyle(style = SpanStyle(color = PrimaryBlue500)) {
+                    append(usedMenus.size.toString())
+                }
+            },
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 22.sp,
+            color = Grayscale900,
+        )
+
+        if (usedMenus.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                items(
+                    items = usedMenus,
+                    key = { it.id },
+                ) { menu ->
+                    UsedMenuCard(
+                        menuName = menu.name,
+                        usageAmount = menu.usageAmount,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PriceHistorySection(
+    priceHistory: List<PriceHistoryUi>,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = "변동 이력",
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 16.sp,
+            fontSize = 22.sp,
             color = Grayscale900,
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        if (priceHistory.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(16.dp))
 
-        // Price history items
-        ingredientDetail.priceHistory.forEachIndexed { index, history ->
-            PriceHistoryItem(
-                date = history.date,
-                price = history.price,
-                unitAmount = history.unitAmount,
-                unitDisplayName = history.unitDisplayName,
-                isFirst = index == 0,
-                isLast = index == ingredientDetail.priceHistory.lastIndex,
-            )
+            priceHistory.forEachIndexed { index, history ->
+                PriceHistoryItem(
+                    date = history.date,
+                    price = history.price,
+                    unitAmount = history.unitAmount,
+                    unitDisplayName = history.unitDisplayName,
+                    isFirst = index == 0,
+                    isLast = index == priceHistory.lastIndex,
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Delete button
-        ChordOutlinedButton(
-            text = "재료 삭제",
-            onClick = onDeleteClick,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
+}
+
+@Composable
+private fun SectionDivider(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(8.dp)
+            .background(
+                color = Grayscale200,
+                shape = RoundedCornerShape(999.dp),
+            ),
+    )
+}
+
+private fun canConfirmIngredientEdit(
+    ingredientDetail: IngredientDetailUi,
+    editFilter: IngredientFilter,
+    editPrice: String,
+    editAmount: String,
+    editUnit: IngredientUnit,
+): Boolean {
+    if (editPrice.isBlank() || editAmount.isBlank()) return false
+
+    return ingredientDetail.category != editFilter ||
+        ingredientDetail.price.toString() != editPrice ||
+        ingredientDetail.unitAmount.toString() != editAmount ||
+        ingredientDetail.unit != editUnit
+}
+
+private fun formatIngredientDetailPriceText(
+    price: Int,
+    unitAmount: Int,
+    unit: IngredientUnit,
+): String {
+    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
+    return "${numberFormat.format(price)}원 / ${unitAmount}${unit.displayName}"
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -536,10 +793,10 @@ private fun IngredientDetailScreenPreview() {
                 supplier = "쿠팡",
                 isFavorite = false,
                 usedMenus = listOf(
-                    UsedMenuUi(1L, "아메리카노", "10g"),
-                    UsedMenuUi(2L, "카페라떼", "10g"),
-                    UsedMenuUi(3L, "돌체라떼", "10g"),
-                    UsedMenuUi(4L, "아인슈페너", "10g"),
+                    UsedMenuUi(1L, "라이트 키위 라임 블렌디드", "100g"),
+                    UsedMenuUi(2L, "라이트 키위 라임 블렌디드", "100g"),
+                    UsedMenuUi(3L, "라이트 키위 라임 블렌디드", "100g"),
+                    UsedMenuUi(4L, "라이트 키위 라임 블렌디드", "100g"),
                 ),
                 priceHistory = listOf(
                     PriceHistoryUi(1L, "25.11.12", 5000, 100, "g"),
@@ -552,7 +809,7 @@ private fun IngredientDetailScreenPreview() {
         onNavigateBack = {},
         onFavoriteToggle = {},
         onDelete = {},
-        onUpdateIngredientDetail = { _, _, _, _, _ -> },
+        onUpdatePriceInfo = { _, _, _, _ -> },
         onUpdateSupplier = {},
         onToastShown = {},
     )
@@ -566,7 +823,7 @@ private fun IngredientDetailScreenLoadingPreview() {
         onNavigateBack = {},
         onFavoriteToggle = {},
         onDelete = {},
-        onUpdateIngredientDetail = { _, _, _, _, _ -> },
+        onUpdatePriceInfo = { _, _, _, _ -> },
         onUpdateSupplier = {},
         onToastShown = {},
     )

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.TextUnit
 import com.team.chord.core.domain.model.menu.IngredientUnit
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
@@ -110,6 +111,7 @@ fun IngredientEditorBottomSheet(
     supplierLabel: String = "공급업체 (선택)",
     supplier: String,
     onSupplierChanged: (String) -> Unit,
+    showSupplierField: Boolean = true,
     confirmText: String,
     confirmEnabled: Boolean,
     onDismiss: () -> Unit,
@@ -121,6 +123,8 @@ fun IngredientEditorBottomSheet(
     showDragHandle: Boolean = true,
     variant: IngredientEditorBottomSheetVariant = IngredientEditorBottomSheetVariant.FullForm,
     infoCard: IngredientEditorInfoCard? = null,
+    showSupplierField: Boolean = true,
+    titleFontSize: TextUnit = 18.sp,
     isCategoryEditable: Boolean = true,
     isPriceEditable: Boolean = true,
     isPurchaseAmountEditable: Boolean = true,
@@ -178,7 +182,7 @@ fun IngredientEditorBottomSheet(
                 text = title,
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
+                fontSize = titleFontSize,
                 color = Grayscale900,
             )
 
@@ -252,17 +256,19 @@ fun IngredientEditorBottomSheet(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    if (showSupplierField) {
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                    IngredientEditorFieldLabel(text = supplierLabel)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    IngredientEditorUnderlineField(
-                        value = supplier,
-                        onValueChange = onSupplierChanged,
-                        placeholder = "공급업체명 입력",
-                        enabled = isSupplierEditable,
-                        readOnlyValue = supplier.ifEmpty { "-" },
-                    )
+                        IngredientEditorFieldLabel(text = supplierLabel)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        IngredientEditorUnderlineField(
+                            value = supplier,
+                            onValueChange = onSupplierChanged,
+                            placeholder = "공급업체명 입력",
+                            enabled = isSupplierEditable,
+                            readOnlyValue = supplier.ifEmpty { "-" },
+                        )
+                    }
                 }
 
                 IngredientEditorBottomSheetVariant.UsageWithInfo -> {
