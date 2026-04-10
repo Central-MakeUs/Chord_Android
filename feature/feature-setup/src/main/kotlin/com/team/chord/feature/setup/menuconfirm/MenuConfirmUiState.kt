@@ -1,28 +1,9 @@
 package com.team.chord.feature.setup.menuconfirm
 
-/**
- * UI State for MenuConfirmScreen
- */
+typealias RegisteredMenuSummary = com.team.chord.feature.menuadd.shared.confirm.RegisteredMenuSummary
+typealias IngredientSummary = com.team.chord.feature.menuadd.shared.confirm.IngredientSummary
+
 data class MenuConfirmUiState(
-    val registeredMenus: List<RegisteredMenuSummary> = emptyList(),
+    val registeredMenu: RegisteredMenuSummary? = null,
     val isRegistering: Boolean = false,
-)
-
-/**
- * Summary of a registered menu for display
- */
-data class RegisteredMenuSummary(
-    val index: Int,
-    val name: String,
-    val price: Int,
-    val ingredients: List<IngredientSummary>,
-)
-
-/**
- * Summary of an ingredient within a menu
- */
-data class IngredientSummary(
-    val name: String,
-    val amount: String,
-    val price: Int,
 )

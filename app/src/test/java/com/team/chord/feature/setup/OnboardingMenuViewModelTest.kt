@@ -23,6 +23,21 @@ import org.junit.Test
 class OnboardingMenuViewModelTest {
 
     @Test
+    fun setDefaultCategory_updatesOwnerDefaultWithoutInjectingDraftCategoryCode() {
+        val repository = FakeMenuRepository()
+        val viewModel = OnboardingMenuViewModel(repository)
+
+        viewModel.setDefaultCategory(MenuCategory.FOOD)
+        viewModel.startNewMenu(
+            name = "바질 파스타",
+            isTemplateApplied = false,
+        )
+
+        assertEquals(MenuCategory.FOOD, viewModel.defaultCategory)
+        assertEquals(null, viewModel.currentMenuDraft.value?.categoryCode)
+    }
+
+    @Test
     fun registerMenus_treatsNewIngredientsWithTemporaryIdsAsNewRecipes() = runBlocking {
         val repository = FakeMenuRepository()
         val viewModel = OnboardingMenuViewModel(repository)
@@ -71,6 +86,26 @@ class OnboardingMenuViewModelTest {
         assertEquals(1, call.recipes?.size)
         assertEquals(1, call.newRecipes?.size)
         assertEquals("새 시럽", call.newRecipes?.first()?.ingredientName)
+    }
+
+    @Test
+    fun completeCurrentMenu_replacesPreviouslyRegisteredMenu() {
+        val repository = FakeMenuRepository()
+        val viewModel = OnboardingMenuViewModel(repository)
+
+        viewModel.startNewMenu(name = "첫 메뉴", isTemplateApplied = false, categoryCode = "BEVERAGE")
+        viewModel.updateMenuDetail(price = 4000, category = MenuCategory.BEVERAGE, preparationSeconds = 60)
+        viewModel.addIngredients(emptyList())
+        viewModel.completeCurrentMenu()
+
+        viewModel.startNewMenu(name = "둘째 메뉴", isTemplateApplied = false, categoryCode = "FOOD")
+        viewModel.updateMenuDetail(price = 7000, category = MenuCategory.FOOD, preparationSeconds = 120)
+        viewModel.addIngredients(emptyList())
+        viewModel.completeCurrentMenu()
+
+        val summary = viewModel.getRegisteredMenuSummary()
+        requireNotNull(summary)
+        assertEquals("둘째 메뉴", summary.name)
     }
 
     @Test

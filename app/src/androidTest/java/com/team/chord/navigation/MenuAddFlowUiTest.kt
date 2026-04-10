@@ -22,14 +22,11 @@ class MenuAddFlowUiTest {
     fun menuAddConfirmScreen_rendersPrimaryActions() {
         composeRule.setContent {
             MenuAddConfirmScreen(
-                registeredMenus = listOf(
-                    RegisteredMenuSummary(
-                        index = 1,
-                        name = "흑임자 라떼",
-                        price = 6500,
-                        ingredients = listOf(
-                            IngredientSummary(name = "원두", amount = "30g", price = 1200),
-                        ),
+                registeredMenu = RegisteredMenuSummary(
+                    name = "흑임자 라떼",
+                    price = 6500,
+                    ingredients = listOf(
+                        IngredientSummary(name = "원두", amount = "30g", price = 1200),
                     ),
                 ),
                 onNavigateBack = {},

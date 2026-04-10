@@ -143,8 +143,6 @@ fun NavController.navigateToSetupComplete(navOptions: NavOptions? = null) {
  * StoreInfoScreen -> MenuSuggestionScreen -> MenuSearchScreen -> MenuDetailScreen
  *     -> IngredientInputScreen -> MenuConfirmScreen -> SetupCompleteScreen
  *
- * From MenuConfirmScreen, user can go back to MenuSearchScreen to add more menus.
- *
  * @param navController The navigation controller
  * @param onSetupComplete Callback when setup is complete and user should navigate to home
  */
@@ -311,7 +309,7 @@ fun NavGraphBuilder.setupGraph(
             )
         }
 
-        // Menu Confirm Screen (review registered menus)
+        // Menu Confirm Screen (review registered menu)
         composable(route = MENU_CONFIRM_ROUTE) { backStackEntry ->
             // Get shared ViewModel from navigation graph scope
             val parentEntry = remember(backStackEntry) {
@@ -320,7 +318,7 @@ fun NavGraphBuilder.setupGraph(
             val onboardingViewModel: OnboardingMenuViewModel = hiltViewModel(parentEntry)
 
             MenuConfirmScreen(
-                registeredMenus = onboardingViewModel.getRegisteredMenuSummaries(),
+                registeredMenu = onboardingViewModel.getRegisteredMenuSummary(),
                 onNavigateBack = {
                     navController.popBackStack()
                 },

@@ -23,7 +23,22 @@ import org.junit.Test
 class MenuAddFlowViewModelTest {
 
     @Test
-    fun completeCurrentMenu_appendsRegisteredMenuSummary() {
+    fun startNewMenu_usesInitialCategoryCodeWhenExplicitCodeMissing() {
+        val repository = FakeMenuRepository()
+        val viewModel = MenuAddFlowViewModel(repository)
+
+        viewModel.setInitialCategoryCode("FOOD")
+        viewModel.startNewMenu(
+            name = "바질 파스타",
+            isTemplateApplied = false,
+        )
+
+        assertEquals("FOOD", viewModel.initialCategoryCode)
+        assertEquals("FOOD", viewModel.currentMenuDraft.value?.categoryCode)
+    }
+
+    @Test
+    fun completeCurrentMenu_setsRegisteredMenuSummary() {
         val repository = FakeMenuRepository()
         val viewModel = MenuAddFlowViewModel(repository)
 
@@ -57,11 +72,31 @@ class MenuAddFlowViewModelTest {
 
         viewModel.completeCurrentMenu()
 
-        val summaries = viewModel.getRegisteredMenuSummaries()
-        assertEquals(1, summaries.size)
-        assertEquals("흑임자 라떼", summaries.first().name)
-        assertEquals(6500, summaries.first().price)
-        assertEquals("흑임자 토핑", summaries.first().ingredients.first().name)
+        val summary = viewModel.getRegisteredMenuSummary()
+        requireNotNull(summary)
+        assertEquals("흑임자 라떼", summary.name)
+        assertEquals(6500, summary.price)
+        assertEquals("흑임자 토핑", summary.ingredients.first().name)
+    }
+
+    @Test
+    fun completeCurrentMenu_replacesPreviouslyRegisteredMenu() {
+        val repository = FakeMenuRepository()
+        val viewModel = MenuAddFlowViewModel(repository)
+
+        viewModel.startNewMenu(name = "첫 메뉴", isTemplateApplied = false, categoryCode = "BEVERAGE")
+        viewModel.updateMenuDetail(price = 4000, category = MenuCategory.BEVERAGE, preparationSeconds = 60)
+        viewModel.addIngredients(emptyList())
+        viewModel.completeCurrentMenu()
+
+        viewModel.startNewMenu(name = "둘째 메뉴", isTemplateApplied = false, categoryCode = "FOOD")
+        viewModel.updateMenuDetail(price = 7000, category = MenuCategory.FOOD, preparationSeconds = 120)
+        viewModel.addIngredients(emptyList())
+        viewModel.completeCurrentMenu()
+
+        val summary = viewModel.getRegisteredMenuSummary()
+        requireNotNull(summary)
+        assertEquals("둘째 메뉴", summary.name)
     }
 
     @Test

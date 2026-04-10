@@ -25,7 +25,7 @@ class SetupMenuConfirmUiTest {
     fun menuConfirmScreen_rendersPrimaryMenuSummary() {
         composeRule.setContent {
             MenuConfirmScreen(
-                registeredMenus = listOf(sampleMenuSummary),
+                registeredMenu = sampleMenuSummary,
                 onNavigateBack = {},
                 onComplete = {},
                 onRegisterMenus = { Result.Success(Unit) },
@@ -45,7 +45,7 @@ class SetupMenuConfirmUiTest {
     fun menuConfirmScreen_disablesFinishButtonWithoutMenu() {
         composeRule.setContent {
             MenuConfirmScreen(
-                registeredMenus = emptyList(),
+                registeredMenu = null,
                 onNavigateBack = {},
                 onComplete = {},
                 onRegisterMenus = { Result.Success(Unit) },
@@ -62,7 +62,7 @@ class SetupMenuConfirmUiTest {
 
         composeRule.setContent {
             MenuConfirmScreen(
-                registeredMenus = listOf(sampleMenuSummary),
+                registeredMenu = sampleMenuSummary,
                 onNavigateBack = {},
                 onComplete = {},
                 onRegisterMenus = { pendingResult.await() },
@@ -79,7 +79,6 @@ class SetupMenuConfirmUiTest {
 
     private companion object {
         val sampleMenuSummary = RegisteredMenuSummary(
-            index = 1,
             name = "흑임자 라떼",
             price = 6500,
             ingredients = listOf(

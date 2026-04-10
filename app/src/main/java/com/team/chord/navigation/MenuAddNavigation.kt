@@ -188,7 +188,7 @@ fun NavGraphBuilder.menuAddGraph(
             val menuAddFlowViewModel: MenuAddFlowViewModel = hiltViewModel(parentEntry)
 
             MenuAddConfirmScreen(
-                registeredMenus = menuAddFlowViewModel.getRegisteredMenuSummaries(),
+                registeredMenu = menuAddFlowViewModel.getRegisteredMenuSummary(),
                 onNavigateBack = {
                     navController.popBackStack()
                 },

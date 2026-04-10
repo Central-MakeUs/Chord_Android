@@ -18,6 +18,7 @@ import com.team.chord.core.domain.model.menu.TemplateIngredient
 import com.team.chord.core.domain.repository.IngredientRepository
 import com.team.chord.core.domain.repository.MenuRepository
 import com.team.chord.core.domain.usecase.ingredient.SearchIngredientUseCase
+import com.team.chord.core.domain.usecase.ingredient.CheckIngredientDuplicateUseCase
 import com.team.chord.core.domain.usecase.menu.GetTemplateIngredientsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,6 +32,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -102,14 +104,80 @@ class IngredientInputViewModelTest {
         assertEquals("쿠팡", updated.supplier)
     }
 
-    private fun createViewModel(): IngredientInputViewModel {
+    @Test
+    fun `existing ingredient edit modal locks non usage fields`() = runTest {
+        val viewModel = createViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(
+                    "isTemplateApplied" to true,
+                    "templateId" to 1L,
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        viewModel.onEditIngredient(viewModel.uiState.value.selectedIngredients.first())
+
+        val bottomSheetState = viewModel.uiState.value.bottomSheetIngredient
+        requireNotNull(bottomSheetState)
+
+        assertTrue(bottomSheetState.isExistingIngredientLayout)
+        assertFalse(bottomSheetState.isCategoryEditable)
+        assertFalse(bottomSheetState.isPriceEditable)
+        assertFalse(bottomSheetState.isPurchaseAmountEditable)
+        assertFalse(bottomSheetState.isUnitEditable)
+        assertFalse(bottomSheetState.isSupplierEditable)
+        assertEquals("사용량", bottomSheetState.usageLabel)
+        assertEquals("1000g당 16,000원", bottomSheetState.unitPriceText)
+        assertEquals("-", bottomSheetState.supplierText)
+    }
+
+    @Test
+    fun `editing existing ingredient only updates usage amount`() = runTest {
+        val viewModel = createViewModel(
+            savedStateHandle = SavedStateHandle(
+                mapOf(
+                    "isTemplateApplied" to true,
+                    "templateId" to 1L,
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        val original = viewModel.uiState.value.selectedIngredients.first()
+
+        viewModel.onEditIngredient(original)
+        viewModel.onBottomSheetCategoryChanged("MATERIALS")
+        viewModel.onBottomSheetPriceChanged("9999")
+        viewModel.onBottomSheetPurchaseAmountChanged("500")
+        viewModel.onBottomSheetUnitChanged(IngredientUnit.EA)
+        viewModel.onBottomSheetSupplierChanged("새 공급처")
+        viewModel.onBottomSheetAmountChanged("45")
+        viewModel.onConfirmIngredient()
+
+        val updated = viewModel.uiState.value.selectedIngredients.first()
+        assertEquals(45, updated.amount)
+        assertEquals(original.categoryCode, updated.categoryCode)
+        assertEquals(original.price, updated.price)
+        assertEquals(original.baseQuantity, updated.baseQuantity)
+        assertEquals(original.unit, updated.unit)
+        assertEquals(original.supplier, updated.supplier)
+        assertEquals(original.unitPrice, updated.unitPrice)
+    }
+
+    private fun createViewModel(
+        savedStateHandle: SavedStateHandle = SavedStateHandle(),
+    ): IngredientInputViewModel {
         val ingredientRepository = FakeIngredientRepository()
         val menuRepository = FakeMenuRepository()
 
         return IngredientInputViewModel(
-            savedStateHandle = SavedStateHandle(),
+            savedStateHandle = savedStateHandle,
             searchIngredientUseCase = SearchIngredientUseCase(ingredientRepository),
             getTemplateIngredientsUseCase = GetTemplateIngredientsUseCase(menuRepository),
+            checkIngredientDuplicateUseCase = CheckIngredientDuplicateUseCase(ingredientRepository),
         )
     }
 }
@@ -164,7 +232,31 @@ private class FakeMenuRepository : MenuRepository {
 
     override suspend fun getTemplateBasic(templateId: Long): MenuTemplate? = null
 
-    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> = emptyList()
+    override suspend fun getTemplateIngredients(templateId: Long): List<TemplateIngredient> {
+        if (templateId != 1L) return emptyList()
+        return listOf(
+            TemplateIngredient(
+                ingredientId = null,
+                ingredientName = "원두",
+                usageAmount = 30.0,
+                defaultCost = 800,
+                unitPrice = 16000,
+                baseQuantity = 1000,
+                unitCode = "G",
+                ingredientCategoryCode = "INGREDIENTS",
+            ),
+            TemplateIngredient(
+                ingredientId = 1002L,
+                ingredientName = "코코아 파우더",
+                usageAmount = 20.0,
+                defaultCost = 500,
+                unitPrice = 5000,
+                baseQuantity = 100,
+                unitCode = "G",
+                ingredientCategoryCode = "INGREDIENTS",
+            ),
+        )
+    }
 
     override suspend fun checkMenuDuplicate(menuName: String, ingredientNames: List<String>?): CheckDupResult =
         CheckDupResult(

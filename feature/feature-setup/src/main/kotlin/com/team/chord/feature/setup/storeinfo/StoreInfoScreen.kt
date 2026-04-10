@@ -173,7 +173,9 @@ private fun StoreNameInputContent(
     onStoreNameChanged: (String) -> Unit,
     onStoreNameConfirmed: () -> Unit,
 ) {
-    Column {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+    ) {
         ChordLabeledUnderlineTextField(
             label = "매장명",
             value = storeName,
@@ -184,6 +186,15 @@ private fun StoreNameInputContent(
                     onStoreNameConfirmed()
                 }
             },
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        ChordLargeButton(
+            text = "다음",
+            onClick = onStoreNameConfirmed,
+            enabled = storeName.isNotBlank(),
+            modifier = Modifier.padding(bottom = 32.dp),
         )
     }
 }

@@ -7,6 +7,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.feature.featureMenuaddShared)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }
