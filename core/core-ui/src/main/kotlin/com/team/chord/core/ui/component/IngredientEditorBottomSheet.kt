@@ -111,7 +111,6 @@ fun IngredientEditorBottomSheet(
     supplierLabel: String = "공급업체 (선택)",
     supplier: String,
     onSupplierChanged: (String) -> Unit,
-    showSupplierField: Boolean = true,
     confirmText: String,
     confirmEnabled: Boolean,
     onDismiss: () -> Unit,
@@ -507,24 +506,10 @@ private fun PurchaseUnitSelector(
             modifier = Modifier
                 .clip(RoundedCornerShape(12.dp))
                 .clickable(enabled = enabled) { expanded = true }
+                .background(Grayscale100, RoundedCornerShape(12.dp))
                 .padding(start = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .height(28.dp)
-                    .background(Grayscale300),
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(
-                text = "단위",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 16.sp,
-                color = Grayscale500,
-            )
-            Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = selectedUnit.displayName,
                 fontFamily = PretendardFontFamily,
@@ -549,6 +534,10 @@ private fun PurchaseUnitSelector(
             offset = DpOffset(0.dp, 4.dp),
             modifier = Modifier
                 .width(92.dp)
+                .background(
+                    color = Grayscale100,
+                    shape = RoundedCornerShape(16.dp),
+                )
                 .shadow(
                     elevation = 12.dp,
                     shape = RoundedCornerShape(16.dp),
@@ -562,6 +551,7 @@ private fun PurchaseUnitSelector(
         ) {
             availableUnits.forEachIndexed { index, unit ->
                 DropdownMenuItem(
+                    modifier = Modifier.background(Grayscale100),
                     text = {
                         Box(
                             modifier = Modifier.fillMaxWidth(),

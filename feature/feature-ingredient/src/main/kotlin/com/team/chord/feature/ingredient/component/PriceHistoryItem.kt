@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,11 +39,13 @@ fun PriceHistoryItem(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier = modifier.padding(bottom = if (isLast) 0.dp else 32.dp),
+        modifier = modifier,
+        verticalAlignment = Alignment.Top,
     ) {
         Column {
             Box(
                 modifier = Modifier
+                    .padding(top = 6.dp)
                     .size(15.dp)
                     .background(
                         color = if (isFirst) PrimaryBlue100.copy(alpha = 0.4f) else Grayscale100,
@@ -60,7 +63,7 @@ fun PriceHistoryItem(
                     modifier = Modifier
                         .padding(start = 7.dp)
                         .width(1.dp)
-                        .height(49.dp)
+                        .height(69.dp)
                         .background(Grayscale300),
                 )
             }

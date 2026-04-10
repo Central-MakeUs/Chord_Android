@@ -3,6 +3,7 @@ package com.team.chord.feature.ingredient.component
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
@@ -50,6 +51,7 @@ fun IngredientEditBottomSheet(
         confirmEnabled = price.isNotBlank() && amount.isNotBlank(),
         onDismiss = onDismiss,
         onConfirm = onConfirm,
+        contentTopPadding = 40.dp,
         showDragHandle = false,
         showSupplierField = false,
         titleFontSize = 22.sp,

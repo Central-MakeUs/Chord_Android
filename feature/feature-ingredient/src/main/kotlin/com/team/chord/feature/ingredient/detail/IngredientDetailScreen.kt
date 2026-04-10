@@ -3,9 +3,9 @@ package com.team.chord.feature.ingredient.detail
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -50,9 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team.chord.core.domain.model.ingredient.IngredientFilter
 import com.team.chord.core.domain.model.menu.IngredientUnit
-import com.team.chord.core.ui.component.ChordOutlinedButton
 import com.team.chord.core.ui.component.ChordToast
-import com.team.chord.core.ui.component.ChordTwoButtonDialog
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale300
@@ -67,7 +64,9 @@ import com.team.chord.feature.ingredient.component.IngredientEditBottomSheet
 import com.team.chord.feature.ingredient.component.PriceHistoryItem
 import com.team.chord.feature.ingredient.component.SupplierEditBottomSheet
 import com.team.chord.feature.ingredient.component.UsedMenuCard
-import com.team.chord.feature.ingredient.formatIngredientPriceText
+import com.team.chord.feature.ingredient.formatIngredientUnitLabel
+import java.text.NumberFormat
+import java.util.Locale
 import com.team.chord.core.ui.R as CoreUiR
 
 @Composable
@@ -91,7 +90,6 @@ fun IngredientDetailScreen(
         uiState = uiState,
         onNavigateBack = { onNavigateBack(viewModel.hasChanges()) },
         onFavoriteToggle = viewModel::onFavoriteToggle,
-        onDelete = viewModel::onDelete,
         onUpdatePriceInfo = viewModel::onUpdatePriceInfo,
         onUpdateSupplier = viewModel::onUpdateSupplier,
         onToastShown = viewModel::consumeToastMessage,
@@ -104,13 +102,11 @@ internal fun IngredientDetailScreenContent(
     uiState: IngredientDetailUiState,
     onNavigateBack: () -> Unit,
     onFavoriteToggle: () -> Unit,
-    onDelete: () -> Unit,
     onUpdatePriceInfo: (IngredientFilter, Int, Int, IngredientUnit) -> Unit,
     onUpdateSupplier: (String) -> Unit,
     onToastShown: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    var showDeleteDialog by remember { mutableStateOf(false) }
     var showEditSheet by remember { mutableStateOf(false) }
     var showSupplierSheet by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
@@ -205,24 +201,10 @@ internal fun IngredientDetailScreenContent(
                             supplierName = uiState.ingredientDetail.supplier
                             showSupplierSheet = true
                         },
-                        onDeleteClick = { showDeleteDialog = true },
                     )
                 }
             }
         }
-    }
-
-    if (showDeleteDialog) {
-        ChordTwoButtonDialog(
-            title = "재료를 삭제할까요?",
-            onDismiss = { showDeleteDialog = false },
-            onConfirm = {
-                showDeleteDialog = false
-                onDelete()
-            },
-            dismissText = "취소하기",
-            confirmText = "삭제하기",
-        )
     }
 
     if (showEditSheet && uiState is IngredientDetailUiState.Success) {
@@ -311,7 +293,6 @@ private fun IngredientDetailContent(
     ingredientDetail: IngredientDetailUi,
     onEditClick: () -> Unit,
     onSupplierClick: () -> Unit,
-    onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
@@ -321,8 +302,6 @@ private fun IngredientDetailContent(
             .fillMaxSize()
             .verticalScroll(scrollState),
     ) {
-        Spacer(modifier = Modifier.height(8.dp))
-
         IngredientInfoCard(
             ingredientDetail = ingredientDetail,
             onEditClick = onEditClick,
@@ -334,17 +313,12 @@ private fun IngredientDetailContent(
 
         UsedMenuSection(
             usedMenus = ingredientDetail.usedMenus,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 20.dp),
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(10.dp)
-                .background(Grayscale200),
-        )
+        SectionDivider()
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -352,208 +326,6 @@ private fun IngredientDetailContent(
             priceHistory = ingredientDetail.priceHistory,
             modifier = Modifier.padding(horizontal = 20.dp),
         )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        ChordOutlinedButton(
-            text = "재료 삭제",
-            onClick = onDeleteClick,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-    }
-}
-
-@Composable
-private fun IngredientInfoCard(
-    ingredientDetail: IngredientDetailUi,
-    onEditClick: () -> Unit,
-    onSupplierClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val cardShape = RoundedCornerShape(16.dp)
-
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        PrimaryBlue100.copy(alpha = 0.5f),
-                        Grayscale100,
-                    ),
-                ),
-                shape = cardShape,
-            )
-            .border(
-                width = 1.5.dp,
-                color = Grayscale300,
-                shape = cardShape,
-            ),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-        ) {
-            Text(
-                text = ingredientDetail.category.displayName,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp,
-                color = Grayscale500,
-            )
-
-            Text(
-                text = ingredientDetail.name,
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = Grayscale900,
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(
-                modifier = Modifier.clickable(onClick = onEditClick),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = formatIngredientPriceText(
-                        price = ingredientDetail.price,
-                        unitAmount = ingredientDetail.unitAmount,
-                        unit = ingredientDetail.unit,
-                    ),
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 22.sp,
-                    color = Grayscale900,
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    painter = painterResource(CoreUiR.drawable.ic_edit),
-                    contentDescription = "재료 정보 수정",
-                    modifier = Modifier.size(20.dp),
-                    tint = Grayscale500,
-                )
-            }
-        }
-
-        HorizontalDivider(
-            modifier = Modifier.padding(horizontal = 24.dp),
-            thickness = 1.dp,
-            color = Grayscale300,
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onSupplierClick)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "공급업체",
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = Grayscale500,
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = ingredientDetail.supplier.ifBlank { "-" },
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp,
-                color = Grayscale700,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            Spacer(modifier = Modifier.width(4.dp))
-
-            Icon(
-                painter = painterResource(CoreUiR.drawable.ic_chevron_right),
-                contentDescription = "공급업체 수정",
-                modifier = Modifier.size(16.dp),
-                tint = Grayscale500,
-            )
-        }
-    }
-}
-
-@Composable
-private fun UsedMenuSection(
-    usedMenus: List<UsedMenuUi>,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier) {
-        Text(
-            text = buildAnnotatedString {
-                append("사용 중인 메뉴 ")
-                withStyle(SpanStyle(color = PrimaryBlue500)) {
-                    append(usedMenus.size.toString())
-                }
-            },
-            modifier = Modifier.padding(horizontal = 20.dp),
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 18.sp,
-            color = Grayscale900,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (usedMenus.isNotEmpty()) {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 20.dp),
-            ) {
-                items(
-                    items = usedMenus,
-                    key = { it.id },
-                ) { menu ->
-                    UsedMenuCard(
-                        menuName = menu.name,
-                        usageAmount = menu.usageAmount,
-                        modifier = Modifier.padding(end = 8.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PriceHistorySection(
-    priceHistory: List<PriceHistoryUi>,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text(
-            text = "변동 이력",
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 18.sp,
-            color = Grayscale900,
-        )
-
-        if (priceHistory.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(12.dp))
-
-            priceHistory.forEachIndexed { index, history ->
-                PriceHistoryItem(
-                    date = history.date,
-                    price = history.price,
-                    unitAmount = history.unitAmount,
-                    unitDisplayName = history.unitDisplayName,
-                    isFirst = index == 0,
-                    isLast = index == priceHistory.lastIndex,
-                )
-            }
-        }
     }
 }
 
@@ -569,85 +341,96 @@ private fun IngredientInfoCard(
             .fillMaxWidth()
             .background(
                 color = Grayscale100,
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(16.dp),
             )
             .border(
-                width = 1.dp,
+                width = 1.5.dp,
                 color = Grayscale300,
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(16.dp),
             )
-            .padding(horizontal = 20.dp, vertical = 20.dp),
+            .padding(top = 24.dp),
     ) {
-        Text(
-            text = ingredientDetail.category.displayName,
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            color = Grayscale600,
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            text = ingredientDetail.name,
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 18.sp,
-            color = Grayscale900,
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
+        Column(
             modifier = Modifier
-                .clickable(onClick = onEditClick),
-            verticalAlignment = Alignment.CenterVertically,
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
         ) {
             Text(
-                text = formatIngredientDetailPriceText(
-                    price = ingredientDetail.price,
-                    unitAmount = ingredientDetail.unitAmount,
-                    unit = ingredientDetail.unit,
-                ),
+                text = "식재료",
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                color = Grayscale500,
+            )
+
+            Text(
+                text = ingredientDetail.name,
                 fontFamily = PretendardFontFamily,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
+                lineHeight = 26.sp,
                 color = Grayscale900,
             )
 
-            Spacer(modifier = Modifier.width(6.dp))
+            Row(
+                modifier = Modifier.clickable(onClick = onEditClick),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = formatIngredientUnitLabel(
+                        ingredientDetail.unitAmount,
+                        ingredientDetail.unit,
+                    ),
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 20.sp,
+                    lineHeight = 29.sp,
+                    color = Grayscale600,
+                )
 
-            Icon(
-                painter = painterResource(CoreUiR.drawable.ic_edit),
-                contentDescription = "재료 수정",
-                modifier = Modifier.size(18.dp),
-                tint = Grayscale500,
-            )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Text(
+                    text = formatIngredientPriceOnlyText(ingredientDetail.price),
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 22.sp,
+                    lineHeight = 32.sp,
+                    color = Grayscale900,
+                )
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                EditChipButton(onClick = onEditClick)
+            }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 24.dp),
             color = Grayscale200,
             thickness = 1.dp,
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(onClick = onSupplierClick),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .clickable(onClick = onSupplierClick)
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "공급업체",
                 fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = Grayscale600,
+                lineHeight = 26.sp,
+                color = Grayscale500,
             )
+
+            Spacer(modifier = Modifier.weight(1f))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -655,7 +438,10 @@ private fun IngredientInfoCard(
                     fontFamily = PretendardFontFamily,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 16.sp,
-                    color = Grayscale900,
+                    lineHeight = 26.sp,
+                    color = Grayscale700,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(modifier = Modifier.width(4.dp))
@@ -686,7 +472,8 @@ private fun UsedMenuSection(
             },
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 22.sp,
+            fontSize = 18.sp,
+            lineHeight = 26.sp,
             color = Grayscale900,
         )
 
@@ -696,10 +483,10 @@ private fun UsedMenuSection(
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(
+                itemsIndexed(
                     items = usedMenus,
-                    key = { it.id },
-                ) { menu ->
+                    key = { index, menu -> "${menu.id}-${menu.name}-${menu.usageAmount}-$index" },
+                ) { _, menu ->
                     UsedMenuCard(
                         menuName = menu.name,
                         usageAmount = menu.usageAmount,
@@ -720,12 +507,13 @@ private fun PriceHistorySection(
             text = "변동 이력",
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 22.sp,
+            fontSize = 18.sp,
+            lineHeight = 26.sp,
             color = Grayscale900,
         )
 
         if (priceHistory.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             priceHistory.forEachIndexed { index, history ->
                 PriceHistoryItem(
@@ -754,28 +542,35 @@ private fun SectionDivider(modifier: Modifier = Modifier) {
     )
 }
 
-private fun canConfirmIngredientEdit(
-    ingredientDetail: IngredientDetailUi,
-    editFilter: IngredientFilter,
-    editPrice: String,
-    editAmount: String,
-    editUnit: IngredientUnit,
-): Boolean {
-    if (editPrice.isBlank() || editAmount.isBlank()) return false
-
-    return ingredientDetail.category != editFilter ||
-        ingredientDetail.price.toString() != editPrice ||
-        ingredientDetail.unitAmount.toString() != editAmount ||
-        ingredientDetail.unit != editUnit
+@Composable
+private fun EditChipButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                color = Grayscale300,
+                shape = RoundedCornerShape(8.dp),
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Text(
+            text = "수정",
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            color = Grayscale600,
+        )
+    }
 }
 
-private fun formatIngredientDetailPriceText(
-    price: Int,
-    unitAmount: Int,
-    unit: IngredientUnit,
-): String {
-    val numberFormat = NumberFormat.getNumberInstance(Locale.KOREA)
-    return "${numberFormat.format(price)}원 / ${unitAmount}${unit.displayName}"
+private fun formatIngredientPriceOnlyText(price: Int): String {
+    val numberFormatter = NumberFormat.getNumberInstance(Locale.KOREA)
+    return "${numberFormatter.format(price)}원"
 }
 
 @Preview(showBackground = true, showSystemUi = true)
@@ -808,7 +603,6 @@ private fun IngredientDetailScreenPreview() {
         ),
         onNavigateBack = {},
         onFavoriteToggle = {},
-        onDelete = {},
         onUpdatePriceInfo = { _, _, _, _ -> },
         onUpdateSupplier = {},
         onToastShown = {},
@@ -822,7 +616,6 @@ private fun IngredientDetailScreenLoadingPreview() {
         uiState = IngredientDetailUiState.Loading,
         onNavigateBack = {},
         onFavoriteToggle = {},
-        onDelete = {},
         onUpdatePriceInfo = { _, _, _, _ -> },
         onUpdateSupplier = {},
         onToastShown = {},
