@@ -122,6 +122,16 @@ class IngredientDetailViewModel @Inject constructor(
             }
             if (supplierResult !is Result.Success) return@launch
 
+            val refreshedPriceHistory = getIngredientPriceHistoryUseCase(ingredientId).map { history ->
+                PriceHistoryUi(
+                    id = history.id,
+                    date = history.date.toDisplayDate(),
+                    price = history.price,
+                    unitAmount = history.unitAmount,
+                    unitDisplayName = history.unit.displayName,
+                )
+            }
+
             hasChanges = true
             _uiState.value = currentState.copy(
                 ingredientDetail = currentState.ingredientDetail.copy(
@@ -130,6 +140,7 @@ class IngredientDetailViewModel @Inject constructor(
                     unitAmount = unitAmount,
                     unit = unit,
                     supplier = supplier,
+                    priceHistory = refreshedPriceHistory,
                 ),
                 toastMessage = "재료 정보가 수정됐어요",
             )

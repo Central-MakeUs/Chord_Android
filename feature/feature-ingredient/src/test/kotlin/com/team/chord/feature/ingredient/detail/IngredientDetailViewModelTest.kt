@@ -66,6 +66,10 @@ class IngredientDetailViewModelTest {
         assertEquals(7000, state.ingredientDetail.price)
         assertEquals(120, state.ingredientDetail.unitAmount)
         assertEquals("쿠팡", state.ingredientDetail.supplier)
+        assertEquals(2, state.ingredientDetail.priceHistory.size)
+        assertEquals(7000, state.ingredientDetail.priceHistory.first().price)
+        assertEquals(120, state.ingredientDetail.priceHistory.first().unitAmount)
+        assertEquals("g", state.ingredientDetail.priceHistory.first().unitDisplayName)
         assertEquals("재료 정보가 수정됐어요", state.toastMessage)
         assertTrue(viewModel.hasChanges())
     }
@@ -126,15 +130,7 @@ private class FakeIngredientRepository : IngredientRepository {
         isFavorite = false,
         usedMenus = listOf(UsedMenu(id = 10L, name = "아메리카노", usageAmount = "30g")),
     )
-
-    var updateIngredientCallCount = 0
-    var updateSupplierCallCount = 0
-
-    override fun getIngredientList(categoryCode: String?): Flow<List<Ingredient>> = flowOf(emptyList())
-
-    override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? = ingredient
-
-    override suspend fun getPriceHistory(ingredientId: Long): List<PriceHistoryItem> = listOf(
+    private val priceHistoryItems = mutableListOf(
         PriceHistoryItem(
             id = 1L,
             date = "2025-11-12",
@@ -143,6 +139,15 @@ private class FakeIngredientRepository : IngredientRepository {
             unit = ingredient.unit,
         ),
     )
+
+    var updateIngredientCallCount = 0
+    var updateSupplierCallCount = 0
+
+    override fun getIngredientList(categoryCode: String?): Flow<List<Ingredient>> = flowOf(emptyList())
+
+    override suspend fun getIngredientDetail(ingredientId: Long): Ingredient? = ingredient
+
+    override suspend fun getPriceHistory(ingredientId: Long): List<PriceHistoryItem> = priceHistoryItems.toList()
 
     override fun getCategories(): Flow<List<IngredientCategory>> = flowOf(emptyList())
 
@@ -159,6 +164,16 @@ private class FakeIngredientRepository : IngredientRepository {
             currentUnitPrice = price,
             baseQuantity = amount,
             unit = IngredientUnit.valueOf(unitCode),
+        )
+        priceHistoryItems.add(
+            0,
+            PriceHistoryItem(
+                id = (priceHistoryItems.maxOfOrNull { it.id } ?: 0L) + 1L,
+                date = "2026-04-10",
+                price = price,
+                unitAmount = amount,
+                unit = ingredient.unit,
+            ),
         )
         return Result.Success(Unit)
     }
