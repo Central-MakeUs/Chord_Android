@@ -13,7 +13,8 @@ app/                        # Application layer - DI 설정, 앱 진입점, Bott
 │   ├── feature-onboarding/ # 온보딩 플로우
 │   ├── feature-auth/       # 로그인/회원가입
 │   ├── feature-setup/      # 초기 설정 (매장정보, 메뉴등록)
-│   └── feature-menu/       # 메뉴 관리 (목록, 상세, 원가분석)
+│   ├── feature-menu/       # 메뉴 관리 (목록, 상세, 원가분석)
+│   └── feature-menuadd-shared/ # 메뉴 등록 공통 플로우 (search/detail/ingredient/confirm)
 └── core/                   # Core modules (공유 기능)
     ├── core-common/        # 공통 유틸리티
     ├── core-data/          # 데이터 레이어 (Repository 구현)
@@ -24,14 +25,16 @@ app/                        # Application layer - DI 설정, 앱 진입점, Bott
 ## Dependency Direction
 
 ```
-feature-* → core-domain ← core-data
-    ↓           ↓            ↓
-  core-ui   core-common  core-common
+feature-setup ─┐
+feature-menu ──┼→ feature-menuadd-shared → core-domain ← core-data
+app────────────┘              ↓               ↓            ↓
+                           core-ui       core-common  core-common
 ```
 
 - Feature 모듈은 core-domain에만 의존
 - core-data는 core-domain의 인터페이스를 구현
 - 역방향 의존성 금지
+- 메뉴 등록 공통 플로우는 `feature-menuadd-shared`에서 관리하고, `feature-setup`/`feature-menu`는 진입/완료 분기만 담당
 
 ## Tech Stack
 
@@ -78,5 +81,15 @@ Scaffold(
 | 재료 | (planned) | feature-ingredient |
 | AI코치 | (planned) | feature-strategy |
 
+## Shared Menu Add Flow
+
+메뉴 등록의 `MenuSearch → MenuDetail → IngredientInput → MenuConfirm` 단계는 `feature-menuadd-shared`에 공통 구현으로 위치한다.
+
+- `feature-setup`: 온보딩 메뉴 등록 진입점 + 완료 후 `SetupComplete`
+- `feature-menu`: 일반 메뉴 추가 진입점 + 완료 후 `MenuAddComplete`
+- `feature-menuadd-shared`: 공통 flow owner, 화면, 상태, 단일 메뉴 등록 정책
+
+현재 메뉴 등록 정책은 **단일 메뉴 등록만 허용**한다.
+
 ---
-*Last Updated: 2026-01-02 (Bottom Navigation, feature-menu 추가)*
+*Last Updated: 2026-04-10 (feature-menuadd-shared 공통 메뉴 등록 플로우 및 단일 메뉴 정책 반영)*

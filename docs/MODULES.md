@@ -18,6 +18,7 @@
 - `feature-auth`
 - `feature-setup`
 - `feature-menu`
+- `feature-menuadd-shared`
 - `feature-ingredient`
 - `core-ui`
 
@@ -111,6 +112,7 @@
 - 초기 설정 네비게이션 그래프
 
 ### Dependencies
+- `feature-menuadd-shared`
 - `core-domain`
 - `core-data`
 - `core-ui`
@@ -130,6 +132,11 @@
 
 ### Navigation Flow
 로그인 "처음이신가요?" → StoreInfo → MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm → SetupComplete → Home
+
+### Shared Flow Integration
+- `feature-setup`은 메뉴 등록 온보딩의 진입점과 완료 후 이동을 담당하는 thin wrapper
+- `MenuSearch`, `MenuDetail`, `IngredientInput`, `MenuConfirm` 단계는 `feature-menuadd-shared` 공통 구현 사용
+- 메뉴 등록은 단일 메뉴 기준으로 동작
 
 ### MenuDetailScreen Features
 - 가격 입력 시 천단위 콤마 포맷팅 (NumberFormat)
@@ -156,6 +163,7 @@
 - 재료 목록 표시
 
 ### Dependencies
+- `feature-menuadd-shared`
 - `core-domain`
 - `core-ui`
 
@@ -199,6 +207,43 @@ enum class MenuStatus { SAFE, WARNING, DANGER }
 | `menu_list` | MenuListScreen | - |
 | `menu_detail/{menuId}` | MenuDetailScreen | menuId: Long |
 | `menu_management/{menuId}` | MenuManagementScreen | menuId: Long |
+
+### Shared Flow Integration
+- `feature-menu`는 일반 메뉴 추가의 진입점과 완료 후 이동을 담당하는 thin wrapper
+- `MenuSearch`, `MenuDetail`, `IngredientInput`, `MenuConfirm` 단계는 `feature-menuadd-shared` 공통 구현 사용
+- 메뉴 등록은 단일 메뉴 기준으로 동작
+
+---
+
+## feature-menuadd-shared
+
+### Purpose
+온보딩(`feature-setup`)과 일반 메뉴 추가(`feature-menu`)가 공통으로 사용하는 메뉴 등록 플로우 제공
+
+### Responsibilities
+- 메뉴 등록 공통 flow owner 상태 관리
+- 메뉴 템플릿 검색 화면/상태 관리
+- 메뉴 상세 입력 화면/상태 관리
+- 재료 추가 화면/상태 관리
+- 메뉴 등록 확인 화면 공통 구현
+- 단일 메뉴 등록 정책 유지
+
+### Dependencies
+- `core-domain`
+- `core-ui`
+
+### Key Classes/Functions
+| Class | Purpose |
+|-------|---------|
+| `MenuAddFlowOwnerViewModel` | 메뉴 등록 공통 상태 owner (등록 대상 메뉴 1건 유지) |
+| `MenuSearchScreen` | 메뉴 검색 공통 화면 |
+| `MenuSearchViewModel` | 메뉴 검색 공통 상태 관리 |
+| `MenuDetailScreen` | 메뉴 상세 입력 공통 화면 |
+| `MenuDetailViewModel` | 메뉴 상세 입력 공통 상태 관리 |
+| `IngredientInputScreen` | 재료 추가 공통 화면 |
+| `IngredientInputViewModel` | 재료 추가 공통 상태 관리 |
+| `MenuConfirmScreen` | 메뉴 등록 확인 공통 화면 |
+| `StepIndicator` | 메뉴 등록 2단계 진행 표시 공통 컴포넌트 |
 
 ---
 
@@ -405,4 +450,4 @@ if (isVisible) {
 
 ---
 
-*Last Updated: 2026-01-20 (feature-setup 메뉴 등록 온보딩 플로우 추가, ChordLargeButton 색상 파라미터 추가, ChordToast 컴포넌트 추가)*
+*Last Updated: 2026-04-10 (feature-menuadd-shared 공통 메뉴 등록 플로우 및 단일 메뉴 정책 반영)*

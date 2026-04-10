@@ -1227,7 +1227,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 `In Progress`
 
 ### Overview
-매장 정보 입력 후 메뉴를 등록하는 온보딩 플로우. 메뉴 템플릿 검색, 상세 정보 입력, 재료 추가를 통해 최소 1개 이상의 메뉴를 등록.
+매장 정보 입력 후 메뉴를 등록하는 온보딩 플로우. 메뉴 템플릿 검색, 상세 정보 입력, 재료 추가를 통해 대표 메뉴 1개를 등록한다.
 
 ### User Stories
 | ID | User Story | Priority |
@@ -1243,12 +1243,12 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 | FR-014-002 | 메뉴 템플릿 검색 화면 | High | ✅ Done | 검색 자동완성, 템플릿 적용 다이얼로그 |
 | FR-014-003 | 메뉴 상세 입력 화면 | High | ✅ Done | 메뉴명, 가격(천단위 포맷), 카테고리, 제조시간 |
 | FR-014-004 | 재료 입력 화면 | High | ✅ Done | 재료 추가 바텀시트, 재료 목록 표시 |
-| FR-014-005 | 메뉴 등록 확인 화면 | High | ✅ Done | 등록 완료 메시지, 추가 등록/마치기 버튼 |
+| FR-014-005 | 메뉴 등록 확인 화면 | High | ✅ Done | 등록 내용 확인, 마치기 버튼 |
 
 ### Navigation Flow
-MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm → (추가 등록: MenuSearch / 마치기: SetupComplete)
+MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm → SetupComplete
 
-### Implementation Details (2026-01-20)
+### Implementation Details (2026-04-10)
 
 #### 구현된 화면
 1. **MenuSuggestionScreen** - FR-014-001 완료
@@ -1270,13 +1270,20 @@ MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm
    - ChordLargeButton (이전/다음 버튼, 색상 커스터마이징)
 
 4. **IngredientInputScreen** - FR-014-004 완료
+   - 공통 재료 추가 화면 사용 (`feature-menuadd-shared`)
    - 재료 추가 바텀시트
    - 재료 목록 표시
+   - 선택/취소 토글 + 하단 삭제 CTA 제공
 
 5. **MenuConfirmScreen** - FR-014-005 완료
-   - 등록 완료 메시지
-   - "추가 등록" → MenuSearchScreen
+   - 공통 확인 화면 사용 (`feature-menuadd-shared`)
+   - 등록 내용 확인
    - "마치기" → SetupCompleteScreen
+
+#### 공통화 및 정책
+- `MenuSearch`, `MenuDetail`, `IngredientInput`, `MenuConfirm` 단계는 `feature-menuadd-shared` 공통 구현을 사용
+- `feature-setup`과 `feature-menu/add`는 진입/완료 동선만 다른 thin wrapper 구조
+- 메뉴 등록 정책은 단일 메뉴만 허용하며, flow owner는 항상 메뉴 1건만 유지
 
 #### 구현된 컴포넌트
 | Component | Purpose |
@@ -1316,7 +1323,7 @@ MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm
 | ID | Requirement | Priority | Status | Acceptance Criteria |
 |----|-------------|----------|--------|---------------------|
 | FR-015-001 | 16개 QA 항목을 구현 또는 차단 사유와 함께 분류 | High | `In Progress` | 각 항목이 `Implemented` 또는 `Blocked by Figma/API conflict`로 명시된다 |
-| FR-015-002 | 메뉴 등록 중복 플로우의 공통 결함을 동일하게 수정 | High | `In Progress` | 공백 포함 메뉴명, 템플릿 제조시간, 재료 추가 UX가 두 플로우에서 동일하게 동작한다 |
+| FR-015-002 | 메뉴 등록 중복 플로우의 공통 결함을 동일하게 수정 | High | `Done` | 공백 포함 메뉴명, 템플릿 제조시간, 재료 추가 UX가 두 플로우에서 동일하게 동작한다 |
 | FR-015-003 | 재료 관리 화면의 단일 선택/단가 표기/토스트/공급처 편집 흐름 정합성 확보 | High | `In Progress` | 목록·검색·상세 화면이 Figma 및 API 데이터 구조와 모순 없이 동작한다 |
 | FR-015-004 | 설정/메뉴 상세/AI 전략 화면의 시각적 패리티 확보 | High | `In Progress` | 지정된 Figma 노드 기준으로 누락 요소, 문구, 상태 배치가 맞춰진다 |
 | FR-015-005 | 결정적 로직에 대한 회귀 검증 추가 | High | `In Progress` | 라우트 디코딩, 템플릿 제조시간, 재료 필터, 전략 상태 전이가 테스트로 보호된다 |
@@ -1333,6 +1340,12 @@ MenuSuggestion → MenuSearch → MenuDetail → IngredientInput → MenuConfirm
 - 결정적 로직은 단위/뷰모델 테스트로 보호하고, 시각적 차이는 지정된 Figma 노드 기준 수동 검증으로 남긴다.
 - Figma와 API가 충돌하면 추측 구현 대신 충돌 근거를 기록하고 항목을 보류한다.
 
+### Implementation Details (2026-04-10)
+- `feature-menuadd-shared` 모듈을 도입해 메뉴 등록 공통 플로우를 통합
+- `feature-setup`, `feature-menu/add`는 공통 플로우를 호출하는 thin wrapper로 단순화
+- 공통 재료 추가 화면은 선택/취소 토글과 하단 삭제 CTA를 공유한다
+- 메뉴 등록 정책은 단일 메뉴 기준으로 정리되었고, confirm/owner 상태도 이에 맞춰 단순화되었다
+
 ---
 
-*Last Updated: 2026-04-10 (FR-015 크로스 기능 UI 패리티 QA 배치 요구사항 문서화)*
+*Last Updated: 2026-04-10 (feature-menuadd-shared 공통 메뉴 등록 플로우 및 단일 메뉴 정책 반영)*
