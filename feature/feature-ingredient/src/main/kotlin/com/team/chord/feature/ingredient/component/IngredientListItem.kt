@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -67,7 +68,7 @@ fun IngredientListItem(
                     modifier = Modifier
                         .size(24.dp)
                         .clickable { onCheckedChange?.invoke() },
-                    tint = if (isSelected) PrimaryBlue500 else Grayscale300,
+                    tint = if (isSelected) Color.Unspecified else Grayscale300,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
