@@ -46,6 +46,16 @@
 - provider 성공 후에도 `LOGIN_ROUTE` 에 머무르며 stale success-navigation effect 가 없는가
 - official provider SDK entry point 만 사용하고 app-authored OAuth flow 가 추가되지 않았는가
 
+## 현재 베이스라인 점검 결과 (2026-04-11)
+정적 점검 기준으로 보면 현재 작업트리는 아직 phase-1 social-login 변경 전 상태다.
+
+- `LoginViewModel` 이 `AuthRepository` 를 주입받아 `signIn(...)` 을 호출한다.
+- `LoginScreen` 이 `username/password` 입력, 기존 로그인 CTA, signup CTA, `LaunchedEffect` 기반 성공 후 이동을 유지한다.
+- Kakao / Naver official SDK entry-point symbol 은 아직 존재하지 않는다.
+- `ChordNavHost` 의 `settingWebViewScreen` hit 는 설정 화면 경로이며 social-login OAuth 구현으로 간주하면 안 된다.
+
+따라서 worker-2 또는 통합 브랜치의 social-login 변경이 들어오면 동일 스크립트를 다시 실행해 phase-1 gate 충족 여부를 재확인해야 한다.
+
 ## 수동 검증 게이트
 아래 값이 준비되지 않으면 full manual provider-success verification 을 완료로 주장하면 안 된다.
 
