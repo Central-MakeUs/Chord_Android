@@ -78,51 +78,113 @@ class LoginViewModel
                     )
                 }
 
-                when (val result = authRepository.signIn(currentState.username, currentState.password)) {
-                    is AuthResult.LoginSuccess -> {
-                        _uiState.update { it.copy(isLoading = false, isLoginSuccess = true, isSetupCompleted = result.onboardingCompleted) }
-                    }
+                handleAuthResult(authRepository.signIn(currentState.username, currentState.password))
+            }
+        }
 
-                    is AuthResult.SignUpSuccess -> {
-                        // Not expected during login flow
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                usernameError = null,
-                                passwordError = null,
-                                authError = null,
-                            )
-                        }
-                    }
+        fun onSocialLoginStarted() {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    usernameError = null,
+                    passwordError = null,
+                    authError = null,
+                )
+            }
+        }
 
-                    is AuthResult.InvalidCredentials -> {
-                        _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
-                    }
+        fun onKakaoAccessTokenReceived(accessToken: String) {
+            signInWithSocialToken {
+                authRepository.signInWithKakao(accessToken)
+            }
+        }
 
-                    is AuthResult.NetworkError -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                usernameError = null,
-                                passwordError = null,
-                                authError = "네트워크 오류가 발생했습니다",
-                            )
-                        }
-                    }
+        fun onNaverAccessTokenReceived(accessToken: String) {
+            signInWithSocialToken {
+                authRepository.signInWithNaver(accessToken)
+            }
+        }
 
-                    is AuthResult.UsernameAlreadyExists -> {
-                        _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
-                    }
+        fun onSocialLoginFailed(message: String) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    usernameError = null,
+                    passwordError = null,
+                    authError = message,
+                )
+            }
+        }
 
-                    is AuthResult.ValidationError -> {
-                        _uiState.update { it.copy(isLoading = false).withValidationErrors(result.errors) }
-                    }
-                }
+        fun onSocialLoginCancelled() {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    usernameError = null,
+                    passwordError = null,
+                    authError = null,
+                )
+            }
+        }
+
+        private fun signInWithSocialToken(login: suspend () -> AuthResult) {
+            viewModelScope.launch {
+                onSocialLoginStarted()
+                handleAuthResult(login())
             }
         }
 
         fun consumeLoginSuccess() {
             _uiState.update { it.copy(isLoginSuccess = false) }
+        }
+
+        private fun handleAuthResult(result: AuthResult) {
+            when (result) {
+                is AuthResult.LoginSuccess -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoginSuccess = true,
+                            isSetupCompleted = result.onboardingCompleted,
+                        )
+                    }
+                }
+
+                is AuthResult.SignUpSuccess -> {
+                    // Not expected during login flow
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            usernameError = null,
+                            passwordError = null,
+                            authError = null,
+                        )
+                    }
+                }
+
+                is AuthResult.InvalidCredentials -> {
+                    _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
+                }
+
+                is AuthResult.NetworkError -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            usernameError = null,
+                            passwordError = null,
+                            authError = "네트워크 오류가 발생했습니다",
+                        )
+                    }
+                }
+
+                is AuthResult.UsernameAlreadyExists -> {
+                    _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
+                }
+
+                is AuthResult.ValidationError -> {
+                    _uiState.update { it.copy(isLoading = false).withValidationErrors(result.errors) }
+                }
+            }
         }
     }
 

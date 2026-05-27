@@ -1,0 +1,18 @@
+# Android SDK path - 각자 로컬 환경에 맞게 설정
+sdk.dir=/Users/yourname/Library/Android/sdk
+
+# API
+BASE_URL=https://www.coachcoach.store/api/v1/
+
+# Release signing - 릴리즈 빌드할 사람만 입력
+RELEASE_STORE_FILE=
+RELEASE_STORE_PASSWORD=
+RELEASE_KEY_ALIAS=coach_release
+RELEASE_KEY_PASSWORD=
+
+# Social login / external APIs
+KAKAO_REST_API_KEY=
+KAKAO_NATIVE_APP_KEY=
+NAVER_CLIENT_ID=
+NAVER_CLIENT_SECRET=
+NAVER_CLIENT_NAME=카페코치

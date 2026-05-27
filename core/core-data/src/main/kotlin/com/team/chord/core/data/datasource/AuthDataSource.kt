@@ -9,5 +9,7 @@ data class LoginResult(
 interface AuthDataSource {
     suspend fun signUp(loginId: String, password: String)
     suspend fun login(loginId: String, password: String): LoginResult
+    suspend fun kakaoLogin(accessToken: String): LoginResult
+    suspend fun naverLogin(accessToken: String): LoginResult
     suspend fun refreshToken(refreshToken: String): String
 }

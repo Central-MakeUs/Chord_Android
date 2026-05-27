@@ -155,6 +155,55 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `kakao access token login success sets login success state`() = runTest {
+        val viewModel =
+            LoginViewModel(
+                FakeLoginAuthRepository(
+                    kakaoSignInResult =
+                        AuthResult.LoginSuccess(
+                            token = AuthToken("access", "refresh"),
+                            onboardingCompleted = true,
+                        ),
+                ),
+            )
+
+        viewModel.onKakaoAccessTokenReceived("provider-token")
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        assertEquals(true, viewModel.uiState.value.isLoginSuccess)
+        assertEquals(true, viewModel.uiState.value.isSetupCompleted)
+    }
+
+    @Test
+    fun `naver access token login failure maps to auth error`() = runTest {
+        val viewModel =
+            LoginViewModel(
+                FakeLoginAuthRepository(
+                    naverSignInResult = AuthResult.InvalidCredentials("네이버 로그인에 실패했습니다."),
+                ),
+            )
+
+        viewModel.onNaverAccessTokenReceived("provider-token")
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.usernameError)
+        assertNull(viewModel.uiState.value.passwordError)
+        assertEquals("네이버 로그인에 실패했습니다.", viewModel.uiState.value.authError)
+    }
+
+    @Test
+    fun `social login failure message maps to auth error`() {
+        val viewModel = LoginViewModel(FakeLoginAuthRepository())
+
+        viewModel.onSocialLoginStarted()
+        viewModel.onSocialLoginFailed("KAKAO_NATIVE_APP_KEY 설정이 필요합니다.")
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        assertEquals("KAKAO_NATIVE_APP_KEY 설정이 필요합니다.", viewModel.uiState.value.authError)
+    }
+
+    @Test
     fun `changing input clears existing login errors`() = runTest {
         val viewModel =
             LoginViewModel(
@@ -188,10 +237,16 @@ private class FakeLoginAuthRepository(
             token = AuthToken("access", "refresh"),
             onboardingCompleted = false,
         ),
+    private val kakaoSignInResult: AuthResult = signInResult,
+    private val naverSignInResult: AuthResult = signInResult,
 ) : AuthRepository {
     override fun observeAuthState(): Flow<AuthState> = flowOf(AuthState.Unauthenticated)
 
     override suspend fun signIn(loginId: String, password: String): AuthResult = signInResult
+
+    override suspend fun signInWithKakao(accessToken: String): AuthResult = kakaoSignInResult
+
+    override suspend fun signInWithNaver(accessToken: String): AuthResult = naverSignInResult
 
     override suspend fun signUp(loginId: String, password: String): AuthResult = signInResult
 

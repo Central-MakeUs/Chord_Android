@@ -1,6 +1,7 @@
 package com.team.chord.core.data.repository
 
 import com.team.chord.core.data.datasource.AuthDataSource
+import com.team.chord.core.data.datasource.LoginResult
 import com.team.chord.core.domain.model.AuthResult
 import com.team.chord.core.domain.model.AuthState
 import com.team.chord.core.domain.model.AuthToken
@@ -28,15 +29,36 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun signIn(loginId: String, password: String): AuthResult {
         return try {
             val result = authDataSource.login(loginId, password)
-            setupRepository.setSetupCompleted(result.onboardingCompleted)
-            tokenManager.saveTokens(result.accessToken, result.refreshToken)
-            AuthResult.LoginSuccess(
-                token = AuthToken(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                ),
-                onboardingCompleted = result.onboardingCompleted,
-            )
+            persistLoginResult(result, socialWithdrawalToken = null)
+        } catch (e: ApiException) {
+            val errors = e.errors
+            when {
+                errors != null -> AuthResult.ValidationError(errors)
+                else -> AuthResult.InvalidCredentials(message = e.message)
+            }
+        } catch (e: Exception) {
+            AuthResult.NetworkError(e)
+        }
+    }
+
+    override suspend fun signInWithKakao(accessToken: String): AuthResult {
+        return signInWithSocialToken(accessToken) {
+            authDataSource.kakaoLogin(accessToken)
+        }
+    }
+
+    override suspend fun signInWithNaver(accessToken: String): AuthResult {
+        return signInWithSocialToken(accessToken) {
+            authDataSource.naverLogin(accessToken)
+        }
+    }
+
+    private suspend fun signInWithSocialToken(
+        socialWithdrawalToken: String,
+        login: suspend () -> LoginResult,
+    ): AuthResult {
+        return try {
+            persistLoginResult(login(), socialWithdrawalToken = socialWithdrawalToken)
         } catch (e: ApiException) {
             val errors = e.errors
             when {
@@ -50,19 +72,11 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun signUp(loginId: String, password: String): AuthResult {
         return try {
+            tokenManager.clearSocialWithdrawalToken()
             authDataSource.signUp(loginId, password)
             try {
                 val result = authDataSource.login(loginId, password)
-                setupRepository.setSetupCompleted(result.onboardingCompleted)
-                tokenManager.saveTokens(result.accessToken, result.refreshToken)
-                AuthResult.LoginSuccess(
-                    token =
-                        AuthToken(
-                            accessToken = result.accessToken,
-                            refreshToken = result.refreshToken,
-                        ),
-                    onboardingCompleted = result.onboardingCompleted,
-                )
+                persistLoginResult(result, socialWithdrawalToken = null)
             } catch (_: Exception) {
                 AuthResult.SignUpSuccess
             }
@@ -90,6 +104,27 @@ class AuthRepositoryImpl @Inject constructor(
         return AuthToken(
             accessToken = newAccessToken,
             refreshToken = currentRefreshToken,
+        )
+    }
+
+    private suspend fun persistLoginResult(
+        result: LoginResult,
+        socialWithdrawalToken: String?,
+    ): AuthResult.LoginSuccess {
+        setupRepository.setSetupCompleted(result.onboardingCompleted)
+        tokenManager.saveTokens(result.accessToken, result.refreshToken)
+        if (socialWithdrawalToken.isNullOrBlank()) {
+            tokenManager.clearSocialWithdrawalToken()
+        } else {
+            tokenManager.saveSocialWithdrawalToken(socialWithdrawalToken)
+        }
+        return AuthResult.LoginSuccess(
+            token =
+                AuthToken(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                ),
+            onboardingCompleted = result.onboardingCompleted,
         )
     }
 }
