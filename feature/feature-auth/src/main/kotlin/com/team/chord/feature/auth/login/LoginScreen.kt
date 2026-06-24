@@ -29,6 +29,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsErrorCategory
+import com.team.chord.core.analytics.AnalyticsEvent
+import com.team.chord.core.analytics.SocialLoginProvider
 import com.team.chord.core.ui.theme.Grayscale100
 import com.team.chord.core.ui.theme.Grayscale200
 import com.team.chord.core.ui.theme.Grayscale500
@@ -49,6 +53,10 @@ fun LoginScreen(
     val context = LocalContext.current
     val socialLoginClient = remember { AndroidSocialLoginClient() }
 
+    LaunchedEffect(Unit) {
+        Analytics.track(AnalyticsEvent.LoginScreenViewed)
+    }
+
     LaunchedEffect(uiState.isLoginSuccess) {
         if (uiState.isLoginSuccess) {
             viewModel.consumeLoginSuccess()
@@ -60,21 +68,39 @@ fun LoginScreen(
         uiState = uiState,
         onKakaoLoginClicked = {
             if (uiState.isLoading) return@LoginScreenContent
+            Analytics.track(AnalyticsEvent.SocialLoginTapped(SocialLoginProvider.KAKAO))
             viewModel.onSocialLoginStarted()
             socialLoginClient.loginWithKakao(
                 context = context,
                 onSuccess = viewModel::onKakaoAccessTokenReceived,
-                onError = viewModel::onSocialLoginFailed,
+                onError = { message ->
+                    Analytics.track(
+                        AnalyticsEvent.LoginFailed(
+                            provider = SocialLoginProvider.KAKAO,
+                            errorCategory = message.toProviderErrorCategory(),
+                        ),
+                    )
+                    viewModel.onSocialLoginFailed(message)
+                },
                 onCancelled = viewModel::onSocialLoginCancelled,
             )
         },
         onNaverLoginClicked = {
             if (uiState.isLoading) return@LoginScreenContent
+            Analytics.track(AnalyticsEvent.SocialLoginTapped(SocialLoginProvider.NAVER))
             viewModel.onSocialLoginStarted()
             socialLoginClient.loginWithNaver(
                 context = context,
                 onSuccess = viewModel::onNaverAccessTokenReceived,
-                onError = viewModel::onSocialLoginFailed,
+                onError = { message ->
+                    Analytics.track(
+                        AnalyticsEvent.LoginFailed(
+                            provider = SocialLoginProvider.NAVER,
+                            errorCategory = message.toProviderErrorCategory(),
+                        ),
+                    )
+                    viewModel.onSocialLoginFailed(message)
+                },
                 onCancelled = viewModel::onSocialLoginCancelled,
             )
         },
@@ -243,3 +269,11 @@ private fun ProviderButton(
 
 private val KakaoYellow = Color(0xFFFEE500)
 private val NaverGreen = Color(0xFF03C75A)
+
+private fun String.toProviderErrorCategory(): AnalyticsErrorCategory =
+    when {
+        contains("설정이 필요합니다") -> AnalyticsErrorCategory.MISSING_CONFIG
+        contains("access token을 가져오지 못했습니다") -> AnalyticsErrorCategory.INVALID_PROVIDER_RESPONSE
+        isBlank() -> AnalyticsErrorCategory.SDK_UNKNOWN
+        else -> AnalyticsErrorCategory.SDK_ERROR
+    }

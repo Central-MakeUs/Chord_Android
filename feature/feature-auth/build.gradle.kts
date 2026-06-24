@@ -40,4 +40,5 @@ dependencies {
 
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    implementation(projects.core.coreAnalytics)
 }

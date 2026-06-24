@@ -2,6 +2,10 @@ package com.team.chord.feature.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsErrorCategory
+import com.team.chord.core.analytics.AnalyticsEvent
+import com.team.chord.core.analytics.SocialLoginProvider
 import com.team.chord.core.domain.model.AuthResult
 import com.team.chord.core.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,13 +98,13 @@ class LoginViewModel
         }
 
         fun onKakaoAccessTokenReceived(accessToken: String) {
-            signInWithSocialToken {
+            signInWithSocialToken(SocialLoginProvider.KAKAO) {
                 authRepository.signInWithKakao(accessToken)
             }
         }
 
         fun onNaverAccessTokenReceived(accessToken: String) {
-            signInWithSocialToken {
+            signInWithSocialToken(SocialLoginProvider.NAVER) {
                 authRepository.signInWithNaver(accessToken)
             }
         }
@@ -127,10 +131,20 @@ class LoginViewModel
             }
         }
 
-        private fun signInWithSocialToken(login: suspend () -> AuthResult) {
+        private fun signInWithSocialToken(
+            provider: SocialLoginProvider,
+            login: suspend () -> AuthResult,
+        ) {
             viewModelScope.launch {
                 onSocialLoginStarted()
-                handleAuthResult(login())
+                val result = login()
+                when (result) {
+                    is AuthResult.LoginSuccess -> Analytics.track(AnalyticsEvent.LoginSucceeded(provider))
+                    else -> result.analyticsErrorCategory()?.let { category ->
+                        Analytics.track(AnalyticsEvent.LoginFailed(provider, category))
+                    }
+                }
+                handleAuthResult(result)
             }
         }
 
@@ -228,3 +242,13 @@ private fun LoginUiState.withValidationErrors(errors: Map<String, String>): Logi
         authError = authError,
     )
 }
+
+private fun AuthResult.analyticsErrorCategory(): AnalyticsErrorCategory? =
+    when (this) {
+        is AuthResult.LoginSuccess -> null
+        is AuthResult.SignUpSuccess -> null
+        is AuthResult.InvalidCredentials -> AnalyticsErrorCategory.SERVER_4XX
+        is AuthResult.NetworkError -> AnalyticsErrorCategory.NETWORK
+        is AuthResult.UsernameAlreadyExists -> AnalyticsErrorCategory.SERVER_4XX
+        is AuthResult.ValidationError -> AnalyticsErrorCategory.VALIDATION
+    }
