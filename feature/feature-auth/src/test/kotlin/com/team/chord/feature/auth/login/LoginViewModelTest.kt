@@ -176,6 +176,53 @@ class LoginViewModelTest {
     }
 
     @Test
+    fun `kakao access token is forwarded to auth repository`() = runTest {
+        val repository = FakeLoginAuthRepository(
+            kakaoSignInResult = AuthResult.LoginSuccess(
+                token = AuthToken("access", "refresh"),
+                onboardingCompleted = true,
+            ),
+        )
+        val viewModel = LoginViewModel(repository)
+
+        viewModel.onKakaoAccessTokenReceived("kakao-provider-token")
+        advanceUntilIdle()
+
+        assertEquals("kakao-provider-token", repository.lastKakaoAccessToken)
+        assertEquals(true, viewModel.uiState.value.isLoginSuccess)
+    }
+
+    @Test
+    fun `naver access token is forwarded to auth repository`() = runTest {
+        val repository = FakeLoginAuthRepository(
+            naverSignInResult = AuthResult.LoginSuccess(
+                token = AuthToken("access", "refresh"),
+                onboardingCompleted = true,
+            ),
+        )
+        val viewModel = LoginViewModel(repository)
+
+        viewModel.onNaverAccessTokenReceived("naver-provider-token")
+        advanceUntilIdle()
+
+        assertEquals("naver-provider-token", repository.lastNaverAccessToken)
+        assertEquals(true, viewModel.uiState.value.isLoginSuccess)
+    }
+
+    @Test
+    fun `social login cancellation resets loading without error`() {
+        val viewModel = LoginViewModel(FakeLoginAuthRepository())
+
+        viewModel.onSocialLoginStarted()
+        viewModel.onSocialLoginCancelled()
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
+        assertNull(viewModel.uiState.value.usernameError)
+        assertNull(viewModel.uiState.value.passwordError)
+        assertNull(viewModel.uiState.value.authError)
+    }
+
+    @Test
     fun `naver access token login failure maps to auth error`() = runTest {
         val viewModel =
             LoginViewModel(
@@ -240,13 +287,23 @@ private class FakeLoginAuthRepository(
     private val kakaoSignInResult: AuthResult = signInResult,
     private val naverSignInResult: AuthResult = signInResult,
 ) : AuthRepository {
+    var lastKakaoAccessToken: String? = null
+        private set
+    var lastNaverAccessToken: String? = null
+        private set
     override fun observeAuthState(): Flow<AuthState> = flowOf(AuthState.Unauthenticated)
 
     override suspend fun signIn(loginId: String, password: String): AuthResult = signInResult
 
-    override suspend fun signInWithKakao(accessToken: String): AuthResult = kakaoSignInResult
+    override suspend fun signInWithKakao(accessToken: String): AuthResult {
+        lastKakaoAccessToken = accessToken
+        return kakaoSignInResult
+    }
 
-    override suspend fun signInWithNaver(accessToken: String): AuthResult = naverSignInResult
+    override suspend fun signInWithNaver(accessToken: String): AuthResult {
+        lastNaverAccessToken = accessToken
+        return naverSignInResult
+    }
 
     override suspend fun signUp(loginId: String, password: String): AuthResult = signInResult
 
