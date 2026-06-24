@@ -37,6 +37,9 @@ retrofitKotlinxSerialization = "1.0.0"
 kakaoSdk = "2.23.4"
 naverOAuth = "5.11.2"
 
+# Analytics
+mixpanelAndroid = "8.8.0"
+
 # JavaX Inject (for pure domain module)
 javaxInject = "1"
 
@@ -106,6 +109,9 @@ retrofit-kotlinx-serialization = { group = "com.jakewharton.retrofit", name = "r
 # Social Login
 kakao-user = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakaoSdk" }
 naver-oauth = { group = "com.navercorp.nid", name = "oauth", version.ref = "naverOAuth" }
+
+# Analytics
+mixpanel-android = { group = "com.mixpanel.android", name = "mixpanel-android", version.ref = "mixpanelAndroid" }
 
 # Build-logic dependencies (for convention plugins)
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }

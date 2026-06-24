@@ -109,4 +109,5 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.datastore.preferences)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+    implementation(projects.core.coreAnalytics)
 }
