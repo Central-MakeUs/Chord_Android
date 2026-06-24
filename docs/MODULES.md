@@ -412,3 +412,10 @@ if (isVisible) {
 ---
 
 *Last Updated: 2026-01-20 (feature-setup 메뉴 등록 온보딩 플로우 추가, ChordLargeButton 색상 파라미터 추가, ChordToast 컴포넌트 추가)*
+
+
+## Core Analytics
+
+- `core:core-analytics` owns Mixpanel SDK initialization and the shared low-risk analytics event taxonomy.
+- App and feature modules should use `Analytics.track(...)`; direct `MixpanelAPI` imports stay inside the analytics module.
+- See `docs/MIXPANEL_ANDROID_INTEGRATION.md` for configuration, event names, and privacy guardrails.

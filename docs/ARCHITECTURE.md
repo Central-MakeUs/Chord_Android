@@ -45,6 +45,7 @@ feature-* → core-domain ← core-data
 | Navigation | Compose Navigation | 2.9.0 |
 | Async | Kotlin Coroutines + Flow | 1.10.2 |
 | Social Login | Kakao Android SDK / Naver Login SDK | 2.23.4 / 5.11.2 |
+| Analytics | Mixpanel Android SDK | 8.8.0 |
 
 ## Auth / Social Login
 
@@ -92,3 +93,10 @@ Scaffold(
 
 ---
 *Last Updated: 2026-01-02 (Bottom Navigation, feature-menu 추가)*
+
+
+## Analytics
+
+- Android analytics is isolated in `core:core-analytics`; feature modules call the `Analytics` facade and do not import Mixpanel directly.
+- Mixpanel starts only when `MIXPANEL_PROJECT_TOKEN` is present and `MIXPANEL_ENABLED=true`; otherwise analytics is no-op.
+- Event taxonomy and privacy guardrails are documented in `docs/MIXPANEL_ANDROID_INTEGRATION.md`.
