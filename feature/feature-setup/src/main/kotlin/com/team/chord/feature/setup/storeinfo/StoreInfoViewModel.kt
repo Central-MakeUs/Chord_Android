@@ -2,6 +2,8 @@ package com.team.chord.feature.setup.storeinfo
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsEvent
 import com.team.chord.core.domain.repository.SetupRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,10 @@ class StoreInfoViewModel
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(StoreInfoUiState())
         val uiState: StateFlow<StoreInfoUiState> = _uiState.asStateFlow()
+
+        init {
+            Analytics.track(AnalyticsEvent.OnboardingStarted)
+        }
 
         fun onStoreNameChanged(name: String) {
             _uiState.update {
@@ -96,6 +102,7 @@ class StoreInfoViewModel
                         laborCost = laborCost,
                         includeWeeklyHolidayPay = state.includeWeeklyAllowance,
                     )
+                    Analytics.track(AnalyticsEvent.OnboardingCompleted)
                     _uiState.update {
                         it.copy(
                             employeeCount = employeeCountValue,

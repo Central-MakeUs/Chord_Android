@@ -2,6 +2,8 @@ package com.team.chord.feature.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsEvent
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.repository.AuthRepository
 import com.team.chord.core.domain.usecase.user.GetStoreUseCase
@@ -65,6 +67,9 @@ class SettingViewModel
             viewModelScope.launch {
                 _uiState.update { it.copy(isLoading = true) }
                 authRepository.signOut()
+                Analytics.track(AnalyticsEvent.LogoutCompleted)
+                Analytics.flush()
+                Analytics.reset()
                 _uiState.update { it.copy(isLoading = false, showLogoutDialog = false, logoutSuccess = true) }
             }
         }

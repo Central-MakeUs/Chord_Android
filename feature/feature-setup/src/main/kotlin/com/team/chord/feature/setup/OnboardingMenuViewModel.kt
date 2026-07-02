@@ -1,6 +1,8 @@
 package com.team.chord.feature.setup
 
 import androidx.lifecycle.ViewModel
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsEvent
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
@@ -56,6 +58,7 @@ class OnboardingMenuViewModel @Inject constructor(
         templateId: Long? = null,
         categoryCode: String? = null,
     ) {
+        Analytics.track(AnalyticsEvent.MenuRegistrationStarted)
         _currentMenuDraft.update {
             MenuDraft(
                 name = name,
@@ -171,6 +174,7 @@ class OnboardingMenuViewModel @Inject constructor(
                 return result
             }
         }
+        Analytics.track(AnalyticsEvent.MenuRegistrationCompleted)
         return Result.Success(Unit)
     }
 

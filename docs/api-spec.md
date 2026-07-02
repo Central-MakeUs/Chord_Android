@@ -98,6 +98,9 @@ Sample Response:
 - Request Body (LoginRequest)
   - `loginId` (string, required)
   - `password` (string, required)
+  - `fcmToken` (string, optional)
+  - `deviceType` (string, optional)
+  - `deviceId` (string, optional)
 - Response Data (LoginResponse)
   - `accessToken` (string)
   - `refreshToken` (string)
@@ -123,6 +126,64 @@ Sample Response:
   "timestamp": "2026-01-05T22:13:24.0727464"
 }
 ```
+
+### POST /auth/kakao/login
+- 인증: 없음 (Public)
+- Android 사용 방식: Kakao SDK에서 받은 provider access token을 전달
+- Request Body (KakaoLoginRequest)
+  - `accessToken` (string, required)
+  - `fcmToken` (string, optional)
+  - `deviceType` (string, optional, Android 기본값 `ANDROID`)
+  - `deviceId` (string, optional)
+- Response Data: `LoginResponse`
+
+Sample Request:
+```json
+{
+  "accessToken": "provider-access-token",
+  "fcmToken": null,
+  "deviceType": "ANDROID",
+  "deviceId": null
+}
+```
+
+### POST /auth/naver/login
+- 인증: 없음 (Public)
+- Android 사용 방식: Naver SDK에서 받은 provider access token을 전달
+- Request Body (NaverLoginRequest)
+  - `accessToken` (string, required)
+  - `fcmToken` (string, optional)
+  - `deviceType` (string, optional, Android 기본값 `ANDROID`)
+  - `deviceId` (string, optional)
+- Response Data: `LoginResponse`
+
+Sample Request:
+```json
+{
+  "accessToken": "provider-access-token",
+  "fcmToken": null,
+  "deviceType": "ANDROID",
+  "deviceId": null
+}
+```
+
+> Android에는 Apple 로그인을 구현하지 않습니다. Google 로그인은 현재 서버 endpoint/DTO가 없어 별도 서버 계약 전까지 제외합니다.
+
+### POST /users/me
+- 인증: Bearer Access Token 필요
+- Android 사용 방식: 회원탈퇴 및 social unlink. legacy `DELETE /users/me`는 social unlink가 빠지므로 사용하지 않음.
+- Request Body (DeleteUserRequestDto)
+  - `accessToken` (string, optional): Kakao는 선택값, Naver는 SDK provider access token 전달
+- Response Data: 없음
+
+Sample Request:
+```json
+{
+  "accessToken": "provider-access-token"
+}
+```
+
+일반 ID/PW 계정 또는 Kakao처럼 서버 저장 subject로 unlink 가능한 provider는 `null`을 보낼 수 있습니다.
 
 ### POST /auth/refresh
 - 인증: 없음 (Public)

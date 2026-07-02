@@ -22,6 +22,24 @@ class FakeAuthDataSource @Inject constructor() : AuthDataSource {
         if (storedLoginId != loginId || storedPassword != password) {
             throw Exception("아이디 또는 비밀번호가 올바르지 않습니다")
         }
+        return createLoginResult()
+    }
+
+    override suspend fun kakaoLogin(accessToken: String): LoginResult {
+        if (accessToken.isBlank()) {
+            throw Exception("카카오 access token이 비어 있습니다")
+        }
+        return createLoginResult()
+    }
+
+    override suspend fun naverLogin(accessToken: String): LoginResult {
+        if (accessToken.isBlank()) {
+            throw Exception("네이버 access token이 비어 있습니다")
+        }
+        return createLoginResult()
+    }
+
+    private fun createLoginResult(): LoginResult {
         return LoginResult(
             accessToken = UUID.randomUUID().toString(),
             refreshToken = UUID.randomUUID().toString(),

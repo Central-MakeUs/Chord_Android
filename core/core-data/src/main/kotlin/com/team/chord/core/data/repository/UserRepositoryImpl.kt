@@ -4,12 +4,14 @@ import com.team.chord.core.data.datasource.UserDataSource
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.Store
 import com.team.chord.core.domain.repository.UserRepository
+import com.team.chord.core.network.auth.TokenManager
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserRepositoryImpl @Inject constructor(
     private val userDataSource: UserDataSource,
+    private val tokenManager: TokenManager,
 ) : UserRepository {
     override suspend fun getStore(): Result<Store> =
         try {
@@ -20,7 +22,8 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun deleteMe(): Result<Unit> =
         try {
-            userDataSource.deleteMe()
+            userDataSource.deleteMe(tokenManager.getSocialWithdrawalToken())
+            tokenManager.clearSocialWithdrawalToken()
             Result.Success(Unit)
         } catch (e: Exception) {
             Result.Error(e)

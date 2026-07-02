@@ -44,6 +44,19 @@ feature-* → core-domain ← core-data
 | Build | Gradle KTS + Convention Plugins | - |
 | Navigation | Compose Navigation | 2.9.0 |
 | Async | Kotlin Coroutines + Flow | 1.10.2 |
+| Social Login | Kakao Android SDK / Naver Login SDK | 2.23.4 / 5.11.2 |
+| Analytics | Mixpanel Android SDK | 8.8.0 |
+
+## Auth / Social Login
+
+- ID/PW 로그인은 기존 `POST /auth/login` 흐름을 유지합니다.
+- Android 소셜 로그인은 SDK에서 provider access token을 받은 뒤 서버 모바일 endpoint로 전달합니다.
+  - Kakao: `POST /auth/kakao/login`
+  - Naver: `POST /auth/naver/login`
+- 소셜 탈퇴는 `POST /users/me`로 호출하며, SDK 로그인 때 저장한 provider access token을 request body의 `accessToken`으로 전달합니다. legacy `DELETE /users/me`는 social unlink 경로를 타지 않습니다.
+- Apple 로그인은 iOS 전용이며 Android에는 구현하지 않습니다.
+- Google 로그인은 현재 서버 endpoint/DTO가 없으므로 Android에 구현하지 않습니다.
+- SDK 키는 `local.properties`에서 읽고, Git에는 `local.properties.example`만 유지합니다.
 
 ## Build Logic
 
@@ -80,3 +93,10 @@ Scaffold(
 
 ---
 *Last Updated: 2026-01-02 (Bottom Navigation, feature-menu 추가)*
+
+
+## Analytics
+
+- Android analytics is isolated in `core:core-analytics`; feature modules call the `Analytics` facade and do not import Mixpanel directly.
+- Mixpanel starts only when `MIXPANEL_PROJECT_TOKEN` is present and `MIXPANEL_ENABLED=true`; otherwise analytics is no-op.
+- Event taxonomy and privacy guardrails are documented in `docs/MIXPANEL_ANDROID_INTEGRATION.md`.

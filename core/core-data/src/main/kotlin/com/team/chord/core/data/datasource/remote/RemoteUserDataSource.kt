@@ -3,6 +3,7 @@ package com.team.chord.core.data.datasource.remote
 import com.team.chord.core.data.datasource.UserDataSource
 import com.team.chord.core.domain.model.Store
 import com.team.chord.core.network.api.UserApi
+import com.team.chord.core.network.dto.user.DeleteUserRequestDto
 import com.team.chord.core.network.dto.user.UpdateStoreRequestDto
 import com.team.chord.core.network.mapper.toDomain
 import com.team.chord.core.network.util.safeApiCall
@@ -16,8 +17,10 @@ class RemoteUserDataSource @Inject constructor(
     override suspend fun getStore(): Store =
         safeApiCall { userApi.getStore() }.toDomain()
 
-    override suspend fun deleteMe() {
-        safeApiCall { userApi.deleteMe() }
+    override suspend fun deleteMe(socialWithdrawalToken: String?) {
+        safeApiCall {
+            userApi.deleteMe(DeleteUserRequestDto(accessToken = socialWithdrawalToken))
+        }
     }
 
     override suspend fun updateStore(

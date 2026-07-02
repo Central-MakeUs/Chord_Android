@@ -25,6 +25,7 @@ val requiredReleaseSigningProperties = listOf(
 )
 
 val hasReleaseSigning = requiredReleaseSigningProperties.all { localProperty(it) != null }
+val kakaoNativeAppKey = localProperty("KAKAO_NATIVE_APP_KEY").orEmpty()
 
 val releaseSigningTaskNames = listOf(
     "assembleRelease",
@@ -65,6 +66,7 @@ android {
         versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["kakaoRedirectScheme"] = "kakao$kakaoNativeAppKey"
     }
 
     buildTypes {
@@ -107,4 +109,5 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.datastore.preferences)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+    implementation(projects.core.coreAnalytics)
 }
