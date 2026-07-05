@@ -36,4 +36,6 @@ dependencies {
     api(libs.kotlinx.serialization.json)
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.androidx.datastore.preferences)
+
+    testImplementation(libs.junit)
 }

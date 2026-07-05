@@ -150,6 +150,10 @@ private class FakeAuthRepository(
 
     override suspend fun signIn(loginId: String, password: String): AuthResult = signUpResult
 
+    override suspend fun signInWithKakao(accessToken: String): AuthResult = signUpResult
+
+    override suspend fun signInWithNaver(accessToken: String): AuthResult = signUpResult
+
     override suspend fun signUp(loginId: String, password: String): AuthResult = signUpResult
 
     override suspend fun signOut() = Unit

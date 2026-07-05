@@ -1,7 +1,9 @@
 package com.team.chord.core.network.api
 
+import com.team.chord.core.network.dto.auth.KakaoLoginRequest
 import com.team.chord.core.network.dto.auth.LoginRequest
 import com.team.chord.core.network.dto.auth.LoginResponse
+import com.team.chord.core.network.dto.auth.NaverLoginRequest
 import com.team.chord.core.network.dto.auth.SignUpRequest
 import com.team.chord.core.network.dto.auth.TokenRefreshRequest
 import com.team.chord.core.network.dto.auth.TokenRefreshResponse
@@ -16,6 +18,12 @@ interface AuthApi {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<ApiResponse<LoginResponse>>
+
+    @POST("auth/kakao/login")
+    suspend fun kakaoLogin(@Body request: KakaoLoginRequest): Response<ApiResponse<LoginResponse>>
+
+    @POST("auth/naver/login")
+    suspend fun naverLogin(@Body request: NaverLoginRequest): Response<ApiResponse<LoginResponse>>
 
     @POST("auth/refresh")
     suspend fun refreshToken(@Body request: TokenRefreshRequest): Response<ApiResponse<TokenRefreshResponse>>

@@ -2,6 +2,10 @@ package com.team.chord.feature.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsErrorCategory
+import com.team.chord.core.analytics.AnalyticsEvent
+import com.team.chord.core.analytics.SocialLoginProvider
 import com.team.chord.core.domain.model.AuthResult
 import com.team.chord.core.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -78,51 +82,123 @@ class LoginViewModel
                     )
                 }
 
-                when (val result = authRepository.signIn(currentState.username, currentState.password)) {
-                    is AuthResult.LoginSuccess -> {
-                        _uiState.update { it.copy(isLoading = false, isLoginSuccess = true, isSetupCompleted = result.onboardingCompleted) }
-                    }
+                handleAuthResult(authRepository.signIn(currentState.username, currentState.password))
+            }
+        }
 
-                    is AuthResult.SignUpSuccess -> {
-                        // Not expected during login flow
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                usernameError = null,
-                                passwordError = null,
-                                authError = null,
-                            )
-                        }
-                    }
+        fun onSocialLoginStarted() {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    usernameError = null,
+                    passwordError = null,
+                    authError = null,
+                )
+            }
+        }
 
-                    is AuthResult.InvalidCredentials -> {
-                        _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
-                    }
+        fun onKakaoAccessTokenReceived(accessToken: String) {
+            signInWithSocialToken(SocialLoginProvider.KAKAO) {
+                authRepository.signInWithKakao(accessToken)
+            }
+        }
 
-                    is AuthResult.NetworkError -> {
-                        _uiState.update {
-                            it.copy(
-                                isLoading = false,
-                                usernameError = null,
-                                passwordError = null,
-                                authError = "네트워크 오류가 발생했습니다",
-                            )
-                        }
-                    }
+        fun onNaverAccessTokenReceived(accessToken: String) {
+            signInWithSocialToken(SocialLoginProvider.NAVER) {
+                authRepository.signInWithNaver(accessToken)
+            }
+        }
 
-                    is AuthResult.UsernameAlreadyExists -> {
-                        _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
-                    }
+        fun onSocialLoginFailed(message: String) {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    usernameError = null,
+                    passwordError = null,
+                    authError = message,
+                )
+            }
+        }
 
-                    is AuthResult.ValidationError -> {
-                        _uiState.update { it.copy(isLoading = false).withValidationErrors(result.errors) }
+        fun onSocialLoginCancelled() {
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    usernameError = null,
+                    passwordError = null,
+                    authError = null,
+                )
+            }
+        }
+
+        private fun signInWithSocialToken(
+            provider: SocialLoginProvider,
+            login: suspend () -> AuthResult,
+        ) {
+            viewModelScope.launch {
+                onSocialLoginStarted()
+                val result = login()
+                when (result) {
+                    is AuthResult.LoginSuccess -> Analytics.track(AnalyticsEvent.LoginSucceeded(provider))
+                    else -> result.analyticsErrorCategory()?.let { category ->
+                        Analytics.track(AnalyticsEvent.LoginFailed(provider, category))
                     }
                 }
+                handleAuthResult(result)
             }
         }
 
         fun consumeLoginSuccess() {
             _uiState.update { it.copy(isLoginSuccess = false) }
+        }
+
+        private fun handleAuthResult(result: AuthResult) {
+            when (result) {
+                is AuthResult.LoginSuccess -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isLoginSuccess = true,
+                            isSetupCompleted = result.onboardingCompleted,
+                        )
+                    }
+                }
+
+                is AuthResult.SignUpSuccess -> {
+                    // Not expected during login flow
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            usernameError = null,
+                            passwordError = null,
+                            authError = null,
+                        )
+                    }
+                }
+
+                is AuthResult.InvalidCredentials -> {
+                    _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
+                }
+
+                is AuthResult.NetworkError -> {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            usernameError = null,
+                            passwordError = null,
+                            authError = "네트워크 오류가 발생했습니다",
+                        )
+                    }
+                }
+
+                is AuthResult.UsernameAlreadyExists -> {
+                    _uiState.update { it.copy(isLoading = false).withMappedMessage(result.message) }
+                }
+
+                is AuthResult.ValidationError -> {
+                    _uiState.update { it.copy(isLoading = false).withValidationErrors(result.errors) }
+                }
+            }
         }
     }
 
@@ -166,3 +242,13 @@ private fun LoginUiState.withValidationErrors(errors: Map<String, String>): Logi
         authError = authError,
     )
 }
+
+private fun AuthResult.analyticsErrorCategory(): AnalyticsErrorCategory? =
+    when (this) {
+        is AuthResult.LoginSuccess -> null
+        is AuthResult.SignUpSuccess -> null
+        is AuthResult.InvalidCredentials -> AnalyticsErrorCategory.SERVER_4XX
+        is AuthResult.NetworkError -> AnalyticsErrorCategory.NETWORK
+        is AuthResult.UsernameAlreadyExists -> AnalyticsErrorCategory.SERVER_4XX
+        is AuthResult.ValidationError -> AnalyticsErrorCategory.VALIDATION
+    }

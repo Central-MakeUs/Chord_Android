@@ -79,6 +79,8 @@
 
 ### Responsibilities
 - 로그인 화면 UI (LoginScreen)
+- Kakao/Naver SDK access token 획득 및 서버 모바일 로그인 연결
+- SDK 로그인 성공 시 social withdrawal용 provider access token 암호화 저장
 - 회원가입 화면 UI (SignUpScreen)
 - 인증 상태 관리 (LoginViewModel, SignUpViewModel)
 - 입력 유효성 검사
@@ -94,9 +96,13 @@
 |-------|---------|
 | `LoginScreen` | 로그인 화면 Composable |
 | `LoginViewModel` | 로그인 상태 관리 |
+| `AndroidSocialLoginClient` | Kakao/Naver SDK 로그인 실행 및 access token 반환 |
+| `SocialLoginSdkInitializer` | Kakao/Naver SDK 초기화 |
 | `SignUpScreen` | 회원가입 화면 Composable |
 | `SignUpViewModel` | 회원가입 상태 및 유효성 검사 |
 | `AuthTextField` | 비밀번호 토글 지원 입력 필드 컴포넌트 |
+
+`feature-setting`의 회원탈퇴 흐름은 `DeleteMeUseCase` → `UserRepository.deleteMe()` → `POST /users/me`를 호출하며, `TokenManager`에 저장된 provider access token을 body에 포함해 backend social unlink 경로를 사용합니다.
 
 ---
 
@@ -451,3 +457,10 @@ if (isVisible) {
 ---
 
 *Last Updated: 2026-04-10 (feature-menuadd-shared 공통 메뉴 등록 플로우 및 단일 메뉴 정책 반영)*
+
+
+## Core Analytics
+
+- `core:core-analytics` owns Mixpanel SDK initialization and the shared low-risk analytics event taxonomy.
+- App and feature modules should use `Analytics.track(...)`; direct `MixpanelAPI` imports stay inside the analytics module.
+- See `docs/MIXPANEL_ANDROID_INTEGRATION.md` for configuration, event names, and privacy guardrails.

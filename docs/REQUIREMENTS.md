@@ -898,7 +898,7 @@ feature-* → core-domain ← core-data ← core-database
 `In Progress`
 
 ### Overview
-사용자가 아이디와 비밀번호로 회원가입 및 로그인할 수 있는 인증 기능. 온보딩 완료 후 회원가입 화면으로 이동하며, 이후 앱 접속 시 자동 로그인 상태를 유지.
+사용자가 아이디/비밀번호 또는 Kakao/Naver SDK 소셜 로그인으로 인증할 수 있는 기능. 온보딩 완료 후 회원가입 화면으로 이동하며, 이후 앱 접속 시 자동 로그인 상태를 유지.
 
 ### User Stories
 | ID | User Story | Priority |
@@ -907,6 +907,7 @@ feature-* → core-domain ← core-data ← core-database
 | US-012-002 | As a 기존 사용자, I want to 로그인하고 싶다 so that 내 데이터에 접근할 수 있다 | High |
 | US-012-003 | As a 로그인한 사용자, I want to 앱을 다시 열었을 때 자동으로 로그인되고 싶다 so that 매번 인증하지 않아도 된다 | High |
 | US-012-004 | As a 사용자, I want to 로그아웃하고 싶다 so that 다른 계정으로 전환할 수 있다 | Medium |
+| US-012-005 | As a 사용자, I want to Kakao/Naver로 빠르게 로그인하고 싶다 so that 별도 아이디를 입력하지 않아도 된다 | High |
 
 ### Functional Requirements
 
@@ -920,6 +921,10 @@ feature-* → core-domain ← core-data ← core-database
 | FR-012-005 | 로그인 실패 오류 메시지 | High | 잘못된 아이디/비밀번호 시 명확한 안내 |
 | FR-012-006 | 회원가입 화면 이동 링크 | High | "계정이 없으신가요? 회원가입" 클릭 시 회원가입 화면으로 이동 |
 | FR-012-007 | 자동 로그인 유지 | High | 앱 재실행 시 토큰 기반 자동 인증 |
+| FR-012-020 | Kakao SDK 로그인 | High | SDK access token을 `/auth/kakao/login`으로 전달 |
+| FR-012-021 | Naver SDK 로그인 | High | SDK access token을 `/auth/naver/login`으로 전달 |
+| FR-012-022 | Android 미지원 provider 제외 | High | Apple/Google 로그인 버튼과 서버 호출 없음 |
+| FR-012-023 | 소셜 탈퇴 | High | 회원탈퇴 시 `POST /users/me`에 provider access token을 전달해 social unlink 수행 |
 
 #### 회원가입 (Sign Up)
 | ID | Requirement | Priority | Acceptance Criteria |
@@ -957,6 +962,7 @@ feature-* → core-domain ← core-data ← core-database
 | 키보드 처리 | 아이디 → 비밀번호 → Done 키보드 액션 체인 |
 | 로딩 상태 | 버튼에 로딩 인디케이터 표시 |
 | 에러 처리 | 인라인 에러 메시지 (필드 하단) |
+| 소셜 로그인 | Kakao/Naver SDK 취소는 오류로 보지 않고 로딩만 해제 |
 
 ### Technical Specifications
 
@@ -977,6 +983,9 @@ feature/
 │   │   │   └── SignUpUiState.kt
 │   │   └── component/
 │   │       └── AuthTextField.kt
+│   │   └── social/
+│   │       ├── AndroidSocialLoginClient.kt
+│   │       └── SocialLoginSdkInitializer.kt
 │   └── build.gradle.kts
 
 core/
@@ -1097,16 +1106,14 @@ object AuthValidationRules {
 │         [앱 로고/이름]           │
 │                                 │
 │  ┌─────────────────────────┐    │
-│  │ 아이디                   │    │
-│  └─────────────────────────┘    │
-│                                 │
 │  ┌─────────────────────────┐    │
-│  │ 비밀번호           [👁]  │    │
+│  │ 카카오로 3초만에 로그인! │    │
 │  └─────────────────────────┘    │
-│                                 │
 │  ┌─────────────────────────┐    │
-│  │       로그인            │    │
+│  │      아이디로 로그인     │    │
 │  └─────────────────────────┘    │
+│            또는                 │
+│             [N]                 │
 │                                 │
 │     계정이 없으신가요? 회원가입   │
 │                                 │
@@ -1156,7 +1163,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 ```
 
 ### Phase 1 (MVP) 범위
-- ✅ 로그인 화면 (FR-012-001~007) - **구현 완료**
+- ✅ 로그인 화면 (FR-012-001~007, FR-012-020~022) - **구현 완료**
 - ✅ 회원가입 화면 (FR-012-008~016) - **구현 완료** (현재 미사용)
 - ⏳ 로그아웃 (FR-012-017~019) - 미구현
 - ✅ 로컬 인증 (서버 없이 DataStore 기반 mock 구현) - **구현 완료**
@@ -1174,7 +1181,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 ```
 
 #### 구현된 모듈
-- **feature-auth**: 로그인/회원가입 UI 및 ViewModel
+- **feature-auth**: 로그인/회원가입 UI 및 ViewModel, Kakao/Naver SDK 로그인 client
 - **feature-setup**: 초기 설정 플로우 (매장정보, 메뉴입력, 메뉴관리, 완료화면)
 - **core-domain**: AuthRepository 인터페이스, User/AuthToken/AuthResult 모델
 - **core-data**: AuthRepositoryImpl (DataStore 기반 Mock)
@@ -1182,7 +1189,7 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 ### Phase 2 범위
 - 실제 백엔드 API 연동
 - 비밀번호 찾기/재설정
-- 소셜 로그인 (Google, Kakao)
+- Google 로그인은 서버 계약 확정 후 별도 진행
 - 생체 인증 (지문/Face)
 
 ### Open Questions

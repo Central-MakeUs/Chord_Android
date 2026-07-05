@@ -1,6 +1,8 @@
 package com.team.chord.feature.menuadd.shared.flow
 
 import androidx.lifecycle.ViewModel
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsEvent
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.model.menu.MenuRecipe
 import com.team.chord.core.domain.model.menu.NewRecipeInfo
@@ -49,6 +51,7 @@ class MenuAddFlowOwnerViewModel @Inject constructor(
         templateId: Long? = null,
         categoryCode: String? = null,
     ) {
+        Analytics.track(AnalyticsEvent.MenuRegistrationStarted)
         _currentMenuDraft.update {
             MenuDraft(
                 name = name,
@@ -114,7 +117,7 @@ class MenuAddFlowOwnerViewModel @Inject constructor(
         val menu = _registeredMenu.value ?: return Result.Success(Unit)
         val existingRecipes = menu.ingredients.mapNotNull { it.toExistingRecipe() }
         val newRecipes = menu.ingredients.mapNotNull { it.toNewRecipeInfo() }
-        return menuRepository.createMenu(
+        val result = menuRepository.createMenu(
             categoryCode = menu.categoryCode ?: menu.category.name,
             menuName = menu.name,
             sellingPrice = menu.price,
@@ -122,6 +125,10 @@ class MenuAddFlowOwnerViewModel @Inject constructor(
             recipes = existingRecipes.ifEmpty { null },
             newRecipes = newRecipes.ifEmpty { null },
         )
+        if (result is Result.Success) {
+            Analytics.track(AnalyticsEvent.MenuRegistrationCompleted)
+        }
+        return result
     }
 
     fun clearAll() {

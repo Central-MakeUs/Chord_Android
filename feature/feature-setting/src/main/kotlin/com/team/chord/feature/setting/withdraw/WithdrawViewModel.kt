@@ -2,6 +2,8 @@ package com.team.chord.feature.setting.withdraw
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.team.chord.core.analytics.Analytics
+import com.team.chord.core.analytics.AnalyticsEvent
 import com.team.chord.core.domain.model.Result
 import com.team.chord.core.domain.repository.AuthRepository
 import com.team.chord.core.domain.usecase.user.DeleteMeUseCase
@@ -33,6 +35,8 @@ class WithdrawViewModel @Inject constructor(
     fun onConfirmWithdraw() {
         if (_uiState.value.isSubmitting) return
 
+        Analytics.track(AnalyticsEvent.WithdrawalRequested)
+
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -45,6 +49,9 @@ class WithdrawViewModel @Inject constructor(
             when (val result = deleteMeUseCase()) {
                 is Result.Success -> {
                     authRepository.signOut()
+                    Analytics.track(AnalyticsEvent.WithdrawalCompleted)
+                    Analytics.flush()
+                    Analytics.reset()
                     _uiState.update {
                         it.copy(
                             isSubmitting = false,

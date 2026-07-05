@@ -32,6 +32,11 @@ class TokenManager @Inject constructor(
             runCatching { decryptIfNeeded(it) }.getOrNull()
         }
 
+    suspend fun getSocialWithdrawalToken(): String? =
+        dataStore.data.first()[KEY_SOCIAL_WITHDRAWAL_TOKEN]?.let {
+            runCatching { decryptIfNeeded(it) }.getOrNull()
+        }
+
     suspend fun saveTokens(accessToken: String, refreshToken: String) {
         val encryptedAccessToken = encrypt(accessToken)
         val encryptedRefreshToken = encrypt(refreshToken)
@@ -42,10 +47,25 @@ class TokenManager @Inject constructor(
         }
     }
 
+    suspend fun saveSocialWithdrawalToken(token: String) {
+        val encryptedToken = encrypt(token)
+
+        dataStore.edit { prefs ->
+            prefs[KEY_SOCIAL_WITHDRAWAL_TOKEN] = encryptedToken
+        }
+    }
+
+    suspend fun clearSocialWithdrawalToken() {
+        dataStore.edit { prefs ->
+            prefs.remove(KEY_SOCIAL_WITHDRAWAL_TOKEN)
+        }
+    }
+
     suspend fun clearTokens() {
         dataStore.edit { prefs ->
             prefs.remove(KEY_ACCESS_TOKEN)
             prefs.remove(KEY_REFRESH_TOKEN)
+            prefs.remove(KEY_SOCIAL_WITHDRAWAL_TOKEN)
         }
     }
 
@@ -114,6 +134,7 @@ class TokenManager @Inject constructor(
     private companion object {
         val KEY_ACCESS_TOKEN = stringPreferencesKey("access_token")
         val KEY_REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        val KEY_SOCIAL_WITHDRAWAL_TOKEN = stringPreferencesKey("social_withdrawal_token")
 
         const val CIPHER_TRANSFORMATION = "AES/GCM/NoPadding"
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
