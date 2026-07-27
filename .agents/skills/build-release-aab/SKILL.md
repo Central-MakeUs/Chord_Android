@@ -16,7 +16,7 @@ Build the signed `release` Android App Bundle for this project and return the fi
 - Keep `versionCode` monotonically increasing. Never reset it downward just because `versionName` changed.
 - Do not change the version unless the user explicitly asks or the release task clearly requires it.
 
-### 2. Verify release signing inputs
+### 2. Verify release inputs
 
 - Confirm `local.properties` exists in the repo root.
 - Confirm these keys are present and non-empty:
@@ -24,6 +24,10 @@ Build the signed `release` Android App Bundle for this project and return the fi
   - `RELEASE_STORE_PASSWORD`
   - `RELEASE_KEY_ALIAS`
   - `RELEASE_KEY_PASSWORD`
+  - `KAKAO_NATIVE_APP_KEY`
+  - `NAVER_CLIENT_ID`
+  - `NAVER_CLIENT_SECRET`
+  - `NAVER_CLIENT_NAME`
 - Stop and report the missing keys instead of attempting a release build if any are absent.
 
 ### 3. Run the release bundle build
@@ -35,8 +39,8 @@ Build the signed `release` Android App Bundle for this project and return the fi
 ```
 
 - The script will:
-  - detect a working Java runtime, preferring Android Studio's bundled JBR when needed
-  - verify signing properties before building
+  - detect a Java 17+ runtime, preferring Android Studio's bundled JBR when the shell Java is too old
+  - verify signing and social-login properties before building
   - run `./gradlew :app:bundleRelease`
   - print machine-readable output lines for the artifact path and size
 
@@ -57,6 +61,8 @@ Build the signed `release` Android App Bundle for this project and return the fi
 
 ## Notes
 
-- This repository already enforces release signing for `bundleRelease` in `app/build.gradle.kts`.
-- If `java` is unavailable in the shell, prefer `/Applications/Android Studio.app/Contents/jbr/Contents/Home`.
+- This repository enforces release signing and social-login configuration for `bundleRelease` in
+  `app/build.gradle.kts`.
+- If the shell Java is unavailable or older than Java 17, prefer
+  `/Applications/Android Studio.app/Contents/jbr/Contents/Home`.
 - If the script succeeds, the bundle should be at `app/build/outputs/bundle/release/app-release.aab`.

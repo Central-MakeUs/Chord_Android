@@ -18,6 +18,33 @@ fail() {
   exit 1
 }
 
+java_major_version() {
+  local java_path="$1"
+  local version
+  local major
+
+  version="$("$java_path" -version 2>&1 | awk -F '"' '/version/ { print $2; exit }')"
+  [[ -n "$version" ]] || return 1
+
+  major="${version%%.*}"
+  if [[ "$major" == "1" ]]; then
+    version="${version#*.}"
+    major="${version%%.*}"
+  fi
+
+  [[ "$major" =~ ^[0-9]+$ ]] || return 1
+  printf '%s\n' "$major"
+}
+
+is_compatible_java() {
+  local java_path="$1"
+  local major
+
+  [[ -x "$java_path" ]] || return 1
+  major="$(java_major_version "$java_path")" || return 1
+  (( major >= 17 ))
+}
+
 read_property() {
   local properties_file="$1"
   local key="$2"
@@ -81,6 +108,10 @@ required_keys=(
   "RELEASE_STORE_PASSWORD"
   "RELEASE_KEY_ALIAS"
   "RELEASE_KEY_PASSWORD"
+  "KAKAO_NATIVE_APP_KEY"
+  "NAVER_CLIENT_ID"
+  "NAVER_CLIENT_SECRET"
+  "NAVER_CLIENT_NAME"
 )
 
 missing_keys=()
@@ -99,7 +130,7 @@ for key in "${required_keys[@]}"; do
 done
 
 if (( ${#missing_keys[@]} > 0 )); then
-  fail "Release signing properties are missing in local.properties: ${missing_keys[*]}"
+  fail "Release properties are missing in local.properties: ${missing_keys[*]}"
 fi
 
 if [[ "$release_store_file" != /* ]]; then
@@ -109,16 +140,17 @@ fi
 [[ -f "$release_store_file" ]] || fail "Release keystore file not found: ${release_store_file}"
 
 android_studio_jbr="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+path_java="$(command -v java 2>/dev/null || true)"
 
-if [[ -n "${JAVA_HOME:-}" ]] && [[ -x "${JAVA_HOME}/bin/java" ]] && "${JAVA_HOME}/bin/java" -version >/dev/null 2>&1; then
+if [[ -n "${JAVA_HOME:-}" ]] && is_compatible_java "${JAVA_HOME}/bin/java"; then
   :
-elif command -v java >/dev/null 2>&1 && java -version >/dev/null 2>&1; then
-  :
-elif [[ -x "${android_studio_jbr}/bin/java" ]] && "${android_studio_jbr}/bin/java" -version >/dev/null 2>&1; then
+elif [[ -n "$path_java" ]] && is_compatible_java "$path_java"; then
+  unset JAVA_HOME
+elif is_compatible_java "${android_studio_jbr}/bin/java"; then
   export JAVA_HOME="${android_studio_jbr}"
   export PATH="${JAVA_HOME}/bin:${PATH}"
 else
-  fail "No working Java runtime found. Install Java or Android Studio."
+  fail "No compatible Java runtime found. Install Java 17+ or Android Studio."
 fi
 
 (
