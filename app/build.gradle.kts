@@ -24,6 +24,13 @@ val requiredReleaseSigningProperties = listOf(
     "RELEASE_KEY_PASSWORD",
 )
 
+val requiredReleaseSocialLoginProperties = listOf(
+    "KAKAO_NATIVE_APP_KEY",
+    "NAVER_CLIENT_ID",
+    "NAVER_CLIENT_SECRET",
+    "NAVER_CLIENT_NAME",
+)
+
 val hasReleaseSigning = requiredReleaseSigningProperties.all { localProperty(it) != null }
 val kakaoNativeAppKey = localProperty("KAKAO_NATIVE_APP_KEY").orEmpty()
 
@@ -34,15 +41,25 @@ val releaseSigningTaskNames = listOf(
     "publish",
 )
 
-val isSignedReleaseArtifactTaskRequested = gradle.startParameter.taskNames.any { taskName ->
+val isReleaseArtifactTaskRequested = gradle.startParameter.taskNames.any { taskName ->
     val normalizedTaskName = taskName.substringAfterLast(':')
     releaseSigningTaskNames.any { normalizedTaskName.contains(it, ignoreCase = true) }
 }
 
-if (isSignedReleaseArtifactTaskRequested && !hasReleaseSigning) {
+if (isReleaseArtifactTaskRequested && !hasReleaseSigning) {
     throw GradleException(
         "Release signing properties are missing. Add RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, " +
             "RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD to local.properties.",
+    )
+}
+
+val missingReleaseSocialLoginProperties =
+    requiredReleaseSocialLoginProperties.filter { localProperty(it) == null }
+
+if (isReleaseArtifactTaskRequested && missingReleaseSocialLoginProperties.isNotEmpty()) {
+    throw GradleException(
+        "Release social login properties are missing in local.properties: " +
+            missingReleaseSocialLoginProperties.joinToString(),
     )
 }
 
@@ -62,8 +79,8 @@ android {
 
     defaultConfig {
         applicationId = "com.team.chord"
-        versionCode = 19
-        versionName = "1.0.4"
+        versionCode = 21
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["kakaoRedirectScheme"] = "kakao$kakaoNativeAppKey"
