@@ -89,9 +89,11 @@ class AndroidSocialLoginClient {
                 }
 
                 override fun onFailure(errorCode: String, errorDesc: String) {
-                    if (errorCode == NAVER_USER_CANCEL_ERROR_CODE) {
+                    if (isNaverUserCancel(errorCode, errorDesc)) {
+                        Log.d(TAG, "Naver login cancelled: code=$errorCode desc=$errorDesc")
                         onCancelled()
                     } else {
+                        Log.w(TAG, "Naver login failed: code=$errorCode desc=$errorDesc")
                         onError(errorDesc.ifBlank { "네이버 로그인에 실패했습니다." })
                     }
                 }
@@ -127,6 +129,12 @@ class AndroidSocialLoginClient {
 
     private companion object {
         const val TAG = "SocialLoginClient"
-        const val NAVER_USER_CANCEL_ERROR_CODE = "CLIENT_USER_CANCEL"
+        const val NAVER_USER_CANCEL_ERROR_CODE = "user_cancel"
+        const val NAVER_USER_CANCEL_ERROR_NAME = "CLIENT_USER_CANCEL"
+
+        fun isNaverUserCancel(errorCode: String, errorDesc: String): Boolean =
+            errorCode == NAVER_USER_CANCEL_ERROR_CODE ||
+                errorCode == NAVER_USER_CANCEL_ERROR_NAME ||
+                errorDesc == NAVER_USER_CANCEL_ERROR_CODE
     }
 }
